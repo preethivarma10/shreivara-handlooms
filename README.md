@@ -25,7 +25,7 @@ The site footer links to the shop at `shreivara@gmail.com` using `mailto:` and t
 
 ## Customer orders
 
-Customers place orders through the product's WhatsApp link. The storefront does not collect customer email addresses or phone numbers for order tracking.
+Customers can save sarees or add them to the shopping bag, then send a product enquiry or the combined bag to the shop through WhatsApp. The bag and saved pieces are kept in the visitor's browser. The storefront does not collect customer email addresses or phone numbers for order tracking.
 
 ## Environment variable safety
 

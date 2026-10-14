@@ -16,7 +16,105 @@ function SearchIcon() {
   );
 }
 
-function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, ownerOpen, setOwnerOpen }) {
+function BookmarkIcon({ filled = false }) {
+  return <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 4.75A1.75 1.75 0 0 1 8.5 3h7a1.75 1.75 0 0 1 1.75 1.75V21l-5.75-3.5L5.75 21V4.75Z" /></svg>;
+}
+
+function BagIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5.5 8.5h13l1 12h-15l1-12Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 9V6a3 3 0 0 1 6 0v3" /></svg>;
+}
+
+function addCartItem(current, sku) {
+  const existing = current.find((item) => item.sku === sku);
+  return existing
+    ? current.map((item) => item.sku === sku ? { ...item, quantity: item.quantity + 1 } : item)
+    : [...current, { sku, quantity: 1 }];
+}
+
+function readStoredList(key, validateItem) {
+  try {
+    const stored = window.localStorage.getItem(key);
+    if (stored === null) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) throw new TypeError('Stored value must be a list.');
+    return parsed.filter(validateItem);
+  } catch (error) {
+    console.error(`Could not read ${key} from browser storage.`, error);
+    return [];
+  }
+}
+
+function StorePanel({ panel, products, cartItems, setCartItems, savedSkus, setSavedSkus, onAddToBag, onClose }) {
+  if (!panel) return null;
+
+  const visibleCart = cartItems
+    .map((item) => ({ ...item, product: products.find((product) => product.sku === item.sku) }))
+    .filter((item) => item.product);
+  const savedProducts = savedSkus.map((sku) => products.find((product) => product.sku === sku)).filter(Boolean);
+  const total = visibleCart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
+
+  function startWhatsAppOrder() {
+    const message = [
+      'Hello Shreivara, I would like to enquire about these pieces:',
+      ...visibleCart.map(({ product, quantity }) => `${product.name} (${product.sku}) × ${quantity} — ₹${product.sellingPrice.toLocaleString('en-IN')}`),
+      `Total: ₹${total.toLocaleString('en-IN')}`,
+      'Please confirm availability and size options.'
+    ].join('\n');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  }
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <button type="button" aria-label="Close panel" onClick={onClose} className="absolute inset-0 bg-[#21180f]/35 backdrop-blur-[2px]" />
+      <section role="dialog" aria-modal="true" aria-labelledby="store-panel-title" className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-[#f8f5ed] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#e4dccd] px-6 py-5">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-600">{panel === 'cart' ? 'Your selection' : 'Saved for later'}</p>
+            <h2 id="store-panel-title" className="mt-1 font-brand text-2xl font-medium text-maroon-900">{panel === 'cart' ? 'Shopping bag' : 'Saved pieces'}</h2>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-600 transition hover:bg-[#e9e1d3]">×</button>
+        </div>
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+          {panel === 'cart' ? (visibleCart.length ? visibleCart.map(({ product, quantity }) => (
+            <article key={product.sku} className="flex gap-4 border-b border-[#e4dccd] pb-4">
+              <img src={product.image} alt={product.name} className="h-24 w-20 rounded-lg object-cover" />
+              <div className="min-w-0 flex-1">
+                <h3 className="font-brand text-lg font-medium text-maroon-900">{product.name}</h3>
+                <p className="mt-1 text-sm text-gray-600">{product.sku} · ₹{product.sellingPrice.toLocaleString('en-IN')}</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <button type="button" aria-label={`Remove one ${product.name}`} onClick={() => setCartItems((current) => current.flatMap((item) => item.sku !== product.sku ? [item] : item.quantity > 1 ? [{ ...item, quantity: item.quantity - 1 }] : []))} className="h-8 w-8 rounded-full border border-[#d9d0c1] text-lg">−</button>
+                  <span className="text-sm">{quantity}</span>
+                  <button type="button" aria-label={`Add one ${product.name}`} onClick={() => setCartItems((current) => current.map((item) => item.sku === product.sku ? { ...item, quantity: item.quantity + 1 } : item))} className="h-8 w-8 rounded-full border border-[#d9d0c1] text-lg">+</button>
+                  <button type="button" onClick={() => setCartItems((current) => current.filter((item) => item.sku !== product.sku))} className="ml-auto text-xs text-gray-500 underline underline-offset-2">Remove</button>
+                </div>
+              </div>
+            </article>
+          )) : <p className="py-12 text-center font-brand text-xl text-gray-500">Your bag is waiting for something beautiful.</p>) : (savedProducts.length ? savedProducts.map((product) => (
+            <article key={product.sku} className="flex gap-4 border-b border-[#e4dccd] pb-4">
+              <img src={product.image} alt={product.name} className="h-24 w-20 rounded-lg object-cover" />
+              <div className="min-w-0 flex-1">
+                <h3 className="font-brand text-lg font-medium text-maroon-900">{product.name}</h3>
+                <p className="mt-1 text-sm text-gray-600">{product.category}</p>
+                <p className="mt-2 text-sm font-semibold text-maroon-900">₹{product.sellingPrice.toLocaleString('en-IN')}</p>
+                <div className="mt-3 flex gap-4 text-xs">
+                  <button type="button" onClick={() => { onAddToBag(product.sku); setSavedSkus((current) => current.filter((sku) => sku !== product.sku)); }} className="font-semibold text-maroon-900 underline underline-offset-2">Add to bag</button>
+                  <button type="button" onClick={() => setSavedSkus((current) => current.filter((sku) => sku !== product.sku))} className="text-gray-500 underline underline-offset-2">Remove</button>
+                </div>
+              </div>
+            </article>
+          )) : <p className="py-12 text-center font-brand text-xl text-gray-500">Save a piece to find it here later.</p>)}
+        </div>
+        {panel === 'cart' && visibleCart.length > 0 && <div className="border-t border-[#e4dccd] px-6 py-5">
+          <div className="mb-4 flex justify-between font-semibold text-maroon-900"><span>Subtotal</span><span>₹{total.toLocaleString('en-IN')}</span></div>
+          <button type="button" onClick={startWhatsAppOrder} className="w-full rounded-lg bg-maroon-900 px-5 py-3 text-sm font-semibold tracking-wide text-[#f8f5ed] transition hover:bg-maroon-800">Continue on WhatsApp</button>
+          <p className="mt-3 text-center text-xs text-gray-500">We’ll confirm availability and delivery with you.</p>
+        </div>}
+      </section>
+    </div>
+  );
+}
+
+function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, ownerOpen, setOwnerOpen, cartCount, savedCount, onOpenPanel }) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -54,39 +152,41 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-      <div className="mx-auto grid h-[76px] max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4 text-xs font-medium text-gray-600 sm:text-sm">
-          <Link to="/about" className="hidden hover:text-maroon-900 sm:inline">About us</Link>
-          <Link to="/#catalog" className="hidden hover:text-maroon-900 sm:inline">Our collection</Link>
-        </div>
-        <Link to="/" className="flex items-center gap-2.5" aria-label="Shreivara home">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gold-500 bg-maroon-900 font-brand text-lg font-bold text-gold-500">S</span>
-          <span className="text-left">
-            <span className="block font-brand text-lg font-bold leading-tight tracking-wide text-maroon-900 sm:text-xl">Shreivara</span>
-            <span className="hidden text-[9px] font-semibold uppercase tracking-[0.25em] text-gold-600 sm:block">Luxury Ethnic Weaves</span>
-          </span>
+    <header className="sticky top-0 z-40 border-b border-[#ded5c6] bg-[#f6f2e9]/95 backdrop-blur-sm">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Shreivara home">
+          <span className="font-brand text-2xl font-semibold tracking-tight text-maroon-900 sm:text-3xl">Shreivara</span>
         </Link>
-        <div className="flex items-center justify-end gap-2 sm:gap-4">
+        <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm text-gray-700 lg:flex">
+          <Link to="/" className="transition hover:text-maroon-900">Home</Link>
+          <Link to="/#collections" className="transition hover:text-maroon-900">Collections</Link>
+          <Link to="/#catalog" className="transition hover:text-maroon-900">Shop</Link>
+          <Link to="/about" className="transition hover:text-maroon-900">About us</Link>
+        </nav>
+        <div className="flex items-center justify-end gap-1.5 sm:gap-3">
+          <button type="button" onClick={() => onOpenPanel('saved')} aria-label={`Saved pieces, ${savedCount} ${savedCount === 1 ? 'item' : 'items'}`} className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#e9e1d3]">
+            <span className="h-5 w-5"><BookmarkIcon /></span>
+            {savedCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 px-1 text-[9px] font-bold text-white">{savedCount}</span>}
+          </button>
+          <button type="button" onClick={() => onOpenPanel('cart')} aria-label={`Shopping bag, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`} className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#e9e1d3]">
+            <span className="h-5 w-5"><BagIcon /></span>
+            {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 px-1 text-[9px] font-bold text-white">{cartCount}</span>}
+          </button>
           {ownerAllowed && <button type="button" onClick={requestOwnerAccess} className="rounded-full bg-gold-500 px-3 py-2 text-[10px] font-bold text-maroon-900 transition hover:bg-white">{ownerOpen ? 'Customer' : 'Owner'}</button>}
         </div>
       </div>
-      <div className="border-y border-gray-100">
+      <div className="border-t border-[#e6dfd3]">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-4 py-2 sm:px-6 lg:flex-row lg:justify-between lg:gap-6 lg:px-8">
-          <nav aria-label="Shop categories" className="-mx-4 flex w-full items-center justify-start gap-5 overflow-x-auto whitespace-nowrap px-4 text-xs font-medium text-gray-700 sm:mx-0 sm:gap-7 sm:px-0 sm:text-sm lg:w-auto">
-            <Link to="/" className="text-maroon-900">Home</Link>
-            <Link to="/#catalog" className="hover:text-maroon-900">Shop</Link>
+          <nav aria-label="Shop categories" className="-mx-4 flex w-full items-center justify-start gap-5 overflow-x-auto whitespace-nowrap px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-700 sm:mx-0 sm:gap-7 sm:px-0 sm:text-xs lg:w-auto">
             {categories.map((item) => <button key={item} type="button" aria-pressed={category === item} onClick={() => selectCategory(item)} className={`transition hover:text-maroon-900 ${category === item ? 'text-maroon-900' : ''}`}>{item === 'Organza & Chiffon' ? 'Organza' : item}</button>)}
             {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to see your jewellery collection.')}`} target="_blank" rel="noreferrer" className="hover:text-maroon-900">Jewellery</a>}
-            <Link to="/about" className="hover:text-maroon-900 sm:hidden">About</Link>
           </nav>
           <label className="relative w-full max-w-xl lg:w-64">
-            <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sarees or SKU..." aria-label="Search sarees by name or SKU" className="w-full rounded-full border border-gray-200 bg-gray-50 py-2 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none sm:text-sm" />
+            <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sarees or SKU..." aria-label="Search sarees by name or SKU" className="w-full rounded-full border border-[#d9d0c1] bg-transparent py-2 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none sm:text-sm" />
             <SearchIcon />
           </label>
         </div>
       </div>
-      <div className="px-4 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-maroon-900 sm:text-xs sm:tracking-[0.18em]">✨ Festive Special • Free Shipping across India</div>
     </header>
   );
 }
@@ -113,6 +213,38 @@ export default function SiteLayout() {
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState('');
+  const [cartItems, setCartItems] = useState(() => readStoredList('shreivara-cart', (item) =>
+    typeof item?.sku === 'string' && Number.isSafeInteger(item.quantity) && item.quantity > 0));
+  const [savedSkus, setSavedSkus] = useState(() => readStoredList('shreivara-saved', (sku) =>
+    typeof sku === 'string' && sku.length > 0 && sku.length <= 64));
+  const [activePanel, setActivePanel] = useState('');
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('shreivara-cart', JSON.stringify(cartItems));
+    } catch (error) {
+      console.error('Could not save the shopping bag in browser storage.', error);
+    }
+  }, [cartItems]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('shreivara-saved', JSON.stringify(savedSkus));
+    } catch (error) {
+      console.error('Could not save saved pieces in browser storage.', error);
+    }
+  }, [savedSkus]);
+
+  useEffect(() => {
+    if (productsLoading || productsError) return;
+    const productSkus = new Set(products.map((product) => product.sku));
+    setCartItems((current) => current.filter((item) => productSkus.has(item.sku)));
+    setSavedSkus((current) => current.filter((sku) => productSkus.has(sku)));
+  }, [products, productsError, productsLoading]);
+
+  function addToBag(sku) {
+    setCartItems((current) => addCartItem(current, sku));
+  }
 
   useEffect(() => {
     let active = true;
@@ -144,9 +276,14 @@ export default function SiteLayout() {
     setCategory,
     products,
     setProducts,
+    cartItems,
+    setCartItems,
+    addToBag,
+    savedSkus,
+    setSavedSkus,
     productsLoading,
     productsError
   };
 
-  return <StoreContext.Provider value={context}><div className="flex min-h-screen flex-col"><SiteHeader {...context} ownerAllowed={ownerAllowed} /><Outlet context={context} /><SiteFooter /></div></StoreContext.Provider>;
+  return <StoreContext.Provider value={context}><div className="flex min-h-screen flex-col"><SiteHeader {...context} ownerAllowed={ownerAllowed} cartCount={cartItems.reduce((count, item) => count + item.quantity, 0)} savedCount={savedSkus.length} onOpenPanel={setActivePanel} /><Outlet context={context} /><SiteFooter /><StorePanel panel={activePanel} products={products} cartItems={cartItems} setCartItems={setCartItems} savedSkus={savedSkus} setSavedSkus={setSavedSkus} onAddToBag={addToBag} onClose={() => setActivePanel('')} /></div></StoreContext.Provider>;
 }
