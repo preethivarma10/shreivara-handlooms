@@ -24,7 +24,7 @@ export default function AboutPage() {
       <section className="grid gap-6 py-8 sm:grid-cols-2 lg:grid-cols-4 lg:py-10" aria-label="Saree categories">{collections.map(([name, description]) => <div key={name}><h3 className="font-brand text-lg font-bold text-maroon-900">{name}</h3><p className="mt-2 text-sm text-gray-600">{description}</p></div>)}</section>
       <section className="flex flex-col items-start justify-between gap-4 border-t border-gray-200 py-8 sm:flex-row sm:items-center">
         <div><h2 className="font-brand text-xl font-bold text-maroon-900">Traditional Jewellery</h2><p className="mt-1 text-sm text-gray-600">Ask us about the jewellery available to complete your look.</p></div>
-        <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to see your jewellery collection.')}`} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-md bg-emerald-800 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-900">Enquire on WhatsApp</a>
+        {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to see your jewellery collection.')}`} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-md bg-emerald-800 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-900">Enquire on WhatsApp</a>}
       </section>
     </main>
   );

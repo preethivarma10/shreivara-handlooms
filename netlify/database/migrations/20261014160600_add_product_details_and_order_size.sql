@@ -1,0 +1,6 @@
+ALTER TABLE products
+  ADD COLUMN offer_details TEXT NOT NULL DEFAULT '',
+  ADD COLUMN sizes TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE orders
+  ADD COLUMN size TEXT;

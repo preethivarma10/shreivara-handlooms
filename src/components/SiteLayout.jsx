@@ -1,6 +1,6 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { categories, initialProducts, WHATSAPP_NUMBER } from '../data/products.js';
+import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 
 const StoreContext = createContext(null);
 
@@ -13,15 +13,6 @@ function WhatsAppIcon() {
     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M20 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.1-3.5A8.4 8.4 0 1 1 20 11.5Z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M9 8.5c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.7c.1.3.1.5-.1.7l-.6.7c-.2.2-.2.4 0 .6.5.8 1.2 1.5 2 2 .2.1.4.1.6-.1l.8-.9c.2-.2.4-.2.7-.1l1.6.8c.3.1.4.3.4.5 0 .4-.2 1.1-.7 1.5-.5.4-1.2.6-1.8.5-1-.1-2.2-.6-3.6-1.8-1.7-1.5-2.8-3.4-2.9-4.4-.1-.5.1-1.1.4-1.7Z" />
-    </svg>
-  );
-}
-
-function AccountIcon() {
-  return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-      <circle cx="12" cy="8" r="3.5" strokeWidth="1.7" />
-      <path strokeLinecap="round" strokeWidth="1.7" d="M5 20c.7-3.1 3.3-5 7-5s6.3 1.9 7 5" />
     </svg>
   );
 }
@@ -47,14 +38,28 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
     document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  function requestOwnerAccess() {
-    const passcode = window.prompt('Enter passcode');
-    if (passcode === null) return;
-    if (passcode !== 'shreivara2026') {
-      window.alert('Incorrect passcode');
+  async function requestOwnerAccess() {
+    let response;
+    try {
+      response = await fetch('/api/owner');
+    } catch (error) {
+      console.error('Could not verify owner access.', error);
+      window.alert('Could not verify owner access. Please try again.');
       return;
     }
-    setOwnerOpen((open) => !open);
+
+    if (response.status === 204) {
+      setOwnerOpen((open) => !open);
+    } else if (response.status === 401) {
+      window.alert('Sign in with the configured owner account to manage products.');
+    } else if (response.status === 403) {
+      window.alert('This account is not authorized to manage products.');
+    } else if (response.status === 503) {
+      window.alert('Owner access has not been configured for this deployment.');
+    } else {
+      console.error(`Owner access verification failed with status ${response.status}.`);
+      window.alert('Could not verify owner access. Please try again.');
+    }
   }
 
   return (
@@ -72,13 +77,9 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
           </span>
         </Link>
         <div className="flex items-center justify-end gap-2 sm:gap-4">
-          <Link to="/login" aria-label="Login or register" className="inline-flex h-9 w-9 items-center justify-center gap-2 rounded-full text-gray-700 transition hover:bg-gray-100 hover:text-maroon-900 sm:w-auto sm:px-2">
-            <AccountIcon />
-            <span className="hidden text-sm font-medium sm:inline">Login / Register</span>
-          </Link>
-          <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hello%20Shreivara%2C%20I%20would%20like%20to%20place%20an%20order.`} target="_blank" rel="noreferrer" aria-label="Order on WhatsApp" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-emerald-800 transition hover:bg-emerald-50">
+          {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hello%20Shreivara%2C%20I%20would%20like%20to%20place%20an%20order.`} target="_blank" rel="noreferrer" aria-label="Order on WhatsApp" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-emerald-800 transition hover:bg-emerald-50">
             <WhatsAppIcon />
-          </a>
+          </a>}
           {ownerAllowed && <button type="button" onClick={requestOwnerAccess} className="rounded-full bg-gold-500 px-3 py-2 text-[10px] font-bold text-maroon-900 transition hover:bg-white">{ownerOpen ? 'Customer' : 'Owner'}</button>}
         </div>
       </div>
@@ -88,7 +89,7 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
             <Link to="/" className="text-maroon-900">Home</Link>
             <Link to="/#catalog" className="hover:text-maroon-900">Shop</Link>
             {categories.map((item) => <button key={item} type="button" aria-pressed={category === item} onClick={() => selectCategory(item)} className={`transition hover:text-maroon-900 ${category === item ? 'text-maroon-900' : ''}`}>{item === 'Organza & Chiffon' ? 'Organza' : item}</button>)}
-            <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to see your jewellery collection.')}`} target="_blank" rel="noreferrer" className="hover:text-maroon-900">Jewellery</a>
+            {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to see your jewellery collection.')}`} target="_blank" rel="noreferrer" className="hover:text-maroon-900">Jewellery</a>}
             <Link to="/about" className="hover:text-maroon-900 sm:hidden">About</Link>
           </nav>
           <label className="relative w-full max-w-xl lg:w-64">
@@ -112,8 +113,43 @@ export default function SiteLayout() {
   const [ownerOpen, setOwnerOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All Sarees');
-  const [products, setProducts] = useState(initialProducts);
-  const context = { ownerOpen, setOwnerOpen, query, setQuery, category, setCategory, products, setProducts };
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    async function loadProducts() {
+      try {
+        const response = await fetch('/api/products');
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not load the product catalogue.');
+        if (!Array.isArray(result)) throw new Error('The product catalogue response was invalid.');
+        if (active) setProducts(result);
+      } catch (error) {
+        if (active) {
+          setProductsError(error instanceof Error ? error.message : 'Could not load the product catalogue.');
+        }
+      } finally {
+        if (active) setProductsLoading(false);
+      }
+    }
+    loadProducts();
+    return () => { active = false; };
+  }, []);
+
+  const context = {
+    ownerOpen,
+    setOwnerOpen,
+    query,
+    setQuery,
+    category,
+    setCategory,
+    products,
+    setProducts,
+    productsLoading,
+    productsError
+  };
 
   return <StoreContext.Provider value={context}><div className="flex min-h-screen flex-col"><SiteHeader {...context} ownerAllowed={ownerAllowed} /><Outlet context={context} /><SiteFooter /></div></StoreContext.Provider>;
 }
