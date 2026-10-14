@@ -32,39 +32,100 @@ function ProductCard({ product }) {
   );
 }
 
-function AdminPanel({ onAddProduct }) {
+function ProductForm({ product, onSave, onCancel, submitLabel }) {
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  function submitProduct(event) {
+  async function submitProduct(event) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
     const form = event.currentTarget;
     setError('');
-    onAddProduct(formData).then(() => form.reset()).catch((submitError) => {
+    setNotice('');
+    setSaving(true);
+    try {
+      const result = await onSave(new FormData(form));
+      if (!product) form.reset();
+      setNotice(result?.warning || (product ? 'Product updated.' : 'Product added.'));
+    } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'The product could not be saved.');
-    });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submitProduct} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {error && <p className="text-sm text-red-800 md:col-span-2 xl:col-span-3" role="alert">{error}</p>}
+      {notice && <p className="text-sm text-emerald-800 md:col-span-2 xl:col-span-3" role="status">{notice}</p>}
+      <label className="grid gap-2 text-sm font-semibold text-gray-700">SKU<input name="sku" required maxLength="64" readOnly={Boolean(product)} defaultValue={product?.sku ?? ''} placeholder="SHR-101" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none read-only:text-gray-500" /></label>
+      <label className="grid gap-2 text-sm font-semibold text-gray-700">Product name<input name="name" required maxLength="120" defaultValue={product?.name ?? ''} placeholder="Royal Gold Temple Saree" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
+      <label className="grid gap-2 text-sm font-semibold text-gray-700">Category<select name="category" required defaultValue={product?.category ?? categories[0]} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none">{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label className="grid gap-2 text-sm font-semibold text-gray-700">Original price (INR)<input name="originalPrice" type="number" min="1" step="1" required defaultValue={product?.originalPrice ?? ''} placeholder="8999" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
+      <label className="grid gap-2 text-sm font-semibold text-gray-700">Offer price (INR)<input name="sellingPrice" type="number" min="1" step="1" required defaultValue={product?.sellingPrice ?? ''} placeholder="6999" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
+      <label className="grid gap-2 text-sm font-semibold text-gray-700">Sizes (comma-separated)<input name="sizes" maxLength="120" defaultValue={product?.sizes ?? ''} placeholder="Free size or S, M, L" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
+      <label className="grid gap-2 text-sm font-semibold text-gray-700 md:col-span-2">Offer details<textarea name="offerDetails" rows="2" maxLength="300" defaultValue={product?.offerDetails ?? ''} placeholder="Optional promotion or product offer" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
+      {product && <p className="text-sm text-gray-600 md:col-span-2">Current image: <a href={product.image} target="_blank" rel="noreferrer" className="text-maroon-900 underline">View image</a></p>}
+      <label className="grid gap-2 text-sm font-semibold text-gray-700 md:col-span-2">Product image (JPEG, PNG, or WebP; max 5 MB){product && ' — optional, upload to replace'}<input name="image" type="file" accept="image/jpeg,image/png,image/webp" required={!product} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal file:mr-3 file:rounded-md file:border-0 file:bg-maroon-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-maroon-800 focus:outline-none" /></label>
+      <div className="flex justify-end gap-3 md:col-span-2 xl:col-span-3">
+        {onCancel && <button type="button" onClick={onCancel} className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-700">Cancel</button>}
+        <button type="submit" disabled={saving} className="rounded-lg bg-emerald-800 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-60">{saving ? 'Saving…' : submitLabel}</button>
+      </div>
+    </form>
+  );
+}
+
+function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct }) {
+  const [editingSku, setEditingSku] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+
+  async function deleteProduct(product) {
+    if (!window.confirm(`Delete "${product.name}"? This will remove it from the storefront.`)) return;
+    setDeleteError('');
+    try {
+      const result = await onDeleteProduct(product.sku);
+      setEditingSku('');
+      if (result?.warning) setDeleteError(result.warning);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'The product could not be deleted.');
+    }
   }
 
   return (
     <aside className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-12 sm:px-6 lg:px-8">
-      <div className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Owner console</p><h2 className="mt-1 font-brand text-2xl font-bold text-maroon-900">Add New Saree</h2>
-        <form onSubmit={submitProduct} className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {error && <p className="text-sm text-red-800 md:col-span-2 xl:col-span-3" role="alert">{error}</p>}
-        <label className="grid gap-2 text-sm font-semibold text-gray-700">SKU<input name="sku" required maxLength="64" placeholder="SHR-101" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-        <label className="grid gap-2 text-sm font-semibold text-gray-700">Product name<input name="name" required maxLength="120" placeholder="Royal Gold Temple Saree" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-        <label className="grid gap-2 text-sm font-semibold text-gray-700">Category<select name="category" required className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none">{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="grid gap-2 text-sm font-semibold text-gray-700">Original price (INR)<input name="originalPrice" type="number" min="1" step="1" required placeholder="8999" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-        <label className="grid gap-2 text-sm font-semibold text-gray-700">Offer price (INR)<input name="sellingPrice" type="number" min="1" step="1" required placeholder="6999" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-        <label className="grid gap-2 text-sm font-semibold text-gray-700">Sizes (comma-separated)<input name="sizes" maxLength="120" placeholder="Free size or S, M, L" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-        <label className="grid gap-2 text-sm font-semibold text-gray-700 md:col-span-2">Offer details<textarea name="offerDetails" rows="2" maxLength="300" placeholder="Optional promotion or product offer" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-        <label className="grid gap-2 text-sm font-semibold text-gray-700 md:col-span-2">Product image (JPEG, PNG, or WebP; max 5 MB)<input name="image" type="file" accept="image/jpeg,image/png,image/webp" required className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal file:mr-3 file:rounded-md file:border-0 file:bg-maroon-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-maroon-800 focus:outline-none" /></label>
-        <div className="flex justify-end md:col-span-2 xl:col-span-3"><button type="submit" className="rounded-lg bg-emerald-800 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-900">Add product</button></div>
-        </form>
+      <div className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Owner console</p>
+        <h2 className="mt-1 font-brand text-2xl font-bold text-maroon-900">Add New Saree</h2>
+        <div className="mt-6"><ProductForm submitLabel="Add product" onSave={onAddProduct} /></div>
       </div>
+      <section className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8" aria-labelledby="manage-products-heading">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Catalogue</p>
+        <h2 id="manage-products-heading" className="mt-1 font-brand text-2xl font-bold text-maroon-900">Manage Sarees</h2>
+        {deleteError && <p className="mt-4 text-sm text-red-800" role="alert">{deleteError}</p>}
+        <div className="mt-5 grid gap-4">
+          {products.map((product) => editingSku === product.sku
+            ? <div key={product.sku} className="rounded-xl border border-gray-200 p-4">
+                <ProductForm product={product} submitLabel="Save changes" onSave={(formData) => onUpdateProduct(product.sku, formData)} onCancel={() => setEditingSku('')} />
+              </div>
+            : <article key={product.sku} className="grid gap-4 rounded-xl border border-gray-200 p-4 sm:grid-cols-[96px_1fr_auto] sm:items-center">
+                <img src={product.image} alt={product.name} className="h-24 w-24 rounded-lg object-cover" />
+                <div>
+                  <p className="font-semibold text-maroon-900">{product.name}</p>
+                  <p className="mt-1 text-sm text-gray-600">{product.sku} · {product.category}</p>
+                  <p className="mt-1 text-sm text-gray-700">{formatCurrency(product.sellingPrice)} <span className="text-gray-500">/ {formatCurrency(product.originalPrice)}</span></p>
+                  {product.offerDetails && <p className="mt-1 text-sm text-gray-600">{product.offerDetails}</p>}
+                </div>
+                <div className="flex gap-2 sm:flex-col">
+                  <button type="button" onClick={() => { setDeleteError(''); setEditingSku(product.sku); }} className="rounded-lg border border-maroon-900 px-4 py-2 text-sm font-semibold text-maroon-900">Edit</button>
+                  <button type="button" onClick={() => deleteProduct(product)} className="rounded-lg border border-red-700 px-4 py-2 text-sm font-semibold text-red-700">Delete</button>
+                </div>
+              </article>)}
+          {products.length === 0 && <p className="text-sm text-gray-600">No sarees have been added yet.</p>}
+        </div>
+      </section>
     </aside>
   );
 }
-
 export default function HomePage() {
   const { ownerOpen, setOwnerOpen, query, category, setCategory, products, setProducts, productsLoading, productsError } = useOutletContext();
   const filteredProducts = useMemo(() => {
@@ -81,12 +142,29 @@ export default function HomePage() {
   }, []);
 
   async function addProduct(formData) {
+    return saveProductRequest('/api/products', { method: 'POST', body: formData }, 'The product could not be saved.').then((result) => {
+      setProducts((current) => [result, ...current]);
+      setCategory('All Sarees');
+      return result;
+    });
+  }
+
+  async function updateProduct(sku, formData) {
+    const result = await saveProductRequest(`/api/products?sku=${encodeURIComponent(sku)}`, { method: 'PUT', body: formData }, 'The product could not be updated.');
+    setProducts((current) => current.map((product) => product.sku === sku ? result.product : product));
+    return result;
+  }
+
+  async function deleteProduct(sku) {
+    const result = await saveProductRequest(`/api/products?sku=${encodeURIComponent(sku)}`, { method: 'DELETE' }, 'The product could not be deleted.');
+    setProducts((current) => current.filter((product) => product.sku !== sku));
+    return result;
+  }
+
+  async function saveProductRequest(url, options, failureMessage) {
     let response;
     try {
-      response = await fetch('/api/products', {
-        method: 'POST',
-        body: formData
-      });
+      response = await fetch(url, options);
     } catch {
       throw new Error('Could not reach the product service. Please try again.');
     }
@@ -98,12 +176,9 @@ export default function HomePage() {
       throw new Error('The product service returned an invalid response.');
     }
     if (!response.ok) {
-      throw new Error(typeof result.error === 'string' ? result.error : 'The product could not be saved.');
+      throw new Error(typeof result.error === 'string' ? result.error : failureMessage);
     }
-
-    setProducts((current) => [result, ...current]);
-    setCategory('All Sarees');
-    setOwnerOpen(false);
+    return result;
   }
 
   return (
@@ -146,6 +221,6 @@ export default function HomePage() {
             : filteredProducts.length ? <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">{filteredProducts.map((product) => <ProductCard key={`${product.sku}-${product.name}`} product={product} />)}</div>
               : <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center"><div><p className="text-lg font-semibold text-gray-700">No sarees match your search.</p><p className="mt-2 text-sm text-gray-500">Try a different SKU or saree name.</p></div></div>}
       </section>
-    </div>{ownerOpen && <AdminPanel onAddProduct={addProduct} />}</main>
+    </div>{ownerOpen && <AdminPanel products={products} onAddProduct={addProduct} onUpdateProduct={updateProduct} onDeleteProduct={deleteProduct} />}</main>
   );
 }
