@@ -8,15 +8,6 @@ export function useStore() {
   return useContext(StoreContext);
 }
 
-function WhatsAppIcon() {
-  return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M20 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.1-3.5A8.4 8.4 0 1 1 20 11.5Z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" d="M9 8.5c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.7 1.7c.1.3.1.5-.1.7l-.6.7c-.2.2-.2.4 0 .6.5.8 1.2 1.5 2 2 .2.1.4.1.6-.1l.8-.9c.2-.2.4-.2.7-.1l1.6.8c.3.1.4.3.4.5 0 .4-.2 1.1-.7 1.5-.5.4-1.2.6-1.8.5-1-.1-2.2-.6-3.6-1.8-1.7-1.5-2.8-3.4-2.9-4.4-.1-.5.1-1.1.4-1.7Z" />
-    </svg>
-  );
-}
-
 function SearchIcon() {
   return (
     <svg className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -77,9 +68,6 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
           </span>
         </Link>
         <div className="flex items-center justify-end gap-2 sm:gap-4">
-          {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hello%20Shreivara%2C%20I%20would%20like%20to%20place%20an%20order.`} target="_blank" rel="noreferrer" aria-label="Order on WhatsApp" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-emerald-800 transition hover:bg-emerald-50">
-            <WhatsAppIcon />
-          </a>}
           {ownerAllowed && <button type="button" onClick={requestOwnerAccess} className="rounded-full bg-gold-500 px-3 py-2 text-[10px] font-bold text-maroon-900 transition hover:bg-white">{ownerOpen ? 'Customer' : 'Owner'}</button>}
         </div>
       </div>
