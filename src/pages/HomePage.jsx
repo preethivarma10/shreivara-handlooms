@@ -27,8 +27,7 @@ function ProductCard({ product }) {
       <div className="p-4"><span className="mb-3 inline-block rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-600">{product.category}</span><h3 className="min-h-[56px] font-brand text-xl font-bold leading-snug text-maroon-900">{product.name}</h3><div className="mt-4 flex items-center gap-2"><span className="text-2xl font-bold text-maroon-900">{formatCurrency(product.sellingPrice)}</span><span className="text-sm text-gray-400 line-through">{formatCurrency(product.originalPrice)}</span></div>
         {product.offerDetails && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-maroon-900">{product.offerDetails}</p>}
         {sizes.length > 0 && <p className="mt-2 text-sm text-gray-600">Available sizes: {sizes.join(', ')}</p>}
-        {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`} target="_blank" rel="noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-maroon-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-maroon-800">Order now</a>}
-        {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-emerald-800 px-4 py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50">Order on WhatsApp</a>}</div>
+        {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`} target="_blank" rel="noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-emerald-800 px-4 py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50">Order on WhatsApp</a>}</div>
     </article>
   );
 }
