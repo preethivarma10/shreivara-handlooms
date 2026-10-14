@@ -104,7 +104,16 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
 }
 
 function SiteFooter() {
-  return <footer className="border-t border-gold-500/30 bg-maroon-900 px-4 py-7 text-center text-sm text-white/80"><p className="font-semibold text-gold-500">Shreivara</p><p className="mt-1">Direct WhatsApp orders • Secure delivery • Trusted quality</p></footer>;
+  return (
+    <footer className="border-t border-gold-500/30 bg-maroon-900 px-4 py-7 text-center text-sm text-white/80">
+      <p className="font-semibold text-gold-500">Shreivara</p>
+      <p className="mt-1">Direct WhatsApp orders • Secure delivery • Trusted quality</p>
+      <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-5">
+        <a href="mailto:shreivara@gmail.com" className="underline decoration-white/40 underline-offset-4 transition hover:text-gold-500">shreivara@gmail.com</a>
+        {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to get in touch.')}`} target="_blank" rel="noreferrer" className="underline decoration-white/40 underline-offset-4 transition hover:text-gold-500">WhatsApp: +91 90005 10329</a>}
+      </div>
+    </footer>
+  );
 }
 
 export default function SiteLayout() {

@@ -21,6 +21,8 @@ Netlify Database is used to store the catalogue. The committed migrations create
 
 WhatsApp links use the store's public contact number, `+91 90005 10329`, defined in `src/data/products.js`. Update that constant and redeploy if the shop's WhatsApp number changes. Remove any old `VITE_WHATSAPP_NUMBER` setting from Netlify so it cannot cause confusion.
 
+The site footer links to the shop at `shreivara@gmail.com` using `mailto:` and to WhatsApp using the public contact number. Add an Instagram profile link after the shop's account handle is available.
+
 ## Customer orders
 
 Customers place orders through the product's WhatsApp link. The storefront does not collect customer email addresses or phone numbers for order tracking.
