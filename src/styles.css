@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-maroon-900: #4a0e17;
+  --color-maroon-800: #6b1422;
+  --color-maroon-700: #7e1a2b;
+  --color-gold-500: #d4af37;
+  --color-gold-600: #b8860b;
+  --color-emerald-800: #064e3b;
+  --color-emerald-900: #022c22;
+  --font-brand: 'Cinzel', serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: #fafafa;
+  color: #1f2937;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.soft-card {
+  box-shadow: 0 10px 30px rgba(74, 14, 23, 0.08);
+}
+
+.hero-image {
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.18) 70%, rgba(0, 0, 0, 0.08)), url('https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=2200&q=90');
+  background-position: center 12%;
+  background-size: cover;
+}
+
+@media (max-width: 639px) {
+  .hero-image {
+    background-image: url('https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=85');
+    background-position: left center;
+  }
+}
