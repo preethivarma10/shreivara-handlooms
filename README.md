@@ -23,8 +23,8 @@ WhatsApp links use the store's public contact number, `+91 90005 10329`, defined
 
 ## Customer orders
 
-Customers can place an order request without creating an account by entering an email address and phone number on a product card. If sizes are configured, the customer must select one. The site stores each request with the product, selected size, and price in Netlify Database and returns an order reference; it does not take payment. The owner console lists requests, lets the owner filter by email, and update each order's status. Order details are only available through the owner-authorized API. Orders are limited by IP to reduce automated submissions. Contact details are stored so the shop can follow up about the order.
+Customers place orders through the product's WhatsApp link. The storefront does not collect customer email addresses or phone numbers for order tracking.
 
 ## Environment variable safety
 
-Local `.env` files are ignored by Git; `.env.example` is the committed template. Never put secrets in variables prefixed with `VITE_`: Vite embeds them in browser code, where visitors can see them. The WhatsApp number is public contact information, not a secret. Product writes, order storage, order history and owner authorization are handled by Netlify Functions; database credentials are supplied by Netlify Database and are never sent to the browser.
+Local `.env` files are ignored by Git; `.env.example` is the committed template. Never put secrets in variables prefixed with `VITE_`: Vite embeds them in browser code, where visitors can see them. The WhatsApp number is public contact information, not a secret. Product writes and owner authorization are handled by Netlify Functions; database credentials are supplied by Netlify Database and are never sent to the browser.

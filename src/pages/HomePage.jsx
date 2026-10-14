@@ -6,7 +6,7 @@ function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
 }
 
-function ProductCard({ product, onPlaceOrder }) {
+function ProductCard({ product }) {
   const sizes = product.sizes ? product.sizes.split(',').map((size) => size.trim()).filter(Boolean) : [];
   const imageUrl = product.image.startsWith('/') ? `${window.location.origin}${product.image}` : product.image;
   const message = encodeURIComponent([
@@ -21,34 +21,6 @@ function ProductCard({ product, onPlaceOrder }) {
     `Product image: ${imageUrl}`
   ].filter(Boolean).join('\n'));
   const discount = Math.round(((product.originalPrice - product.sellingPrice) / product.originalPrice) * 100);
-  const [orderOpen, setOrderOpen] = useState(false);
-  const [orderError, setOrderError] = useState('');
-  const [orderMessage, setOrderMessage] = useState('');
-  const [orderSubmitting, setOrderSubmitting] = useState(false);
-
-  async function submitOrder(event) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    setOrderError('');
-    setOrderMessage('');
-    setOrderSubmitting(true);
-    try {
-      const order = await onPlaceOrder({
-        sku: product.sku,
-        email: formData.get('email').toString().trim(),
-        phone: formData.get('phone').toString().trim(),
-        size: formData.get('size')?.toString() ?? ''
-      });
-      setOrderMessage(`Order request #${order.orderId} received. We will contact you soon.`);
-      form.reset();
-    } catch (error) {
-      setOrderError(error instanceof Error ? error.message : 'Your order could not be placed. Please try again.');
-    } finally {
-      setOrderSubmitting(false);
-    }
-  }
-
   return (
     <article className="soft-card group overflow-hidden rounded-[24px] border border-gray-200 bg-white transition hover:-translate-y-1 hover:shadow-xl">
       <div className="relative overflow-hidden"><img src={product.image} alt={product.name} className="h-72 w-full object-cover transition duration-500 group-hover:scale-105" /><span className="absolute left-3 top-3 rounded-full bg-gradient-to-r from-[#FFE259] to-[#FFA751] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-maroon-900">{discount}% OFF</span><span className="absolute right-3 top-3 rounded-full bg-maroon-900/85 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white">{product.sku}</span></div>
@@ -56,27 +28,13 @@ function ProductCard({ product, onPlaceOrder }) {
         {product.offerDetails && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-maroon-900">{product.offerDetails}</p>}
         {sizes.length > 0 && <p className="mt-2 text-sm text-gray-600">Available sizes: {sizes.join(', ')}</p>}
         {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`} target="_blank" rel="noreferrer" className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-maroon-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-maroon-800">Order now</a>}
-        <button type="button" onClick={() => { setOrderOpen((open) => !open); setOrderError(''); setOrderMessage(''); }} className={`${WHATSAPP_NUMBER ? 'mt-3' : 'mt-5'} inline-flex w-full items-center justify-center rounded-xl border border-gray-300 px-4 py-3 text-sm font-bold text-gray-700 transition hover:border-maroon-900 hover:text-maroon-900`}>{orderOpen ? 'Cancel tracked order' : 'Track order with email & phone'}</button>
-        {orderOpen && <form onSubmit={submitOrder} className="mt-4 grid gap-3">
-          {sizes.length > 0 && <label className="grid gap-1.5 text-sm font-semibold text-gray-700">Size<select name="size" required defaultValue="" className="rounded-lg border border-gray-300 px-3 py-2.5 font-normal focus:border-maroon-800 focus:outline-none"><option value="" disabled>Select a size</option>{sizes.map((size) => <option key={size} value={size}>{size}</option>)}</select></label>}
-          <label className="grid gap-1.5 text-sm font-semibold text-gray-700">Email address<input name="email" type="email" autoComplete="email" required maxLength="254" className="rounded-lg border border-gray-300 px-3 py-2.5 font-normal focus:border-maroon-800 focus:outline-none" /></label>
-          <label className="grid gap-1.5 text-sm font-semibold text-gray-700">Phone number<input name="phone" type="tel" autoComplete="tel" required maxLength="20" placeholder="+91 98765 43210" className="rounded-lg border border-gray-300 px-3 py-2.5 font-normal focus:border-maroon-800 focus:outline-none" /></label>
-          {orderError && <p className="text-sm text-red-800" role="alert">{orderError}</p>}
-          {orderMessage && <p className="text-sm text-emerald-800" role="status">{orderMessage}</p>}
-          <button type="submit" disabled={orderSubmitting} className="rounded-xl bg-emerald-800 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-60">{orderSubmitting ? 'Submitting…' : 'Submit order request'}</button>
-          <p className="text-xs leading-5 text-gray-500">We’ll use your contact details to follow up about this order.</p>
-        </form>}
         {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-emerald-800 px-4 py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50">Order on WhatsApp</a>}</div>
     </article>
   );
 }
 
-const orderStatuses = ['pending', 'confirmed', 'fulfilled', 'cancelled'];
-
-function AdminPanel({ onAddProduct, orders, ordersLoading, ordersError, onUpdateOrder }) {
+function AdminPanel({ onAddProduct }) {
   const [error, setError] = useState('');
-  const [emailFilter, setEmailFilter] = useState('');
-  const filteredOrders = orders.filter((order) => order.email.includes(emailFilter.trim().toLowerCase()));
 
   function submitProduct(event) {
     event.preventDefault();
@@ -104,26 +62,12 @@ function AdminPanel({ onAddProduct, orders, ordersLoading, ordersError, onUpdate
         <div className="flex justify-end md:col-span-2 xl:col-span-3"><button type="submit" className="rounded-lg bg-emerald-800 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-900">Add product</button></div>
         </form>
       </div>
-      <section className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8" aria-labelledby="orders-heading">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Customer orders</p><h2 id="orders-heading" className="mt-1 font-brand text-2xl font-bold text-maroon-900">Track orders by email</h2>
-        <label className="mt-5 grid max-w-md gap-1.5 text-sm font-semibold text-gray-700">Filter by customer email<input type="search" value={emailFilter} onChange={(event) => setEmailFilter(event.target.value)} placeholder="customer@example.com" className="rounded-lg border border-gray-300 px-3 py-2.5 font-normal focus:border-maroon-800 focus:outline-none" /></label>
-        {ordersLoading ? <p className="mt-5 text-sm text-gray-600" role="status">Loading orders…</p>
-          : ordersError ? <p className="mt-5 text-sm text-red-800" role="alert">{ordersError}</p>
-            : filteredOrders.length ? <div className="mt-5 grid gap-3">{filteredOrders.map((order) => <article key={order.id} className="grid gap-3 rounded-xl border border-gray-200 p-4 sm:grid-cols-[1fr_auto] sm:items-center">
-              <div><p className="font-semibold text-maroon-900">{order.email}</p><p className="mt-1 text-sm text-gray-700">{order.productName}{order.size ? ` · Size ${order.size}` : ''} · {order.quantity} × {formatCurrency(order.unitPrice)} · Total {formatCurrency(order.totalPrice)}</p><p className="mt-1 text-sm text-gray-600"><a href={`tel:${order.phone}`} className="underline underline-offset-2">{order.phone}</a> · {new Date(order.createdAt).toLocaleString()}</p></div>
-              <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">Status<select value={order.status} onChange={(event) => onUpdateOrder(order.id, event.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium normal-case tracking-normal text-gray-800 focus:border-maroon-800 focus:outline-none">{orderStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
-            </article>)}</div>
-              : <p className="mt-5 text-sm text-gray-600">{emailFilter ? 'No orders found for that email.' : 'No customer orders yet.'}</p>}
-      </section>
     </aside>
   );
 }
 
 export default function HomePage() {
   const { ownerOpen, setOwnerOpen, query, category, setCategory, products, setProducts, productsLoading, productsError } = useOutletContext();
-  const [orders, setOrders] = useState([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
-  const [ordersError, setOrdersError] = useState('');
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return products.filter((product) => {
@@ -163,79 +107,6 @@ export default function HomePage() {
     setOwnerOpen(false);
   }
 
-  useEffect(() => {
-    if (!ownerOpen) return undefined;
-    let active = true;
-    setOrdersLoading(true);
-    setOrdersError('');
-    fetch('/api/orders')
-      .then(async (response) => {
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Could not load customer orders.');
-        if (!Array.isArray(result)) throw new Error('The orders response was invalid.');
-        if (active) setOrders(result);
-      })
-      .catch((error) => {
-        if (active) setOrdersError(error instanceof Error ? error.message : 'Could not load customer orders.');
-      })
-      .finally(() => {
-        if (active) setOrdersLoading(false);
-      });
-    return () => { active = false; };
-  }, [ownerOpen]);
-
-  async function placeOrder(order) {
-    let response;
-    try {
-      response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(order)
-      });
-    } catch {
-      throw new Error('Could not reach the order service. Please try again.');
-    }
-
-    let result;
-    try {
-      result = await response.json();
-    } catch {
-      throw new Error('The order service returned an invalid response.');
-    }
-    if (!response.ok) {
-      throw new Error(typeof result.error === 'string' ? result.error : 'Your order could not be placed.');
-    }
-    return result;
-  }
-
-  async function updateOrderStatus(id, status) {
-    let response;
-    try {
-      response = await fetch('/api/orders', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status })
-      });
-    } catch {
-      setOrdersError('Could not reach the order service. Please try again.');
-      return;
-    }
-
-    let result;
-    try {
-      result = await response.json();
-    } catch {
-      setOrdersError('The order service returned an invalid response.');
-      return;
-    }
-    if (!response.ok) {
-      setOrdersError(typeof result.error === 'string' ? result.error : 'The order status could not be updated.');
-      return;
-    }
-    setOrders((current) => current.map((order) => order.id === result.id ? result : order));
-    setOrdersError('');
-  }
-
   return (
     <main id="top" className="w-full flex-1"><div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
       <section aria-label="Shreivara sarees and jewellery" className="overflow-hidden bg-maroon-900 text-center text-white">
@@ -273,9 +144,9 @@ export default function HomePage() {
         <div className="mb-8 flex flex-wrap gap-2" aria-label="Filter sarees by category">{['All Sarees', ...categories].map((item) => <button key={item} type="button" aria-pressed={category === item} onClick={() => setCategory(item)} className={`rounded-full border px-4 py-2 text-xs font-semibold tracking-wide transition ${category === item ? 'border-maroon-800 bg-maroon-900 text-white' : 'border-gray-200 bg-white text-gray-700 hover:border-maroon-800 hover:text-maroon-900'}`}>{item}</button>)}</div>
         {productsLoading ? <p className="py-12 text-center text-sm text-gray-600" role="status">Loading the collection…</p>
           : productsError ? <p className="py-12 text-center text-sm text-red-800" role="alert">{productsError}</p>
-            : filteredProducts.length ? <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">{filteredProducts.map((product) => <ProductCard key={`${product.sku}-${product.name}`} product={product} onPlaceOrder={placeOrder} />)}</div>
+            : filteredProducts.length ? <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">{filteredProducts.map((product) => <ProductCard key={`${product.sku}-${product.name}`} product={product} />)}</div>
               : <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center"><div><p className="text-lg font-semibold text-gray-700">No sarees match your search.</p><p className="mt-2 text-sm text-gray-500">Try a different SKU or saree name.</p></div></div>}
       </section>
-    </div>{ownerOpen && <AdminPanel onAddProduct={addProduct} orders={orders} ordersLoading={ordersLoading} ordersError={ordersError} onUpdateOrder={updateOrderStatus} />}</main>
+    </div>{ownerOpen && <AdminPanel onAddProduct={addProduct} />}</main>
   );
 }
