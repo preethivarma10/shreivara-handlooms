@@ -1,16 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --color-maroon-900: #3d2b1c;
-  --color-maroon-800: #58412c;
-  --color-maroon-700: #725638;
-  --color-gold-500: #b68a55;
-  --color-gold-600: #927044;
+  --color-maroon-950: #1a060b;
+  --color-maroon-900: #2b0d14;
+  --color-maroon-800: #441722;
+  --color-maroon-700: #5e2230;
+  --color-gold-400: #dfb776;
+  --color-gold-500: #c59a58;
+  --color-gold-600: #9e7638;
   --color-emerald-800: #064e3b;
   --color-emerald-900: #022c22;
-  --font-brand: 'Cormorant Garamond', serif;
-  --font-sans: 'DM Sans', sans-serif;
+  --font-brand: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 *,
@@ -45,10 +47,12 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: #f6f2e9;
-  color: #332c23;
-  font-family: 'DM Sans', sans-serif;
+  background-color: #faf8f5;
+  color: #27211d;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   cursor: default;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button,
@@ -57,16 +61,22 @@ select {
   font: inherit;
 }
 
+/* Luxury card shadow & glow */
 .soft-card {
-  box-shadow: 0 10px 30px rgba(58, 43, 25, 0.08);
+  box-shadow: 0 14px 40px rgba(43, 13, 20, 0.05);
 }
 
-.editorial-hero {
-  box-shadow: 0 20px 55px rgba(58, 43, 25, 0.08);
+.fashion-card {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (max-width: 639px) {
-  .editorial-hero {
-    box-shadow: 0 12px 35px rgba(58, 43, 25, 0.07);
-  }
+.fashion-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 50px -12px rgba(43, 13, 20, 0.14);
+}
+
+/* Subtle luxury grain / backdrop */
+.glass-nav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }

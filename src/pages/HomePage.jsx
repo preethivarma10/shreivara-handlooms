@@ -17,9 +17,8 @@ function WhatsAppIcon() {
 
 function BagIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5.5 8.5h13l1 12h-15l1-12Z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V6a3 3 0 0 1 6 0v3" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
     </svg>
   );
 }
@@ -86,53 +85,77 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
   const discount = Math.round(((product.originalPrice - product.sellingPrice) / product.originalPrice) * 100);
 
   return (
-    <article className="group overflow-hidden rounded-sm border border-[#e1d8c9] bg-[#fbf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(58,43,25,0.12)]">
-      <div className="relative overflow-hidden bg-[#e8dfd0]">
+    <article className="fashion-card group overflow-hidden rounded-2xl border border-[#ebe4d8] bg-white shadow-2xs hover:border-gold-500/50 flex flex-col">
+      {/* Fashion Aspect Ratio Image Container */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#f3ede4]">
         <img
           src={product.image}
           alt={product.name}
-          className="h-[320px] w-full object-cover transition duration-700 group-hover:scale-[1.035]"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
+        {/* Subtle Luxury Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
         {discount > 0 && (
-          <span className="absolute left-3 top-3 bg-[#f6f2e9]/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-maroon-900">
-            {discount}% off
+          <span className="absolute left-3 top-3 rounded-full bg-white/95 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-maroon-900 shadow-sm border border-gold-500/30">
+            {discount}% OFF
           </span>
         )}
       </div>
-      <div className="p-4 sm:p-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{product.category}</p>
-        <h3 className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900">{product.name}</h3>
-        <div className="mt-3 flex items-center gap-2">
-          <span className="text-lg font-semibold text-maroon-900">{formatCurrency(product.sellingPrice)}</span>
+
+      <div className="flex flex-1 flex-col p-5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-gold-600">{product.category}</p>
+        <h3 className="mt-1.5 min-h-[48px] font-brand text-2xl font-medium leading-tight text-neutral-900 group-hover:text-maroon-900 transition-colors">
+          {product.name}
+        </h3>
+
+        <div className="mt-3 flex items-baseline gap-2">
+          <span className="text-xl font-bold text-maroon-900 font-brand tracking-tight">
+            {formatCurrency(product.sellingPrice)}
+          </span>
           {product.originalPrice > product.sellingPrice && (
-            <span className="text-sm text-gray-400 line-through">{formatCurrency(product.originalPrice)}</span>
+            <span className="text-xs text-neutral-400 line-through">
+              {formatCurrency(product.originalPrice)}
+            </span>
           )}
-          <span className="ml-auto text-[10px] uppercase tracking-widest text-gray-500">{product.sku}</span>
+          <span className="ml-auto text-[10px] font-mono tracking-wider text-neutral-500 uppercase px-2 py-0.5 rounded-md bg-neutral-100">
+            {product.sku}
+          </span>
         </div>
-        {product.offerDetails && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-maroon-900">{product.offerDetails}</p>}
-        {sizes.length > 0 && <p className="mt-2 text-sm text-gray-600">Available sizes: {sizes.join(', ')}</p>}
-        <div className="mt-5 grid grid-cols-2 gap-2">
+
+        {product.offerDetails && (
+          <p className="mt-3 rounded-lg border border-amber-200/70 bg-amber-50/70 px-2.5 py-1.5 text-xs font-medium text-amber-900 flex items-center gap-1.5">
+            <span>✨</span> {product.offerDetails}
+          </p>
+        )}
+
+        {sizes.length > 0 && (
+          <p className="mt-2 text-xs text-neutral-500">Available: {sizes.join(', ')}</p>
+        )}
+
+        {/* Fashion-forward Action Buttons */}
+        <div className="mt-auto pt-5 grid grid-cols-2 gap-2">
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`}
             target="_blank"
             rel="noreferrer"
-            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm bg-[#25d366] px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#1ebe5d]"
+            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#25d366] to-[#128c7e] px-2.5 py-3 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-white shadow-xs transition hover:brightness-105 hover:shadow-md"
           >
             <span className="h-3.5 w-3.5 shrink-0"><WhatsAppIcon /></span>
-            Order on WhatsApp
+            Order
           </a>
           <button
             type="button"
             disabled={isMaxReached}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] transition ${
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl border px-2.5 py-3 text-[10.5px] font-semibold uppercase tracking-[0.1em] transition ${
               isMaxReached
-                ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60'
-                : 'border-maroon-900 text-maroon-900 hover:bg-maroon-900 hover:text-[#f8f5ed]'
+                ? 'cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400 opacity-60'
+                : 'border-maroon-900 bg-white text-maroon-900 hover:bg-maroon-900 hover:text-white shadow-2xs hover:shadow-sm'
             }`}
           >
             <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
-            {isMaxReached ? 'Limit Reached' : 'Add to Cart'}
+            {isMaxReached ? 'Limit' : 'Cart'}
           </button>
         </div>
       </div>
@@ -166,19 +189,19 @@ function ProductForm({ product, onSave, onCancel, submitLabel }) {
     <form onSubmit={submitProduct} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {error && <p className="text-sm text-red-800 md:col-span-2 xl:col-span-3" role="alert">{error}</p>}
       {notice && <p className="text-sm text-emerald-800 md:col-span-2 xl:col-span-3" role="status">{notice}</p>}
-      <label className="grid gap-2 text-sm font-semibold text-gray-700">SKU<input name="sku" required maxLength="64" readOnly={Boolean(product)} defaultValue={product?.sku ?? ''} placeholder="SHR-101" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none read-only:text-gray-500" /></label>
-      <label className="grid gap-2 text-sm font-semibold text-gray-700">Product name<input name="name" required maxLength="120" defaultValue={product?.name ?? ''} placeholder="Royal Gold Temple Saree" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-      <label className="grid gap-2 text-sm font-semibold text-gray-700">Category<select name="category" required defaultValue={product?.category ?? categories[0]} className="cursor-pointer rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none">{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label className="grid gap-2 text-sm font-semibold text-gray-700">Original price (INR)<input name="originalPrice" type="number" min="1" step="1" required defaultValue={product?.originalPrice ?? ''} placeholder="8999" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-      <label className="grid gap-2 text-sm font-semibold text-gray-700">Offer price (INR)<input name="sellingPrice" type="number" min="1" step="1" required defaultValue={product?.sellingPrice ?? ''} placeholder="6999" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-      <label className="grid gap-2 text-sm font-semibold text-gray-700">Stock quantity<input name="stock" type="number" min="1" step="1" required defaultValue={product?.stock ?? 5} placeholder="5" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-      <label className="grid gap-2 text-sm font-semibold text-gray-700">Sizes (comma-separated)<input name="sizes" maxLength="120" defaultValue={product?.sizes ?? ''} placeholder="Free size or S, M, L" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-      <label className="grid gap-2 text-sm font-semibold text-gray-700 md:col-span-2">Offer details<textarea name="offerDetails" rows="2" maxLength="300" defaultValue={product?.offerDetails ?? ''} placeholder="Optional promotion or product offer" className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-800 focus:outline-none" /></label>
-      {product && <p className="text-sm text-gray-600 md:col-span-2">Current image: <a href={product.image} target="_blank" rel="noreferrer" className="cursor-pointer text-maroon-900 underline">View image</a></p>}
-      <label className="grid gap-2 text-sm font-semibold text-gray-700 md:col-span-2">Product image (JPEG, PNG, or WebP; max 5 MB){product && ' — optional, upload to replace'}<input name="image" type="file" accept="image/jpeg,image/png,image/webp" required={!product} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-normal file:mr-3 file:rounded-md file:border-0 file:bg-maroon-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-maroon-800 focus:outline-none" /></label>
-      <div className="flex justify-end gap-3 md:col-span-2 xl:col-span-3">
-        {onCancel && <button type="button" onClick={onCancel} className="cursor-pointer rounded-lg border border-gray-300 px-5 py-3 text-sm font-bold text-gray-700">Cancel</button>}
-        <button type="submit" disabled={saving} className="cursor-pointer rounded-lg bg-emerald-800 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:opacity-60">{saving ? 'Saving…' : submitLabel}</button>
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">SKU<input name="sku" required maxLength="64" readOnly={Boolean(product)} defaultValue={product?.sku ?? ''} placeholder="SHR-101" className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none read-only:text-neutral-500" /></label>
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">Product name<input name="name" required maxLength="120" defaultValue={product?.name ?? ''} placeholder="Royal Gold Temple Saree" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" /></label>
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">Category<select name="category" required defaultValue={product?.category ?? categories[0]} className="cursor-pointer rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none">{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">Original price (INR)<input name="originalPrice" type="number" min="1" step="1" required defaultValue={product?.originalPrice ?? ''} placeholder="8999" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" /></label>
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">Offer price (INR)<input name="sellingPrice" type="number" min="1" step="1" required defaultValue={product?.sellingPrice ?? ''} placeholder="6999" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" /></label>
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">Stock quantity<input name="stock" type="number" min="1" step="1" required defaultValue={product?.stock ?? 5} placeholder="5" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" /></label>
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">Sizes (comma-separated)<input name="sizes" maxLength="120" defaultValue={product?.sizes ?? ''} placeholder="Free size or S, M, L" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" /></label>
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2">Offer details<textarea name="offerDetails" rows="2" maxLength="300" defaultValue={product?.offerDetails ?? ''} placeholder="Optional promotion or product offer" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" /></label>
+      {product && <p className="text-sm text-neutral-600 md:col-span-2">Current image: <a href={product.image} target="_blank" rel="noreferrer" className="cursor-pointer text-maroon-900 underline font-medium">View image</a></p>}
+      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2">Product image (JPEG, PNG, or WebP; max 5 MB){product && ' — optional, upload to replace'}<input name="image" type="file" accept="image/jpeg,image/png,image/webp" required={!product} className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal file:mr-3 file:rounded-lg file:border-0 file:bg-maroon-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white focus:border-maroon-900 focus:outline-none" /></label>
+      <div className="flex justify-end gap-3 md:col-span-2 xl:col-span-3 pt-2">
+        {onCancel && <button type="button" onClick={onCancel} className="cursor-pointer rounded-xl border border-neutral-300 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 hover:bg-neutral-50">Cancel</button>}
+        <button type="submit" disabled={saving} className="cursor-pointer rounded-xl bg-maroon-900 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-60">{saving ? 'Saving…' : submitLabel}</button>
       </div>
     </form>
   );
@@ -243,10 +266,10 @@ function DispatchedOrdersManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 pb-4">
         <div>
           <h2 className="font-brand text-2xl font-bold text-maroon-900">Dispatched Orders Management</h2>
-          <p className="text-xs text-gray-500">Track shipments, update couriers, and manage customer fulfillment.</p>
+          <p className="text-xs text-neutral-500">Track shipments, update couriers, and manage customer fulfillment.</p>
         </div>
         <div className="flex gap-2">
           {['All', 'Pending', 'Dispatched'].map((tab) => (
@@ -254,8 +277,8 @@ function DispatchedOrdersManager() {
               key={tab}
               type="button"
               onClick={() => setFilter(tab)}
-              className={`cursor-pointer rounded-full px-3.5 py-1 text-xs font-semibold transition ${
-                filter === tab ? 'bg-maroon-900 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
+              className={`cursor-pointer rounded-full px-4 py-1 text-xs font-semibold transition ${
+                filter === tab ? 'bg-maroon-900 text-white' : 'border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
               }`}
             >
               {tab}
@@ -267,29 +290,29 @@ function DispatchedOrdersManager() {
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-gray-300 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-              <th className="py-2.5 pr-4">Order ID & Date</th>
+            <tr className="border-b border-neutral-200 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+              <th className="py-2.5 pr-4">Order ID &amp; Date</th>
               <th className="py-2.5 px-4">Customer</th>
               <th className="py-2.5 px-4">Item Details</th>
               <th className="py-2.5 px-4">Total</th>
               <th className="py-2.5 px-4">Status</th>
-              <th className="py-2.5 px-4">Courier & Tracking</th>
+              <th className="py-2.5 px-4">Courier &amp; Tracking</th>
               <th className="py-2.5 pl-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-neutral-200">
             {filtered.map((order) => (
               <tr key={order.id} className="hover:bg-amber-50/40">
                 <td className="py-3 pr-4 font-semibold text-maroon-900">
                   {order.id}
-                  <div className="text-[10px] font-normal text-gray-400">{order.orderDate}</div>
+                  <div className="text-[10px] font-normal text-neutral-400">{order.orderDate}</div>
                 </td>
                 <td className="py-3 px-4">
-                  <p className="font-semibold text-gray-800">{order.customerName}</p>
-                  <p className="text-[10px] text-gray-500">{order.phone}</p>
+                  <p className="font-semibold text-neutral-800">{order.customerName}</p>
+                  <p className="text-[10px] text-neutral-500">{order.phone}</p>
                 </td>
-                <td className="py-3 px-4 max-w-xs truncate text-gray-700">{order.items}</td>
-                <td className="py-3 px-4 font-semibold text-gray-900">{formatCurrency(order.total)}</td>
+                <td className="py-3 px-4 max-w-xs truncate text-neutral-700">{order.items}</td>
+                <td className="py-3 px-4 font-semibold text-neutral-900">{formatCurrency(order.total)}</td>
                 <td className="py-3 px-4">
                   <span
                     className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
@@ -301,7 +324,7 @@ function DispatchedOrdersManager() {
                     {order.status}
                   </span>
                   {order.dispatchDate && (
-                    <div className="text-[9px] text-gray-500 mt-0.5">Disp: {order.dispatchDate}</div>
+                    <div className="text-[9px] text-neutral-500 mt-0.5">Disp: {order.dispatchDate}</div>
                   )}
                 </td>
                 <td className="py-3 px-4">
@@ -312,27 +335,27 @@ function DispatchedOrdersManager() {
                         placeholder="Courier (e.g. DTDC)"
                         value={courierInput}
                         onChange={(e) => setCourierInput(e.target.value)}
-                        className="rounded border border-gray-300 px-2 py-1 text-xs"
+                        className="rounded-lg border border-neutral-300 px-2 py-1 text-xs"
                       />
                       <input
                         type="text"
                         placeholder="Tracking / AWB #"
                         value={trackingInput}
                         onChange={(e) => setTrackingInput(e.target.value)}
-                        className="rounded border border-gray-300 px-2 py-1 text-xs"
+                        className="rounded-lg border border-neutral-300 px-2 py-1 text-xs"
                       />
                       <div className="flex gap-1.5 mt-1">
                         <button
                           type="button"
                           onClick={() => saveTracking(order.id)}
-                          className="cursor-pointer rounded bg-emerald-800 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-900"
+                          className="cursor-pointer rounded-lg bg-emerald-800 px-2.5 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-900"
                         >
                           Save
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingId(null)}
-                          className="cursor-pointer rounded border border-gray-300 px-2 py-0.5 text-[10px] text-gray-600"
+                          className="cursor-pointer rounded-lg border border-neutral-300 px-2 py-0.5 text-[10px] text-neutral-600"
                         >
                           Cancel
                         </button>
@@ -340,11 +363,11 @@ function DispatchedOrdersManager() {
                     </div>
                   ) : order.courier || order.trackingNumber ? (
                     <div>
-                      <p className="font-semibold text-gray-800">{order.courier || 'Courier'}</p>
-                      <p className="font-mono text-[10px] text-gray-500">{order.trackingNumber || 'Pending AWB'}</p>
+                      <p className="font-semibold text-neutral-800">{order.courier || 'Courier'}</p>
+                      <p className="font-mono text-[10px] text-neutral-500">{order.trackingNumber || 'Pending AWB'}</p>
                     </div>
                   ) : (
-                    <span className="text-[11px] text-gray-400 italic">No tracking info</span>
+                    <span className="text-[11px] text-neutral-400 italic">No tracking info</span>
                   )}
                 </td>
                 <td className="py-3 pl-4 text-right">
@@ -353,7 +376,7 @@ function DispatchedOrdersManager() {
                       <button
                         type="button"
                         onClick={() => markDispatched(order.id)}
-                        className="cursor-pointer rounded bg-emerald-800 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-emerald-900"
+                        className="cursor-pointer rounded-lg bg-emerald-800 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-emerald-900"
                       >
                         Mark Dispatched
                       </button>
@@ -365,7 +388,7 @@ function DispatchedOrdersManager() {
                         setCourierInput(order.courier || '');
                         setTrackingInput(order.trackingNumber || '');
                       }}
-                      className="cursor-pointer rounded border border-maroon-900 px-2 py-1 text-[10px] font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white"
+                      className="cursor-pointer rounded-lg border border-maroon-900 px-2 py-1 text-[10px] font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white"
                     >
                       {editingId === order.id ? 'Editing' : 'Update Tracking'}
                     </button>
@@ -376,7 +399,7 @@ function DispatchedOrdersManager() {
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <p className="py-8 text-center text-xs text-gray-500">No orders found in this view.</p>
+          <p className="py-8 text-center text-xs text-neutral-500">No orders found in this view.</p>
         )}
       </div>
     </div>
@@ -412,10 +435,10 @@ function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct }
           <button
             type="button"
             onClick={() => setActiveTab('catalogue')}
-            className={`cursor-pointer rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
+            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
               activeTab === 'catalogue'
-                ? 'bg-maroon-900 text-white'
-                : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-maroon-900 text-white shadow-xs'
+                : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
             }`}
           >
             Catalogue Management
@@ -423,10 +446,10 @@ function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct }
           <button
             type="button"
             onClick={() => setActiveTab('orders')}
-            className={`cursor-pointer rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
+            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
               activeTab === 'orders'
-                ? 'bg-maroon-900 text-white'
-                : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-maroon-900 text-white shadow-xs'
+                : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
             }`}
           >
             Dispatched Orders
@@ -447,27 +470,27 @@ function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct }
           </div>
           <section className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8" aria-labelledby="manage-products-heading">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Inventory</p>
-            <h2 id="manage-products-heading" className="mt-1 font-brand text-2xl font-bold text-maroon-900">Manage Catalogue & Stock</h2>
+            <h2 id="manage-products-heading" className="mt-1 font-brand text-2xl font-bold text-maroon-900">Manage Catalogue &amp; Stock</h2>
             {deleteError && <p className="mt-4 text-sm text-red-800" role="alert">{deleteError}</p>}
             <div className="mt-5 grid gap-4">
               {products.map((product) => editingSku === product.sku
-                ? <div key={product.sku} className="rounded-xl border border-gray-200 p-4">
+                ? <div key={product.sku} className="rounded-2xl border border-neutral-200 p-4 bg-neutral-50/50">
                     <ProductForm product={product} submitLabel="Save changes" onSave={(formData) => onUpdateProduct(product.sku, formData)} onCancel={() => setEditingSku('')} />
                   </div>
-                : <article key={product.sku} className="grid gap-4 rounded-xl border border-gray-200 p-4 sm:grid-cols-[96px_1fr_auto] sm:items-center">
-                    <img src={product.image} alt={product.name} className="h-24 w-24 rounded-lg object-cover" />
+                : <article key={product.sku} className="grid gap-4 rounded-2xl border border-neutral-200 p-4 sm:grid-cols-[96px_1fr_auto] sm:items-center bg-white shadow-2xs">
+                    <img src={product.image} alt={product.name} className="h-24 w-24 rounded-xl object-cover border border-neutral-200" />
                     <div>
-                      <p className="font-semibold text-maroon-900">{product.name}</p>
-                      <p className="mt-1 text-sm text-gray-600">{product.sku} · {product.category} · Stock: {product.stock ?? 5}</p>
-                      <p className="mt-1 text-sm text-gray-700">{formatCurrency(product.sellingPrice)} <span className="text-gray-500">/ {formatCurrency(product.originalPrice)}</span></p>
-                      {product.offerDetails && <p className="mt-1 text-sm text-gray-600">{product.offerDetails}</p>}
+                      <p className="font-semibold text-maroon-900 font-brand text-xl">{product.name}</p>
+                      <p className="mt-1 text-xs text-neutral-500">{product.sku} · {product.category} · Stock: {product.stock ?? 5}</p>
+                      <p className="mt-1 text-sm font-semibold text-neutral-800">{formatCurrency(product.sellingPrice)} <span className="text-neutral-400 font-normal line-through">/ {formatCurrency(product.originalPrice)}</span></p>
+                      {product.offerDetails && <p className="mt-1 text-xs text-amber-800">{product.offerDetails}</p>}
                     </div>
                     <div className="flex gap-2 sm:flex-col">
-                      <button type="button" onClick={() => { setDeleteError(''); setEditingSku(product.sku); }} className="cursor-pointer rounded-lg border border-maroon-900 px-4 py-2 text-sm font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white">Edit</button>
-                      <button type="button" onClick={() => deleteProduct(product)} className="cursor-pointer rounded-lg border border-red-700 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-700 hover:text-white">Delete</button>
+                      <button type="button" onClick={() => { setDeleteError(''); setEditingSku(product.sku); }} className="cursor-pointer rounded-xl border border-maroon-900 px-4 py-1.5 text-xs font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white transition">Edit</button>
+                      <button type="button" onClick={() => deleteProduct(product)} className="cursor-pointer rounded-xl border border-red-700 px-4 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-700 hover:text-white transition">Delete</button>
                     </div>
                   </article>)}
-              {products.length === 0 && <p className="text-sm text-gray-600">No products have been added yet.</p>}
+              {products.length === 0 && <p className="text-sm text-neutral-500">No products have been added yet.</p>}
             </div>
           </section>
         </>
@@ -590,23 +613,32 @@ export default function HomePage() {
 
   return (
     <main id="top" className="w-full flex-1">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-16">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-20">
 
         {/* Top Collections Section */}
-        <section id="collections" className="scroll-mt-24 pt-2">
+        <section id="collections" className="scroll-mt-24">
           <div id="catalog" className="scroll-mt-24">
-            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h1 className="font-brand text-4xl font-medium text-maroon-900 sm:text-5xl">Top Collections</h1>
-                <p className="mt-1 text-sm text-[#786c5b]">Sarees to Treasures • Handcrafted with Heritage Artistry</p>
+                <span className="inline-block text-[10px] font-bold uppercase tracking-[0.25em] text-gold-600 bg-gold-500/10 border border-gold-500/25 px-3 py-1 rounded-full mb-3">
+                  Curated Haute Couture
+                </span>
+                <h1 className="font-brand text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-maroon-900">
+                  Top Collections
+                </h1>
+                <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 tracking-wide font-light">
+                  Sarees to Treasures • Handcrafted with Heritage Artistry
+                </p>
               </div>
-              <p className="text-xs text-gray-500" aria-live="polite">
-                Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full border border-neutral-200 bg-white px-3.5 py-1 text-xs font-medium text-neutral-600 shadow-2xs" aria-live="polite">
+                  {filteredProducts.length} {filteredProducts.length === 1 ? 'Design' : 'Designs'}
+                </span>
+              </div>
             </div>
 
             {/* Category Filter Chips */}
-            <div className="mb-8 flex flex-wrap gap-2" aria-label="Filter collections by category">
+            <div className="mb-10 flex flex-wrap gap-2 sm:gap-2.5" aria-label="Filter collections by category">
               {['All Collections', ...categories].map((item) => {
                 const isSelected =
                   (item === 'All Collections' && (category === 'All Collections' || category === 'All Sarees')) ||
@@ -617,10 +649,10 @@ export default function HomePage() {
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => setCategory(item === 'All Collections' ? 'All Collections' : item)}
-                    className={`cursor-pointer rounded-full border px-4 py-2 text-xs font-medium transition ${
+                    className={`cursor-pointer rounded-full px-4 sm:px-5 py-2 text-xs font-semibold tracking-wide transition-all ${
                       isSelected
-                        ? 'border-maroon-900 bg-maroon-900 text-[#f8f5ed]'
-                        : 'border-[#d9d0c1] bg-transparent text-gray-700 hover:border-maroon-800 hover:text-maroon-900'
+                        ? 'bg-maroon-900 text-[#faf8f5] shadow-sm border border-maroon-900 ring-2 ring-gold-500/30'
+                        : 'border border-[#ded7cc] bg-white text-neutral-700 hover:border-maroon-900 hover:text-maroon-900 shadow-2xs'
                     }`}
                   >
                     {item}
@@ -632,11 +664,14 @@ export default function HomePage() {
             {/* Products Grid */}
             <div id="catalog-grid" className="scroll-mt-28">
               {productsLoading ? (
-                <p className="py-12 text-center text-sm text-gray-600" role="status">Loading the collection…</p>
+                <div className="py-20 text-center">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-solid border-maroon-900 border-r-transparent mb-3" />
+                  <p className="text-sm font-medium text-neutral-500">Curating the collection…</p>
+                </div>
               ) : productsError ? (
-                <p className="py-12 text-center text-sm text-red-800" role="alert">{productsError}</p>
+                <p className="py-16 text-center text-sm text-red-800" role="alert">{productsError}</p>
               ) : filteredProducts.length ? (
-                <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {filteredProducts.map((product) => (
                     <ProductCard
                       key={`${product.sku}-${product.name}`}
@@ -647,10 +682,10 @@ export default function HomePage() {
                   ))}
                 </div>
               ) : (
-                <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-dashed border-neutral-300 bg-white p-12 text-center shadow-xs">
                   <div>
-                    <p className="text-lg font-semibold text-gray-700">No items match your search.</p>
-                    <p className="mt-2 text-sm text-gray-500">Try a different search term or category filter.</p>
+                    <p className="font-brand text-2xl font-medium text-neutral-800">No pieces match your search.</p>
+                    <p className="mt-2 text-xs text-neutral-500">Try selecting a different category filter or clear your search term.</p>
                   </div>
                 </div>
               )}
@@ -658,51 +693,57 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 3. Custom Query Callout Banner */}
-        <section className="rounded-2xl border border-gold-500/40 bg-gradient-to-br from-maroon-900 via-[#483321] to-maroon-900 p-8 sm:p-12 text-center text-[#f8f5ed] shadow-md">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-500">Personalized Styling &amp; Custom Sourcing</p>
-          <h2 className="mt-2 font-brand text-3xl sm:text-4xl font-medium tracking-tight text-white">
-            Looking for something else? Enquire with us on WhatsApp!
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-sm text-[#f8f5ed]/80 leading-relaxed">
-            Whether you are curating a bridal trousseau, matching specific family wedding colors, or seeking a rare heritage weave, our master stylists are ready to share video walkthroughs and tailored collections.
-          </p>
-          <div className="mt-6 flex justify-center">
-            <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I am looking for a customized saree/jewelry order. Could you please assist me?')}`}
-              target="_blank"
-              rel="noreferrer"
-              className="cursor-pointer inline-flex items-center gap-2.5 rounded-full bg-[#25d366] px-6 py-3.5 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white shadow-md transition hover:bg-[#1ebe5d]"
-            >
-              <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
-              Enquire with us on WhatsApp
-            </a>
+        {/* Custom Query Callout Banner */}
+        <section className="rounded-3xl border border-gold-500/30 bg-gradient-to-br from-[#270b12] via-[#3a121c] to-[#1c060b] p-8 sm:p-14 text-center text-[#faf8f5] shadow-xl relative overflow-hidden">
+          <div className="relative z-10 max-w-3xl mx-auto space-y-4">
+            <span className="inline-block text-[10px] font-bold uppercase tracking-[0.28em] text-gold-400 border border-gold-400/30 px-3.5 py-1 rounded-full bg-gold-400/10">
+              Personalized Styling &amp; Custom Sourcing
+            </span>
+            <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-tight">
+              Looking for something else? Enquire with us on WhatsApp!
+            </h2>
+            <p className="mx-auto max-w-2xl text-xs sm:text-sm text-[#faf8f5]/80 leading-relaxed font-light">
+              Whether you are curating a bridal trousseau, matching specific family wedding colors, or seeking a rare heritage weave, our master stylists are ready to share video walkthroughs and tailored collections.
+            </p>
+            <div className="pt-2 flex justify-center">
+              <a
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I am looking for a customized saree/jewelry order. Could you please assist me?')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="cursor-pointer inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#25d366] to-[#128c7e] px-7 py-3.5 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white shadow-lg transition hover:brightness-110 hover:shadow-xl"
+              >
+                <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
+                Enquire with us on WhatsApp
+              </a>
+            </div>
           </div>
         </section>
 
-        {/* 4. Dedicated Inline About Us Section */}
-        <section id="about-us" className="scroll-mt-24 rounded-2xl border border-[#ded5c6] bg-white p-6 sm:p-10 lg:p-12 shadow-xs">
-          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
+        {/* Dedicated Inline About Us Section */}
+        <section id="about-us" className="scroll-mt-24 rounded-3xl border border-[#ebe4d8] bg-white p-6 sm:p-10 lg:p-14 shadow-xs">
+          <div className="grid gap-10 lg:grid-cols-2 lg:gap-14 items-center">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">The Shreivara Heritage</p>
-              <h2 className="mt-2 font-brand text-3xl sm:text-4xl font-medium text-maroon-900">
+              <span className="inline-block text-[10px] font-bold uppercase tracking-[0.25em] text-gold-600 bg-gold-500/10 border border-gold-500/25 px-3 py-1 rounded-full mb-3">
+                The Shreivara Heritage
+              </span>
+              <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-maroon-900 leading-tight">
                 Sarees and fine jewelry for life's treasured moments.
               </h2>
-              <p className="mt-4 text-sm leading-relaxed text-gray-700">
+              <p className="mt-5 text-xs sm:text-sm leading-relaxed text-neutral-600 font-light">
                 Founded with a devotion to authentic Indian textiles, Shreivara Handlooms bridges generational artisan weaving with modern elegance. From the pure zari temple borders of Kanchipuram to the featherlight cottons of Mangalagiri and handcrafted South Indian bridal jewelry, every piece in our studio is personally curated for longevity, beauty, and festive warmth.
               </p>
 
               {/* Callout Box */}
-              <div className="mt-6 rounded-xl border border-gold-500/50 bg-[#faf6ee] p-5">
+              <div className="mt-8 rounded-2xl border border-gold-500/40 bg-[#faf6ee]/80 p-6 shadow-2xs">
                 <p className="text-xs font-bold uppercase tracking-wider text-maroon-900">Customized Bridal &amp; Festive Orders</p>
-                <p className="mt-1 text-xs sm:text-sm text-[#5c4a35] leading-relaxed">
+                <p className="mt-1.5 text-xs sm:text-sm text-neutral-700 leading-relaxed">
                   Reach us on WhatsApp for inquiries and customized orders. We provide real-time drape previews, blouse fabric suggestions, and worldwide delivery support.
                 </p>
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your custom saree & jewelry orders.')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="cursor-pointer mt-3.5 inline-flex items-center gap-2 rounded-lg bg-maroon-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-maroon-800"
+                  className="cursor-pointer mt-4 inline-flex items-center gap-2 rounded-xl bg-maroon-900 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-maroon-800 shadow-sm"
                 >
                   <span className="h-3.5 w-3.5"><WhatsAppIcon /></span>
                   Order / Inquire on WhatsApp (+91 90005 10329)
@@ -711,32 +752,45 @@ export default function HomePage() {
             </div>
 
             {/* Shop Location & Address Details */}
-            <div className="rounded-xl border border-[#e4dccd] bg-[#fbf9f4] p-6 space-y-5">
-              <h3 className="font-brand text-xl font-bold text-maroon-900">Shop Location &amp; Visit Details</h3>
-              <div className="space-y-3 text-xs sm:text-sm text-gray-700">
-                <div className="flex gap-3">
-                  <span className="text-gold-600 font-bold shrink-0">📍 Studio Address:</span>
+            <div className="rounded-2xl border border-[#ebe4d8] bg-[#fbf9f5] p-7 space-y-6 shadow-2xs">
+              <h3 className="font-brand text-2xl font-medium text-maroon-900">Shop Location &amp; Visit Details</h3>
+              <div className="space-y-4 text-xs sm:text-sm text-neutral-700">
+                <div className="flex gap-3.5">
+                  <span className="text-gold-600 font-bold shrink-0 text-sm">📍</span>
                   <div>
-                    <p className="font-semibold text-maroon-900">Shreivara Handlooms &amp; Fine Jewelry</p>
-                    <p className="text-gray-600">Plot No. 42, Heritage Weavers Lane, Jubilee Hills</p>
-                    <p className="text-gray-600">Hyderabad, Telangana — 500033, India</p>
+                    <p className="font-semibold text-neutral-900">Studio Address</p>
+                    <p className="text-neutral-600 mt-0.5">Shreivara Handlooms &amp; Fine Jewelry</p>
+                    <p className="text-neutral-600">Plot No. 42, Heritage Weavers Lane, Jubilee Hills</p>
+                    <p className="text-neutral-600">Hyderabad, Telangana — 500033, India</p>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <span className="text-gold-600 font-bold shrink-0">🕒 Studio Hours:</span>
-                  <p className="text-gray-600">Monday – Saturday: 10:30 AM – 7:30 PM IST</p>
+                <div className="flex gap-3.5">
+                  <span className="text-gold-600 font-bold shrink-0 text-sm">🕒</span>
+                  <div>
+                    <p className="font-semibold text-neutral-900">Studio Hours</p>
+                    <p className="text-neutral-600 mt-0.5">Monday – Saturday: 10:30 AM – 7:30 PM IST</p>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <span className="text-gold-600 font-bold shrink-0">📞 Direct Phone &amp; WhatsApp:</span>
-                  <a href="tel:+919000510329" className="text-maroon-900 font-medium hover:underline">+91 90005 10329</a>
+                <div className="flex gap-3.5">
+                  <span className="text-gold-600 font-bold shrink-0 text-sm">📞</span>
+                  <div>
+                    <p className="font-semibold text-neutral-900">Phone &amp; WhatsApp</p>
+                    <a href="tel:+919000510329" className="text-maroon-900 font-medium hover:underline mt-0.5 block">+91 90005 10329</a>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <span className="text-gold-600 font-bold shrink-0">✉️ Email:</span>
-                  <a href="mailto:shreivara@gmail.com" className="text-maroon-900 font-medium hover:underline">shreivara@gmail.com</a>
+                <div className="flex gap-3.5">
+                  <span className="text-gold-600 font-bold shrink-0 text-sm">✉️</span>
+                  <div>
+                    <p className="font-semibold text-neutral-900">Email Inquiries</p>
+                    <a href="mailto:shreivara@gmail.com" className="text-maroon-900 font-medium hover:underline mt-0.5 block">shreivara@gmail.com</a>
+                  </div>
                 </div>
-                <div className="flex gap-3">
-                  <span className="text-gold-600 font-bold shrink-0">✈️ Shipping:</span>
-                  <p className="text-gray-600">Express doorstep delivery across India and worldwide shipping via trusted international couriers.</p>
+                <div className="flex gap-3.5">
+                  <span className="text-gold-600 font-bold shrink-0 text-sm">✈️</span>
+                  <div>
+                    <p className="font-semibold text-neutral-900">Worldwide Shipping</p>
+                    <p className="text-neutral-600 mt-0.5">Express doorstep delivery across India and reliable worldwide shipping via DHL / FedEx.</p>
+                  </div>
                 </div>
               </div>
             </div>

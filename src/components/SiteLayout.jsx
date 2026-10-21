@@ -83,7 +83,7 @@ export function useStore() {
 
 function SearchIcon() {
   return (
-    <svg className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
   );
@@ -91,9 +91,8 @@ function SearchIcon() {
 
 function BagIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5.5 8.5h13l1 12h-15l1-12Z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V6a3 3 0 0 1 6 0v3" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
     </svg>
   );
 }
@@ -159,87 +158,121 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50">
-      <button type="button" aria-label="Close panel" onClick={onClose} className="cursor-pointer absolute inset-0 bg-[#21180f]/35 backdrop-blur-[2px]" />
-      <section role="dialog" aria-modal="true" aria-labelledby="store-panel-title" className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-[#f8f5ed] shadow-2xl">
-        <div className="flex items-center justify-between border-b border-[#e4dccd] px-6 py-5">
+    <div className="fixed inset-0 z-50 overflow-hidden">
+      <button
+        type="button"
+        aria-label="Close panel"
+        onClick={onClose}
+        className="cursor-pointer absolute inset-0 bg-neutral-950/40 backdrop-blur-xs transition-opacity"
+      />
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="store-panel-title"
+        className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-[#fdfbf7] shadow-2xl border-l border-[#e8e2d7]"
+      >
+        <div className="flex items-center justify-between border-b border-[#e8e2d7] px-6 py-5 bg-white">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-600">Your selection</p>
-            <h2 id="store-panel-title" className="mt-1 font-brand text-2xl font-medium text-maroon-900">Shopping bag</h2>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">Your Selection</p>
+            <h2 id="store-panel-title" className="mt-0.5 font-brand text-2xl font-medium text-maroon-900">
+              Shopping Bag
+            </h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-600 transition hover:bg-[#e9e1d3]">×</button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition"
+          >
+            ✕
+          </button>
         </div>
+
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-          {visibleCart.length ? visibleCart.map(({ product, quantity }) => {
-            const maxStock = product.stock ?? 5;
-            const isMax = quantity >= maxStock;
-            return (
-              <article key={product.sku} className="flex gap-4 border-b border-[#e4dccd] pb-4">
-                <img src={product.image} alt={product.name} className="h-24 w-20 rounded-lg object-cover" />
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-brand text-lg font-medium text-maroon-900">{product.name}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{product.sku} · ₹{product.sellingPrice.toLocaleString('en-IN')}</p>
-                  <div className="mt-3 flex items-center gap-3">
-                    <button
-                      type="button"
-                      aria-label={`Remove one ${product.name}`}
-                      onClick={() => setCartItems((current) => current.flatMap((item) => item.sku !== product.sku ? [item] : item.quantity > 1 ? [{ ...item, quantity: item.quantity - 1 }] : []))}
-                      className="cursor-pointer h-8 w-8 rounded-full border border-[#d9d0c1] text-lg hover:border-maroon-900"
-                    >−</button>
-                    <span className="text-sm font-medium">{quantity}</span>
-                    <button
-                      type="button"
-                      disabled={isMax}
-                      aria-label={`Add one ${product.name}`}
-                      onClick={() => setCartItems((current) => current.map((item) => item.sku === product.sku ? { ...item, quantity: Math.min(maxStock, item.quantity + 1) } : item))}
-                      className={`h-8 w-8 rounded-full border text-lg transition ${
-                        isMax
-                          ? 'cursor-not-allowed border-gray-200 text-gray-300'
-                          : 'cursor-pointer border-[#d9d0c1] hover:border-maroon-900'
-                      }`}
-                    >+</button>
-                    {isMax && <span className="text-[10px] uppercase tracking-wider text-amber-700">Max stock</span>}
-                    <button
-                      type="button"
-                      onClick={() => setCartItems((current) => current.filter((item) => item.sku !== product.sku))}
-                      className="cursor-pointer ml-auto text-xs text-gray-500 underline underline-offset-2 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
+          {visibleCart.length ? (
+            visibleCart.map(({ product, quantity }) => {
+              const maxStock = product.stock ?? 5;
+              const isMax = quantity >= maxStock;
+              return (
+                <article key={product.sku} className="flex gap-4 border-b border-[#eee7dc] pb-4 last:border-b-0">
+                  <img src={product.image} alt={product.name} className="h-24 w-20 rounded-xl object-cover shadow-xs border border-[#eee7dc]" />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-brand text-lg font-medium text-maroon-900 leading-snug">{product.name}</h3>
+                    <p className="mt-0.5 text-xs text-neutral-500">{product.sku} · {formatCurrency(product.sellingPrice)}</p>
+                    <div className="mt-3 flex items-center gap-3">
+                      <button
+                        type="button"
+                        aria-label={`Remove one ${product.name}`}
+                        onClick={() => setCartItems((current) => current.flatMap((item) => item.sku !== product.sku ? [item] : item.quantity > 1 ? [{ ...item, quantity: item.quantity - 1 }] : []))}
+                        className="cursor-pointer h-7 w-7 rounded-full border border-neutral-300 text-base flex items-center justify-center hover:border-maroon-900 hover:bg-white transition"
+                      >
+                        −
+                      </button>
+                      <span className="text-xs font-semibold">{quantity}</span>
+                      <button
+                        type="button"
+                        disabled={isMax}
+                        aria-label={`Add one ${product.name}`}
+                        onClick={() => setCartItems((current) => current.map((item) => item.sku === product.sku ? { ...item, quantity: Math.min(maxStock, item.quantity + 1) } : item))}
+                        className={`h-7 w-7 rounded-full border text-base flex items-center justify-center transition ${
+                          isMax
+                            ? 'cursor-not-allowed border-neutral-200 text-neutral-300'
+                            : 'cursor-pointer border-neutral-300 hover:border-maroon-900 hover:bg-white'
+                        }`}
+                      >
+                        +
+                      </button>
+                      {isMax && <span className="text-[10px] uppercase tracking-wider text-amber-700 font-medium">Max</span>}
+                      <button
+                        type="button"
+                        onClick={() => setCartItems((current) => current.filter((item) => item.sku !== product.sku))}
+                        className="cursor-pointer ml-auto text-[11px] text-neutral-400 hover:text-red-700 underline underline-offset-2 transition"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </article>
-            );
-          }) : <p className="py-12 text-center font-brand text-xl text-gray-500">Your bag is waiting for something beautiful.</p>}
+                </article>
+              );
+            })
+          ) : (
+            <div className="py-16 text-center">
+              <span className="inline-block p-4 rounded-full bg-neutral-100 text-neutral-400 mb-3">
+                <BagIcon />
+              </span>
+              <p className="font-brand text-2xl text-neutral-700 font-normal">Your bag is currently empty.</p>
+              <p className="text-xs text-neutral-400 mt-1">Discover handcrafted sarees and jewelry to begin.</p>
+            </div>
+          )}
         </div>
 
         {visibleCart.length > 0 && (
-          <div className="border-t border-[#e4dccd] px-6 py-4 space-y-3.5 bg-[#f5f0e4]">
+          <div className="border-t border-[#e8e2d7] px-6 py-4 space-y-3.5 bg-white">
             {/* Payment & Shipping Notices */}
-            <div className="rounded-lg border border-amber-300/80 bg-white/80 p-3.5 text-xs text-[#524434] space-y-1.5 shadow-xs">
+            <div className="rounded-xl border border-amber-300/80 bg-amber-50/60 p-3 text-xs text-[#524434] space-y-1 shadow-xs">
               <p className="font-semibold text-emerald-800 flex items-center gap-1.5">
                 <span>🎉</span> Free Delivery on orders above ₹3,000!
               </p>
-              <p className="text-[11px] leading-relaxed text-gray-700">
+              <p className="text-[11px] leading-relaxed text-neutral-600">
                 • Prices are exclusive of delivery charges and GST.
               </p>
-              <p className="text-[11px] leading-relaxed text-gray-700">
+              <p className="text-[11px] leading-relaxed text-neutral-600">
                 • Delivery charges vary based on location. Please connect with us on WhatsApp for exact shipping details.
               </p>
             </div>
 
-            <div className="flex justify-between font-semibold text-maroon-900 text-base">
-              <span>Subtotal</span>
-              <span>₹{total.toLocaleString('en-IN')}</span>
+            <div className="flex justify-between items-baseline font-medium text-maroon-900 pt-1">
+              <span className="text-sm uppercase tracking-wider text-neutral-500 font-sans font-semibold">Subtotal</span>
+              <span className="text-xl font-bold font-brand tracking-tight">{formatCurrency(total)}</span>
             </div>
             <button
               type="button"
               onClick={startWhatsAppOrder}
-              className="cursor-pointer w-full rounded-lg bg-maroon-900 px-5 py-3 text-sm font-semibold tracking-wide text-[#f8f5ed] transition hover:bg-maroon-800"
+              className="cursor-pointer w-full rounded-xl bg-gradient-to-r from-maroon-900 to-[#421620] px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#faf8f5] shadow-md hover:shadow-lg transition-all hover:opacity-95"
             >
               Order on WhatsApp
             </button>
-            <p className="text-center text-xs text-gray-500">We’ll confirm availability and delivery with you.</p>
+            <p className="text-center text-[11px] text-neutral-400">Availability and dispatch confirmed directly on WhatsApp.</p>
           </div>
         )}
       </section>
@@ -247,25 +280,18 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
   );
 }
 
-function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, ownerOpen, setOwnerOpen, cartCount, onOpenPanel }) {
+function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, setOwnerOpen, cartCount, onOpenPanel }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  function navigateToTop() {
+  // Reset category, clear search, and scroll to top when Brand is clicked to show all collections & products freshly
+  function handleBrandClick() {
+    setCategory('All Collections');
+    setQuery('');
     if (location.pathname !== '/') {
-      navigate('/#top');
-      return;
+      navigate('/');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  function navigateToCollections() {
-    if (location.pathname !== '/') {
-      navigate('/#collections');
-      return;
-    }
-    const elem = document.getElementById('collections') || document.getElementById('catalog');
-    elem?.scrollIntoView({ behavior: 'smooth' });
   }
 
   function navigateToAboutUs() {
@@ -289,31 +315,27 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#ded5c6] bg-[#f6f2e9]/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 lg:px-8">
-        {/* Left Side: Brand Logo + Home + About Us + Search Bar */}
-        <div className="flex flex-1 items-center gap-3 sm:gap-6 lg:gap-8">
+    <header className="sticky top-0 z-40 border-b border-[#e8e2d7] bg-[#faf8f5]/90 glass-nav">
+      <div className="mx-auto flex h-[74px] max-w-7xl items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 lg:px-8">
+
+        {/* Left Side: Brand Logo (Home trigger) + About Us + Search Bar */}
+        <div className="flex flex-1 items-center gap-4 sm:gap-6 lg:gap-8">
           <button
             type="button"
-            onClick={navigateToTop}
-            className="cursor-pointer flex shrink-0 items-center gap-2 bg-transparent border-0 p-0 text-left"
-            aria-label="Shreivara home"
+            onClick={handleBrandClick}
+            className="cursor-pointer flex shrink-0 items-center gap-1.5 bg-transparent border-0 p-0 text-left group"
+            aria-label="Shreivara - Return to Home"
           >
-            <span className="font-brand text-2xl font-semibold tracking-tight text-maroon-900 sm:text-3xl">Shreivara</span>
+            <span className="font-brand text-2xl sm:text-3xl font-semibold tracking-[0.16em] uppercase text-maroon-900 group-hover:text-gold-600 transition-colors">
+              Shreivara
+            </span>
           </button>
 
-          <nav aria-label="Main navigation" className="flex items-center gap-4 sm:gap-6 text-sm font-medium text-gray-700">
-            <button
-              type="button"
-              onClick={navigateToCollections}
-              className="cursor-pointer transition hover:text-maroon-900 bg-transparent border-0 p-0 whitespace-nowrap"
-            >
-              Home
-            </button>
+          <nav aria-label="Main navigation" className="flex items-center">
             <button
               type="button"
               onClick={navigateToAboutUs}
-              className="cursor-pointer transition hover:text-maroon-900 bg-transparent border-0 p-0 whitespace-nowrap"
+              className="cursor-pointer text-xs sm:text-sm font-medium tracking-wide text-neutral-700 hover:text-maroon-900 transition whitespace-nowrap py-1 bg-transparent border-0 p-0"
             >
               About Us
             </button>
@@ -327,28 +349,36 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search sarees, jewelry, SKU..."
               aria-label="Search catalogue by name or SKU"
-              className="w-full rounded-full border border-[#d9d0c1] bg-white/70 py-1.5 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none sm:text-sm"
+              className="w-full rounded-full border border-[#ded7cc] bg-white/80 py-1.5 pl-4 pr-10 text-xs text-neutral-800 transition focus:border-maroon-900 focus:bg-white focus:outline-none sm:text-sm shadow-2xs"
             />
             <SearchIcon />
           </label>
         </div>
 
-        {/* Right Side: Cart + Owner */}
-        <div className="flex items-center justify-end gap-1.5 sm:gap-3">
+        {/* Right Side: Tilde symbol ~ + Cart + Owner Portal */}
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+          {/* Tild symbol before cart */}
+          <span className="text-maroon-900/50 font-serif text-lg sm:text-xl select-none px-1" aria-hidden="true">~</span>
+
           <button
             type="button"
             onClick={() => onOpenPanel('cart')}
             aria-label={`Shopping bag, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
-            className="cursor-pointer relative inline-flex h-10 w-10 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#e9e1d3]"
+            className="cursor-pointer relative inline-flex h-10 w-10 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#eee8dd] border border-[#e8e2d7] bg-white/70 shadow-2xs"
           >
             <span className="h-5 w-5"><BagIcon /></span>
-            {cartCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 px-1 text-[9px] font-bold text-white">{cartCount}</span>}
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 px-1 text-[9px] font-bold text-white shadow-xs">
+                {cartCount}
+              </span>
+            )}
           </button>
+
           {ownerAllowed && (
             <button
               type="button"
               onClick={requestOwnerAccess}
-              className="cursor-pointer rounded-full bg-gold-500 px-3 py-2 text-[10px] font-bold text-maroon-900 transition hover:bg-white"
+              className="cursor-pointer rounded-full bg-gold-500 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-maroon-900 transition hover:bg-gold-400 shadow-2xs ml-1"
             >
               {ownerOpen ? 'Customer' : 'Owner'}
             </button>
@@ -357,7 +387,7 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
       </div>
 
       {/* Mobile search bar on small screens */}
-      <div className="border-t border-[#e6dfd3] px-4 py-2 sm:hidden">
+      <div className="border-t border-[#e8e2d7] px-4 py-2 sm:hidden bg-white/60">
         <label className="relative block w-full">
           <input
             type="search"
@@ -365,7 +395,7 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search sarees, jewelry, SKU..."
             aria-label="Search catalogue"
-            className="w-full rounded-full border border-[#d9d0c1] bg-white/70 py-1.5 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none"
+            className="w-full rounded-full border border-[#ded7cc] bg-white py-1.5 pl-4 pr-10 text-xs text-neutral-800 transition focus:border-maroon-900 focus:outline-none"
           />
           <SearchIcon />
         </label>
@@ -376,21 +406,26 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
 
 function SiteFooter() {
   return (
-    <footer className="border-t border-gold-500/30 bg-maroon-900 px-4 py-7 text-center text-sm text-white/80">
-      <p className="font-semibold text-gold-500">Shreivara</p>
-      <p className="mt-1">Direct WhatsApp orders • Secure delivery • Trusted quality</p>
-      <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-5">
-        <a href="mailto:shreivara@gmail.com" className="cursor-pointer underline decoration-white/40 underline-offset-4 transition hover:text-gold-500">shreivara@gmail.com</a>
-        {WHATSAPP_NUMBER && (
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to get in touch.')}`}
-            target="_blank"
-            rel="noreferrer"
-            className="cursor-pointer underline decoration-white/40 underline-offset-4 transition hover:text-gold-500"
-          >
-            WhatsApp: +91 90005 10329
+    <footer className="border-t border-gold-500/20 bg-gradient-to-b from-[#260b11] to-[#180509] px-4 py-12 text-center text-sm text-[#fdfbf7]/80">
+      <div className="mx-auto max-w-7xl space-y-4">
+        <p className="font-brand text-3xl font-normal tracking-[0.2em] uppercase text-gold-400">Shreivara</p>
+        <p className="text-xs tracking-wider text-[#fdfbf7]/60 uppercase">Direct WhatsApp Orders • Heritage Artistry • Worldwide Delivery</p>
+        <div className="flex flex-col items-center justify-center gap-2 pt-2 text-xs sm:flex-row sm:gap-6 text-[#fdfbf7]/75">
+          <a href="mailto:shreivara@gmail.com" className="cursor-pointer underline decoration-gold-400/40 underline-offset-4 transition hover:text-gold-400">
+            shreivara@gmail.com
           </a>
-        )}
+          {WHATSAPP_NUMBER && (
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to get in touch.')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="cursor-pointer underline decoration-gold-400/40 underline-offset-4 transition hover:text-gold-400"
+            >
+              WhatsApp: +91 90005 10329
+            </a>
+          )}
+        </div>
+        <p className="text-[11px] text-neutral-500 pt-4">© {new Date().getFullYear()} Shreivara Handlooms &amp; Fine Jewelry. All rights reserved.</p>
       </div>
     </footer>
   );
@@ -401,7 +436,7 @@ export default function SiteLayout() {
   const ownerAllowed = new URLSearchParams(location.search).get('admin') === 'true';
   const [ownerOpen, setOwnerOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('All Sarees');
+  const [category, setCategory] = useState('All Collections');
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState('');
@@ -433,7 +468,7 @@ export default function SiteLayout() {
     const maxStock = prod?.stock ?? 5;
     const existing = cartItems.find((item) => item.sku === sku);
     if (existing && existing.quantity >= maxStock) {
-      return; // Already capped at max stock limit
+      return;
     }
     setCartItems((current) => addCartItem(current, sku, maxStock));
     showToast('Added to Cart!');
@@ -486,7 +521,7 @@ export default function SiteLayout() {
 
   return (
     <StoreContext.Provider value={context}>
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen flex-col bg-[#faf8f5]">
         <SiteHeader
           {...context}
           ownerAllowed={ownerAllowed}
@@ -508,7 +543,7 @@ export default function SiteLayout() {
           <div
             role="status"
             aria-live="polite"
-            className="pointer-events-none fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-gold-500/50 bg-maroon-900 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-[#f8f5ed] shadow-[0_16px_40px_rgba(40,25,12,0.35)] transition-all duration-300"
+            className="pointer-events-none fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-gold-500/40 bg-maroon-900 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-[#faf8f5] shadow-[0_18px_40px_rgba(43,13,20,0.35)] transition-all duration-300"
           >
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-700 text-[11px] font-bold text-white">✓</span>
             <span>{toastMessage}</span>
