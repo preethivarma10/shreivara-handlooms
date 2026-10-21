@@ -277,11 +277,6 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
     elem?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  function selectCategory(nextCategory) {
-    setCategory(nextCategory);
-    navigateToCollections();
-  }
-
   function requestOwnerAccess() {
     const OWNER_PASSWORD = 'shreivara2024';
     const entered = window.prompt('Enter the owner password to manage products:');
@@ -374,25 +369,6 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
           />
           <SearchIcon />
         </label>
-      </div>
-
-      {/* Category sub-navigation bar */}
-      <div className="border-t border-[#e6dfd3]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
-          <nav aria-label="Shop categories" className="-mx-4 flex w-full items-center justify-start gap-5 overflow-x-auto whitespace-nowrap px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-700 sm:mx-0 sm:gap-7 sm:px-0 sm:text-xs">
-            {['All Sarees', ...categories].map((item) => (
-              <button
-                key={item}
-                type="button"
-                aria-pressed={category === item}
-                onClick={() => selectCategory(item)}
-                className={`cursor-pointer transition hover:text-maroon-900 ${category === item ? 'text-maroon-900 font-bold underline underline-offset-4' : ''}`}
-              >
-                {item === 'Organza & Chiffon' ? 'Organza' : item}
-              </button>
-            ))}
-          </nav>
-        </div>
       </div>
     </header>
   );

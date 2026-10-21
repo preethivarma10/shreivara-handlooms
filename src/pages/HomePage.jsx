@@ -24,44 +24,6 @@ function BagIcon() {
   );
 }
 
-const CATEGORY_CARDS = [
-  {
-    category: 'Kanchi Pattu',
-    title: 'Kanchi Pattu Silk',
-    tagline: 'Pure Mulberry Silk & Lustrous Gold Zari',
-    description: 'Woven in the ancient temple town of Kanchipuram with pure mulberry silk yarns and contrast korvai borders. Renowned for its heirloom weight, regal drape, and auspicious bridal heritage.',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    category: 'Mangalagiri',
-    title: 'Mangalagiri Handloom',
-    tagline: 'Super-fine Breathable Weave & Nizam Borders',
-    description: 'Crafted by master artisans on traditional pit looms in the historic foothills of Mangalagiri. Revered for its crisp, lightweight combed cotton texture, pure zari Nizam borders, and all-day comfort.',
-    image: 'https://images.unsplash.com/photo-1583391733956-62e74ed5b29c?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    category: 'Fancy Silk',
-    title: 'Fancy Silk & Resham',
-    tagline: 'Festive Sheen, Dual-Tone Palette & Fluid Fall',
-    description: 'A festive celebration of lightweight designer silks woven with delicate resham jaal, floral bel motifs, and iridescent dual tones. Tailored for effortless draping during poojas, sangeets, and parties.',
-    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    category: 'Organza & Chiffon',
-    title: 'Organza & Chiffon',
-    tagline: 'Translucent Ethereal Grace & Scalloped Edges',
-    description: 'Whisper-light, sheer fabric with a delicate crisp body that falls into graceful contemporary pleats. Adorned with hand-embroidered scalloped borders and subtle metallic highlights for modern celebrations.',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
-  },
-  {
-    category: 'Jewellery',
-    title: 'Fine Heritage Jewelry',
-    tagline: 'Temple Heritage Motifs & Handcrafted Kundan',
-    description: 'South Indian bridal temple chokers, antique necklace sets, and Kundan-pearl creations. Finished with divine goddess embossing, matte antique gold polish, and lustrous cluster pearls.',
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80'
-  }
-];
-
 const DEFAULT_ORDERS = [
   {
     id: 'SHR-ORD-101',
@@ -626,66 +588,12 @@ export default function HomePage() {
     return {};
   }
 
-  function handleCategoryClick(catName) {
-    setCategory(catName);
-    document.getElementById('catalog-grid')?.scrollIntoView({ behavior: 'smooth' });
-  }
-
   return (
     <main id="top" className="w-full flex-1">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-16">
 
-        {/* 1. Category Image & Explanation Cards Section */}
-        <section aria-labelledby="craft-heritage-heading" className="scroll-mt-24 pt-2">
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">Heritage Weaves &amp; Craft</p>
-              <h2 id="craft-heritage-heading" className="mt-1 font-brand text-3xl font-medium text-maroon-900 sm:text-4xl">
-                Explore by Craft
-              </h2>
-            </div>
-            <p className="text-xs text-gray-500">Click any craft card to view collection</p>
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {CATEGORY_CARDS.map((card) => (
-              <div
-                key={card.category}
-                onClick={() => handleCategoryClick(card.category)}
-                className="cursor-pointer group flex flex-col overflow-hidden rounded-xl border border-[#ded5c6] bg-[#fbf9f4] shadow-xs transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-gold-500/60"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden bg-[#e8dfd0]">
-                  <img
-                    src={card.image}
-                    alt={card.title}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <span className="absolute bottom-2.5 left-3 text-[11px] font-bold uppercase tracking-wider text-white">
-                    {card.category}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col p-4">
-                  <h3 className="font-brand text-lg font-semibold text-maroon-900 group-hover:text-gold-600 transition">
-                    {card.title}
-                  </h3>
-                  <p className="mt-1 text-[11px] font-medium text-gold-600 leading-snug">
-                    {card.tagline}
-                  </p>
-                  <p className="mt-2 text-xs leading-relaxed text-[#5c5040] line-clamp-4">
-                    {card.description}
-                  </p>
-                  <span className="mt-auto pt-3 text-[10px] font-semibold uppercase tracking-wider text-maroon-900 group-hover:underline">
-                    View collection →
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 2. Top Collections Section (Title changed, 'Curated for you' removed) */}
-        <section id="collections" className="scroll-mt-24 pt-4 border-t border-[#ded5c6]">
+        {/* Top Collections Section */}
+        <section id="collections" className="scroll-mt-24 pt-2">
           <div id="catalog" className="scroll-mt-24">
             <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
