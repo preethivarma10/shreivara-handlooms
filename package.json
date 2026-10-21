@@ -9,10 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@netlify/blobs": "^11.1.4",
-    "@netlify/database": "^2.0.1",
-    "@netlify/functions": "^6.0.2",
-    "@netlify/identity": "2.0.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router-dom": "7.18.4"

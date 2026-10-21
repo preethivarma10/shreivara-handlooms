@@ -170,27 +170,14 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
     document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  async function requestOwnerAccess() {
-    let response;
-    try {
-      response = await fetch('/api/owner');
-    } catch (error) {
-      console.error('Could not verify owner access.', error);
-      window.alert('Could not verify owner access. Please try again.');
-      return;
-    }
-
-    if (response.status === 204) {
+  function requestOwnerAccess() {
+    const OWNER_PASSWORD = 'shreivara2024';
+    const entered = window.prompt('Enter the owner password to manage products:');
+    if (entered === null) return; // cancelled
+    if (entered === OWNER_PASSWORD) {
       setOwnerOpen((open) => !open);
-    } else if (response.status === 401) {
-      window.alert('Sign in with the configured owner account to manage products.');
-    } else if (response.status === 403) {
-      window.alert('This account is not authorized to manage products.');
-    } else if (response.status === 503) {
-      window.alert('Owner access has not been configured for this deployment.');
     } else {
-      console.error(`Owner access verification failed with status ${response.status}.`);
-      window.alert('Could not verify owner access. Please try again.');
+      window.alert('Incorrect password. Please try again.');
     }
   }
 
