@@ -1,17 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --color-maroon-950: #1a060b;
-  --color-maroon-900: #2b0d14;
-  --color-maroon-800: #441722;
-  --color-maroon-700: #5e2230;
+  --color-maroon-950: #140407;
+  --color-maroon-900: #23080e;
+  --color-maroon-850: #330d16;
+  --color-maroon-800: #441420;
+  --color-maroon-700: #5c1f2d;
+  --color-gold-300: #f5e2bc;
   --color-gold-400: #dfb776;
   --color-gold-500: #c59a58;
   --color-gold-600: #9e7638;
-  --color-emerald-800: #064e3b;
-  --color-emerald-900: #022c22;
+  --color-emerald-800: #0d3b2c;
+  --color-emerald-900: #08281e;
   --font-brand: 'Cormorant Garamond', Georgia, serif;
+  --font-display: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
@@ -47,7 +49,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: #faf8f5;
+  background-color: #fbf9f5;
+  background-image: radial-gradient(circle at 50% 0%, rgba(223, 183, 118, 0.08) 0%, transparent 60%),
+                    linear-gradient(180deg, #fcfbf8 0%, #f7f3ec 50%, #fcfbf8 100%);
+  background-attachment: fixed;
   color: #27211d;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   cursor: default;
@@ -61,22 +66,72 @@ select {
   font: inherit;
 }
 
-/* Luxury card shadow & glow */
+/* Luxury Editorial Typography */
+.font-brand {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-display {
+  font-family: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+}
+
+/* Metallic & Editorial Text Gradients */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #f5e2bc 0%, #dfb776 50%, #9e7638 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-maroon-gradient {
+  background: linear-gradient(135deg, #23080e 0%, #441420 60%, #681f31 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Luxury Couture Cards & Shadows */
 .soft-card {
-  box-shadow: 0 14px 40px rgba(43, 13, 20, 0.05);
+  box-shadow: 0 14px 40px rgba(35, 8, 14, 0.06);
 }
 
 .fashion-card {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
 }
 
 .fashion-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 24px 50px -12px rgba(43, 13, 20, 0.14);
+  transform: translateY(-7px);
+  box-shadow: 0 24px 50px -12px rgba(35, 8, 14, 0.16), 0 0 0 1px rgba(223, 183, 118, 0.35);
 }
 
-/* Subtle luxury grain / backdrop */
+/* Glassmorphism Navigation */
 .glass-nav {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Gold Hairline Dividers & Accents */
+.border-gold-subtle {
+  border-color: rgba(223, 183, 118, 0.3);
+}
+
+.bg-velvet {
+  background: linear-gradient(145deg, #180408 0%, #290a12 50%, #150307 100%);
+}
+
+/* Custom Scrollbar for Luxury Aesthetics */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f7f3ec;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dfb776;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c59a58;
 }

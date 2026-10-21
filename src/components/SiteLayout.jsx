@@ -247,32 +247,32 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
         </div>
 
         {visibleCart.length > 0 && (
-          <div className="border-t border-[#e8e2d7] px-6 py-4 space-y-3.5 bg-white">
+          <div className="border-t border-[#dfb776]/25 px-6 py-5 space-y-4 bg-white/95">
             {/* Payment & Shipping Notices */}
-            <div className="rounded-xl border border-amber-300/80 bg-amber-50/60 p-3 text-xs text-[#524434] space-y-1 shadow-xs">
-              <p className="font-semibold text-emerald-800 flex items-center gap-1.5">
-                <span>🎉</span> Free Delivery on orders above ₹3,000!
+            <div className="rounded-xl border border-gold-500/35 bg-[#faf6ee] p-3.5 text-xs text-[#524434] space-y-1.5 shadow-2xs">
+              <p className="font-semibold text-emerald-900 flex items-center gap-1.5">
+                <span className="text-gold-600 font-bold">✦</span> Free Delivery on orders above ₹3,000!
               </p>
-              <p className="text-[11px] leading-relaxed text-neutral-600">
+              <p className="text-[11px] leading-relaxed text-neutral-600 font-light">
                 • Prices are exclusive of delivery charges and GST.
               </p>
-              <p className="text-[11px] leading-relaxed text-neutral-600">
+              <p className="text-[11px] leading-relaxed text-neutral-600 font-light">
                 • Delivery charges vary based on location. Please connect with us on WhatsApp for exact shipping details.
               </p>
             </div>
 
             <div className="flex justify-between items-baseline font-medium text-maroon-900 pt-1">
-              <span className="text-sm uppercase tracking-wider text-neutral-500 font-sans font-semibold">Subtotal</span>
-              <span className="text-xl font-bold font-brand tracking-tight">{formatCurrency(total)}</span>
+              <span className="text-xs uppercase tracking-[0.16em] text-neutral-500 font-sans font-semibold">Subtotal</span>
+              <span className="text-2xl font-bold font-brand tracking-tight">{formatCurrency(total)}</span>
             </div>
             <button
               type="button"
               onClick={startWhatsAppOrder}
-              className="cursor-pointer w-full rounded-xl bg-gradient-to-r from-maroon-900 to-[#421620] px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#faf8f5] shadow-md hover:shadow-lg transition-all hover:opacity-95"
+              className="cursor-pointer w-full rounded-xl bg-gradient-to-r from-maroon-900 via-[#3a0f19] to-[#24080e] px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#faf8f5] border border-gold-400/35 shadow-md hover:shadow-lg transition-all hover:brightness-105 active:scale-[0.99]"
             >
               Order on WhatsApp
             </button>
-            <p className="text-center text-[11px] text-neutral-400">Availability and dispatch confirmed directly on WhatsApp.</p>
+            <p className="text-center text-[11px] text-neutral-400 font-light">Availability and dispatch confirmed directly on WhatsApp.</p>
           </div>
         )}
       </section>
@@ -315,8 +315,13 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e8e2d7] bg-[#faf8f5]/90 glass-nav">
-      <div className="mx-auto flex h-[74px] max-w-7xl items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-[#dfb776]/25 bg-[#fcfbf9]/95 glass-nav">
+      {/* Top Haute Couture Announcement Ticker */}
+      <div className="bg-[#140407] text-[#f5e2bc] px-4 py-1.5 text-center text-[10px] sm:text-[10.5px] font-medium tracking-[0.2em] uppercase border-b border-[#dfb776]/20">
+        <span className="opacity-95">✦ Complimentary Express Shipping Above ₹3,000 • Authentic Handloom Weaves • Video Drape Consultations via WhatsApp ✦</span>
+      </div>
+
+      <div className="mx-auto flex h-[76px] sm:h-[82px] max-w-7xl items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 lg:px-8">
 
         {/* Left Side: Brand Logo (Home trigger) + About Us + Search Bar */}
         <div className="flex flex-1 items-center gap-4 sm:gap-6 lg:gap-8">
@@ -326,7 +331,7 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
             className="cursor-pointer flex shrink-0 items-center gap-1.5 bg-transparent border-0 p-0 text-left group"
             aria-label="Shreivara - Return to Home"
           >
-            <span className="font-brand text-2xl sm:text-3xl font-semibold tracking-[0.16em] uppercase text-maroon-900 group-hover:text-gold-600 transition-colors">
+            <span className="font-brand text-2xl sm:text-3xl lg:text-4xl font-normal tracking-[0.22em] uppercase text-maroon-900 group-hover:text-gold-600 transition-colors">
               Shreivara
             </span>
           </button>
@@ -335,7 +340,7 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
             <button
               type="button"
               onClick={navigateToAboutUs}
-              className="cursor-pointer text-xs sm:text-sm font-medium tracking-wide text-neutral-700 hover:text-maroon-900 transition whitespace-nowrap py-1 bg-transparent border-0 p-0"
+              className="cursor-pointer text-xs sm:text-sm font-medium tracking-[0.14em] uppercase text-neutral-800 hover:text-maroon-900 transition whitespace-nowrap py-1 bg-transparent border-0 p-0 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1px] after:bg-gold-500 hover:after:w-full after:transition-all"
             >
               About Us
             </button>
@@ -349,7 +354,7 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search sarees, jewelry, SKU..."
               aria-label="Search catalogue by name or SKU"
-              className="w-full rounded-full border border-[#ded7cc] bg-white/80 py-1.5 pl-4 pr-10 text-xs text-neutral-800 transition focus:border-maroon-900 focus:bg-white focus:outline-none sm:text-sm shadow-2xs"
+              className="w-full rounded-full border border-[#ded5c6] bg-white/90 py-2 pl-4 pr-10 text-xs text-neutral-800 transition focus:border-gold-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-gold-500/30 sm:text-sm shadow-2xs placeholder:text-neutral-400 placeholder:font-light"
             />
             <SearchIcon />
           </label>
@@ -358,17 +363,17 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
         {/* Right Side: Tilde symbol ~ + Cart + Owner Portal */}
         <div className="flex items-center justify-end gap-1.5 sm:gap-2">
           {/* Tild symbol before cart */}
-          <span className="text-maroon-900/50 font-serif text-lg sm:text-xl select-none px-1" aria-hidden="true">~</span>
+          <span className="text-[#c59a58] font-serif text-xl sm:text-2xl select-none px-1" aria-hidden="true">~</span>
 
           <button
             type="button"
             onClick={() => onOpenPanel('cart')}
             aria-label={`Shopping bag, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
-            className="cursor-pointer relative inline-flex h-10 w-10 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#eee8dd] border border-[#e8e2d7] bg-white/70 shadow-2xs"
+            className="cursor-pointer relative inline-flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#faf4ea] border border-[#dfb776]/40 bg-white/90 shadow-2xs hover:shadow-xs"
           >
             <span className="h-5 w-5"><BagIcon /></span>
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 px-1 text-[9px] font-bold text-white shadow-xs">
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 border border-gold-400/40 px-1 text-[9px] font-bold text-gold-300 shadow-xs">
                 {cartCount}
               </span>
             )}
@@ -387,7 +392,7 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
       </div>
 
       {/* Mobile search bar on small screens */}
-      <div className="border-t border-[#e8e2d7] px-4 py-2 sm:hidden bg-white/60">
+      <div className="border-t border-[#dfb776]/20 px-4 py-2 sm:hidden bg-white/70">
         <label className="relative block w-full">
           <input
             type="search"
@@ -395,7 +400,7 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search sarees, jewelry, SKU..."
             aria-label="Search catalogue"
-            className="w-full rounded-full border border-[#ded7cc] bg-white py-1.5 pl-4 pr-10 text-xs text-neutral-800 transition focus:border-maroon-900 focus:outline-none"
+            className="w-full rounded-full border border-[#ded5c6] bg-white py-1.5 pl-4 pr-10 text-xs text-neutral-800 transition focus:border-gold-500 focus:outline-none"
           />
           <SearchIcon />
         </label>
@@ -406,10 +411,10 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
 
 function SiteFooter() {
   return (
-    <footer className="border-t border-gold-500/20 bg-gradient-to-b from-[#260b11] to-[#180509] px-4 py-12 text-center text-sm text-[#fdfbf7]/80">
-      <div className="mx-auto max-w-7xl space-y-4">
-        <p className="font-brand text-3xl font-normal tracking-[0.2em] uppercase text-gold-400">Shreivara</p>
-        <p className="text-xs tracking-wider text-[#fdfbf7]/60 uppercase">Direct WhatsApp Orders • Heritage Artistry • Worldwide Delivery</p>
+    <footer className="border-t border-gold-500/25 bg-gradient-to-b from-[#180408] via-[#140306] to-[#0c0204] px-4 py-16 text-center text-sm text-[#fdfbf7]/80">
+      <div className="mx-auto max-w-7xl space-y-5">
+        <p className="font-brand text-3xl sm:text-4xl font-normal tracking-[0.24em] uppercase text-gold-400">Shreivara</p>
+        <p className="text-xs tracking-[0.22em] text-[#fdfbf7]/60 uppercase">Direct WhatsApp Orders • Heritage Artistry • Worldwide Delivery</p>
         <div className="flex flex-col items-center justify-center gap-2 pt-2 text-xs sm:flex-row sm:gap-6 text-[#fdfbf7]/75">
           <a href="mailto:shreivara@gmail.com" className="cursor-pointer underline decoration-gold-400/40 underline-offset-4 transition hover:text-gold-400">
             shreivara@gmail.com
@@ -425,7 +430,7 @@ function SiteFooter() {
             </a>
           )}
         </div>
-        <p className="text-[11px] text-neutral-500 pt-4">© {new Date().getFullYear()} Shreivara Handlooms &amp; Fine Jewelry. All rights reserved.</p>
+        <p className="text-[11px] text-[#fdfbf7]/40 pt-4">© {new Date().getFullYear()} Shreivara Handlooms &amp; Fine Jewelry. All rights reserved.</p>
       </div>
     </footer>
   );
