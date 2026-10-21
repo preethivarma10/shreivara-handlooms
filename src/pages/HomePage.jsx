@@ -158,11 +158,10 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
             type="button"
             disabled={isMaxReached}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] transition-all active:scale-[0.98] ${
-              isMaxReached
-                ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400 opacity-60'
-                : 'border border-neutral-900 bg-neutral-900 text-white hover:bg-black shadow-xs'
-            }`}
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] transition-all active:scale-[0.98] ${isMaxReached
+              ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400 opacity-60'
+              : 'border border-neutral-900 bg-neutral-900 text-white hover:bg-black shadow-xs'
+              }`}
           >
             <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
             {isMaxReached ? 'Limit' : 'Cart'}
@@ -222,7 +221,7 @@ function DispatchedOrdersManager() {
     try {
       const stored = localStorage.getItem('shreivara-orders');
       if (stored) return JSON.parse(stored);
-    } catch (_) {}
+    } catch (_) { }
     return DEFAULT_ORDERS;
   });
 
@@ -235,7 +234,7 @@ function DispatchedOrdersManager() {
     setOrders(newOrders);
     try {
       localStorage.setItem('shreivara-orders', JSON.stringify(newOrders));
-    } catch (_) {}
+    } catch (_) { }
   }
 
   function markDispatched(id) {
@@ -287,9 +286,8 @@ function DispatchedOrdersManager() {
               key={tab}
               type="button"
               onClick={() => setFilter(tab)}
-              className={`cursor-pointer rounded-full px-4 py-1 text-xs font-semibold transition ${
-                filter === tab ? 'bg-maroon-900 text-white' : 'border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-              }`}
+              className={`cursor-pointer rounded-full px-4 py-1 text-xs font-semibold transition ${filter === tab ? 'bg-maroon-900 text-white' : 'border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
+                }`}
             >
               {tab}
             </button>
@@ -325,11 +323,10 @@ function DispatchedOrdersManager() {
                 <td className="py-3 px-4 font-semibold text-neutral-900">{formatCurrency(order.total)}</td>
                 <td className="py-3 px-4">
                   <span
-                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                      order.status === 'Dispatched'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-amber-100 text-amber-800'
-                    }`}
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${order.status === 'Dispatched'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-amber-100 text-amber-800'
+                      }`}
                   >
                     {order.status}
                   </span>
@@ -445,22 +442,20 @@ function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct }
           <button
             type="button"
             onClick={() => setActiveTab('catalogue')}
-            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
-              activeTab === 'catalogue'
-                ? 'bg-maroon-900 text-white shadow-xs'
-                : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
-            }`}
+            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${activeTab === 'catalogue'
+              ? 'bg-maroon-900 text-white shadow-xs'
+              : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
+              }`}
           >
             Catalogue Management
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('orders')}
-            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
-              activeTab === 'orders'
-                ? 'bg-maroon-900 text-white shadow-xs'
-                : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
-            }`}
+            className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${activeTab === 'orders'
+              ? 'bg-maroon-900 text-white shadow-xs'
+              : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
+              }`}
           >
             Dispatched Orders
           </button>
@@ -485,21 +480,21 @@ function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct }
             <div className="mt-5 grid gap-4">
               {products.map((product) => editingSku === product.sku
                 ? <div key={product.sku} className="rounded-2xl border border-neutral-200 p-4 bg-neutral-50/50">
-                    <ProductForm product={product} submitLabel="Save changes" onSave={(formData) => onUpdateProduct(product.sku, formData)} onCancel={() => setEditingSku('')} />
-                  </div>
+                  <ProductForm product={product} submitLabel="Save changes" onSave={(formData) => onUpdateProduct(product.sku, formData)} onCancel={() => setEditingSku('')} />
+                </div>
                 : <article key={product.sku} className="grid gap-4 rounded-2xl border border-neutral-200 p-4 sm:grid-cols-[96px_1fr_auto] sm:items-center bg-white shadow-2xs">
-                    <img src={product.image} alt={product.name} className="h-24 w-24 rounded-xl object-cover border border-neutral-200" />
-                    <div>
-                      <p className="font-semibold text-maroon-900 font-brand text-xl">{product.name}</p>
-                      <p className="mt-1 text-xs text-neutral-500">{product.sku} · {product.category} · Stock: {product.stock ?? 5}</p>
-                      <p className="mt-1 text-sm font-semibold text-neutral-800">{formatCurrency(product.sellingPrice)} <span className="text-neutral-400 font-normal line-through">/ {formatCurrency(product.originalPrice)}</span></p>
-                      {product.offerDetails && <p className="mt-1 text-xs text-amber-800">{product.offerDetails}</p>}
-                    </div>
-                    <div className="flex gap-2 sm:flex-col">
-                      <button type="button" onClick={() => { setDeleteError(''); setEditingSku(product.sku); }} className="cursor-pointer rounded-xl border border-maroon-900 px-4 py-1.5 text-xs font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white transition">Edit</button>
-                      <button type="button" onClick={() => deleteProduct(product)} className="cursor-pointer rounded-xl border border-red-700 px-4 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-700 hover:text-white transition">Delete</button>
-                    </div>
-                  </article>)}
+                  <img src={product.image} alt={product.name} className="h-24 w-24 rounded-xl object-cover border border-neutral-200" />
+                  <div>
+                    <p className="font-semibold text-maroon-900 font-brand text-xl">{product.name}</p>
+                    <p className="mt-1 text-xs text-neutral-500">{product.sku} · {product.category} · Stock: {product.stock ?? 5}</p>
+                    <p className="mt-1 text-sm font-semibold text-neutral-800">{formatCurrency(product.sellingPrice)} <span className="text-neutral-400 font-normal line-through">/ {formatCurrency(product.originalPrice)}</span></p>
+                    {product.offerDetails && <p className="mt-1 text-xs text-amber-800">{product.offerDetails}</p>}
+                  </div>
+                  <div className="flex gap-2 sm:flex-col">
+                    <button type="button" onClick={() => { setDeleteError(''); setEditingSku(product.sku); }} className="cursor-pointer rounded-xl border border-maroon-900 px-4 py-1.5 text-xs font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white transition">Edit</button>
+                    <button type="button" onClick={() => deleteProduct(product)} className="cursor-pointer rounded-xl border border-red-700 px-4 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-700 hover:text-white transition">Delete</button>
+                  </div>
+                </article>)}
               {products.length === 0 && <p className="text-sm text-neutral-500">No products have been added yet.</p>}
             </div>
           </section>
@@ -642,7 +637,7 @@ export default function HomePage() {
               </div>
               <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to schedule a personal drape walkthrough on WhatsApp.')}`}
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to schedule a personal walkthrough on WhatsApp.')}`}
                   target="_blank"
                   rel="noreferrer"
                   className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-neutral-900 bg-neutral-900 text-white hover:bg-black px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] shadow-xs transition-all active:scale-[0.98]"
@@ -668,11 +663,10 @@ export default function HomePage() {
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => setCategory(item === 'All Collections' ? 'All Collections' : item)}
-                    className={`cursor-pointer rounded-full px-4 sm:px-5 py-2 text-xs font-medium tracking-wide transition-all ${
-                      isSelected
-                        ? 'bg-neutral-950 text-white shadow-xs'
-                        : 'bg-neutral-100 hover:bg-neutral-200/80 text-neutral-700 hover:text-black border border-transparent'
-                    }`}
+                    className={`cursor-pointer rounded-full px-4 sm:px-5 py-2 text-xs font-medium tracking-wide transition-all ${isSelected
+                      ? 'bg-neutral-950 text-white shadow-xs'
+                      : 'bg-neutral-100 hover:bg-neutral-200/80 text-neutral-700 hover:text-black border border-transparent'
+                      }`}
                   >
                     {item}
                   </button>
@@ -756,7 +750,7 @@ export default function HomePage() {
               <div className="mt-8 rounded-xl border border-neutral-200 bg-neutral-50/70 p-6 shadow-2xs">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-950">Customized Bridal &amp; Festive Orders</p>
                 <p className="mt-1.5 text-xs sm:text-sm text-neutral-600 leading-relaxed font-light">
-                  Reach us on WhatsApp for inquiries and customized orders. We provide real-time drape previews, blouse fabric suggestions, and worldwide delivery support.
+                  Reach us on WhatsApp for inquiries and customized orders. We provide real-time previews, blouse fabric suggestions, and worldwide delivery support.
                 </p>
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your custom saree & jewelry orders.')}`}

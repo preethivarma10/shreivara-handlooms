@@ -214,11 +214,10 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
                         disabled={isMax}
                         aria-label={`Add one ${product.name}`}
                         onClick={() => setCartItems((current) => current.map((item) => item.sku === product.sku ? { ...item, quantity: Math.min(maxStock, item.quantity + 1) } : item))}
-                        className={`h-7 w-7 rounded-full border text-sm flex items-center justify-center transition ${
-                          isMax
+                        className={`h-7 w-7 rounded-full border text-sm flex items-center justify-center transition ${isMax
                             ? 'cursor-not-allowed border-neutral-200 text-neutral-300'
                             : 'cursor-pointer border-neutral-300 hover:border-neutral-900 hover:bg-neutral-50'
-                        }`}
+                          }`}
                       >
                         +
                       </button>
@@ -318,7 +317,7 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
     <header className="sticky top-0 z-40 border-b border-neutral-200/80 bg-white/95 glass-nav">
       {/* Top Slick Announcement Ticker */}
       <div className="bg-neutral-950 text-neutral-300 px-4 py-2 text-center text-[10px] sm:text-[10.5px] font-medium tracking-[0.2em] uppercase border-b border-neutral-900">
-        <span className="opacity-95">✦ Complimentary Express Shipping Above ₹3,000 • Authentic Handloom Weaves • Video Drape Consultations via WhatsApp ✦</span>
+        <span className="opacity-95">✦ Complimentary Express Shipping Above ₹3,000 • Authentic Handloom Weaves • Video Consultations via WhatsApp ✦</span>
       </div>
 
       <div className="mx-auto flex h-[72px] sm:h-[76px] max-w-7xl items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 lg:px-8">
@@ -499,7 +498,7 @@ export default function SiteLayout() {
       setProducts(DEFAULT_PRODUCTS);
       try {
         window.localStorage.setItem('shreivara-products', JSON.stringify(DEFAULT_PRODUCTS));
-      } catch (_) {}
+      } catch (_) { }
       setProductsLoading(false);
     }
     loadProducts();
