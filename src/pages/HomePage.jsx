@@ -85,45 +85,45 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
   const discount = Math.round(((product.originalPrice - product.sellingPrice) / product.originalPrice) * 100);
 
   return (
-    <article className="fashion-card group relative flex flex-col overflow-hidden rounded-2xl border border-[#e8dfd1] bg-white/90 backdrop-blur-xs shadow-2xs hover:border-[#dfb776] transition-all">
+    <article className="fashion-card group relative flex flex-col overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-2xs hover:border-neutral-900 hover:shadow-lg transition-all duration-300">
       {/* High-Fashion Editorial Image Frame */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#f4eee6]">
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100">
         <img
           src={product.image}
           alt={product.name}
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           loading="lazy"
         />
-        {/* Ambient Vignette Overlay on Hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#140407]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        {/* Ambient Subtle Vignette on Hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-        {/* Floating Luxury Badges */}
+        {/* Floating Badges */}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5 z-10 pointer-events-none">
           {discount > 0 && (
-            <span className="rounded-full bg-[#180408]/85 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#dfb776] border border-[#dfb776]/40 shadow-sm">
+            <span className="rounded-full bg-neutral-950/90 backdrop-blur-md px-2.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider text-white shadow-xs">
               {discount}% OFF
             </span>
           )}
         </div>
 
         <div className="absolute right-3 top-3 z-10 pointer-events-none">
-          <span className="rounded-md bg-white/90 backdrop-blur-md px-2 py-0.5 text-[9.5px] font-mono tracking-widest text-neutral-600 uppercase border border-[#dfb776]/20 shadow-xs">
+          <span className="rounded-md bg-white/95 backdrop-blur-md px-2 py-0.5 text-[9px] font-mono tracking-wider text-neutral-600 uppercase border border-neutral-200 shadow-2xs">
             {product.sku}
           </span>
         </div>
       </div>
 
       {/* Card Body */}
-      <div className="flex flex-1 flex-col p-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-gold-600">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
           {product.category}
         </p>
-        <h3 className="mt-1.5 min-h-[50px] font-brand text-2xl font-normal leading-snug text-neutral-900 group-hover:text-maroon-900 transition-colors">
+        <h3 className="mt-1 min-h-[46px] font-brand text-xl sm:text-2xl font-normal leading-snug text-neutral-950 group-hover:text-neutral-700 transition-colors">
           {product.name}
         </h3>
 
-        <div className="mt-3 flex items-baseline gap-2.5">
-          <span className="text-2xl font-medium text-maroon-900 font-brand tracking-tight">
+        <div className="mt-2.5 flex items-baseline gap-2">
+          <span className="text-xl sm:text-2xl font-bold text-neutral-950 font-brand tracking-tight">
             {formatCurrency(product.sellingPrice)}
           </span>
           {product.originalPrice > product.sellingPrice && (
@@ -134,22 +134,22 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
         </div>
 
         {product.offerDetails && (
-          <p className="mt-3 rounded-lg border border-[#dfb776]/30 bg-[#fbf6eb] px-2.5 py-1.5 text-xs font-medium text-[#7a5518] flex items-center gap-1.5">
+          <p className="mt-2.5 rounded-lg border border-neutral-200/90 bg-neutral-50 px-2.5 py-1.5 text-xs font-medium text-neutral-700 flex items-center gap-1.5">
             <span>✦</span> {product.offerDetails}
           </p>
         )}
 
         {sizes.length > 0 && (
-          <p className="mt-2 text-xs text-neutral-500 font-light">Available: {sizes.join(', ')}</p>
+          <p className="mt-1.5 text-xs text-neutral-500 font-light">Available: {sizes.join(', ')}</p>
         )}
 
-        {/* Couture Action Buttons */}
-        <div className="mt-auto pt-5 grid grid-cols-2 gap-2">
+        {/* Modern Action Buttons */}
+        <div className="mt-auto pt-4 grid grid-cols-2 gap-2">
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`}
             target="_blank"
             rel="noreferrer"
-            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#0d3b2c] via-[#14533d] to-[#0f4432] px-3 py-3 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#fbf7f0] border border-[#dfb776]/35 shadow-xs transition-all hover:brightness-110 hover:shadow-md active:scale-[0.98]"
+            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#075e54] hover:bg-[#128c7e] px-2.5 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-white shadow-xs transition-all active:scale-[0.98]"
           >
             <span className="h-3.5 w-3.5 shrink-0 text-[#25d366]"><WhatsAppIcon /></span>
             Order
@@ -158,10 +158,10 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
             type="button"
             disabled={isMaxReached}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-3 text-[10.5px] font-semibold uppercase tracking-[0.14em] transition-all active:scale-[0.98] ${
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.1em] transition-all active:scale-[0.98] ${
               isMaxReached
-                ? 'cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400 opacity-60'
-                : 'border border-maroon-900 bg-white text-maroon-900 hover:bg-maroon-900 hover:text-gold-300 shadow-2xs hover:shadow-sm'
+                ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400 opacity-60'
+                : 'border border-neutral-900 bg-neutral-900 text-white hover:bg-black shadow-xs'
             }`}
           >
             <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
@@ -628,15 +628,15 @@ export default function HomePage() {
         {/* Top Collections Section */}
         <section id="collections" className="scroll-mt-24">
           <div id="catalog" className="scroll-mt-24">
-            <div className="mb-8 sm:mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[#ebdcc9] pb-6">
+            <div className="mb-8 sm:mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-neutral-200/80 pb-6">
               <div>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-gold-600 bg-gold-500/10 border border-gold-500/25 px-3 py-1 rounded-full mb-3">
-                  <span>✦</span> Curated Haute Couture <span>✦</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-400 mb-2 block">
+                  Curated Handlooms &amp; Fine Jewelry
                 </span>
-                <h1 className="font-brand text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-maroon-900">
+                <h1 className="font-brand text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-neutral-950">
                   Top Collections
                 </h1>
-                <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 tracking-wide font-light">
+                <p className="mt-1 text-xs sm:text-sm text-neutral-500 font-light">
                   Sarees to Treasures • Handcrafted with Heritage Artistry
                 </p>
               </div>
@@ -645,19 +645,19 @@ export default function HomePage() {
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to schedule a personal drape walkthrough on WhatsApp.')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-maroon-900/30 bg-white/95 px-4 sm:px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-maroon-900 shadow-2xs hover:bg-maroon-900 hover:text-gold-300 transition-all hover:border-maroon-900 active:scale-[0.98]"
+                  className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-neutral-900 bg-neutral-900 text-white hover:bg-black px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] shadow-xs transition-all active:scale-[0.98]"
                 >
                   <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
                   Video Consultation
                 </a>
-                <span className="rounded-full border border-gold-500/30 bg-white/90 px-4 py-2 text-xs font-medium text-neutral-700 shadow-2xs font-mono" aria-live="polite">
+                <span className="rounded-full border border-neutral-200 bg-white px-3.5 py-2 text-xs font-medium text-neutral-600 shadow-2xs font-mono" aria-live="polite">
                   {filteredProducts.length} {filteredProducts.length === 1 ? 'Design' : 'Designs'}
                 </span>
               </div>
             </div>
 
             {/* Category Filter Chips */}
-            <div className="mb-10 sm:mb-12 flex flex-wrap gap-2.5 sm:gap-3" aria-label="Filter collections by category">
+            <div className="mb-10 sm:mb-12 flex flex-wrap gap-2 sm:gap-2.5" aria-label="Filter collections by category">
               {['All Collections', ...categories].map((item) => {
                 const isSelected =
                   (item === 'All Collections' && (category === 'All Collections' || category === 'All Sarees')) ||
@@ -668,10 +668,10 @@ export default function HomePage() {
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => setCategory(item === 'All Collections' ? 'All Collections' : item)}
-                    className={`cursor-pointer rounded-full px-5 py-2.5 text-xs font-medium tracking-[0.1em] uppercase transition-all duration-300 ${
+                    className={`cursor-pointer rounded-full px-4 sm:px-5 py-2 text-xs font-medium tracking-wide transition-all ${
                       isSelected
-                        ? 'bg-[#23080e] text-[#dfb776] shadow-md border border-[#dfb776] ring-1 ring-[#dfb776]/50'
-                        : 'border border-[#ded5c6] bg-white/85 text-neutral-700 hover:border-gold-500 hover:text-maroon-900 shadow-2xs'
+                        ? 'bg-neutral-950 text-white shadow-xs'
+                        : 'bg-neutral-100 hover:bg-neutral-200/80 text-neutral-700 hover:text-black border border-transparent'
                     }`}
                   >
                     {item}
@@ -684,13 +684,13 @@ export default function HomePage() {
             <div id="catalog-grid" className="scroll-mt-28">
               {productsLoading ? (
                 <div className="py-20 text-center">
-                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-solid border-maroon-900 border-r-transparent mb-3" />
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-solid border-neutral-900 border-r-transparent mb-3" />
                   <p className="text-sm font-medium text-neutral-500 font-light">Curating the collection…</p>
                 </div>
               ) : productsError ? (
                 <p className="py-16 text-center text-sm text-red-800" role="alert">{productsError}</p>
               ) : filteredProducts.length ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid gap-5 sm:gap-6 lg:gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {filteredProducts.map((product) => (
                     <ProductCard
                       key={`${product.sku}-${product.name}`}
@@ -701,9 +701,9 @@ export default function HomePage() {
                   ))}
                 </div>
               ) : (
-                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-dashed border-[#dfb776]/40 bg-white/80 p-12 text-center shadow-xs">
+                <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-white p-12 text-center shadow-xs">
                   <div>
-                    <p className="font-brand text-2xl font-medium text-neutral-800">No pieces match your search.</p>
+                    <p className="font-brand text-2xl font-normal text-neutral-800">No pieces match your search.</p>
                     <p className="mt-2 text-xs text-neutral-500 font-light">Try selecting a different category filter or clear your search term.</p>
                   </div>
                 </div>
@@ -713,27 +713,23 @@ export default function HomePage() {
         </section>
 
         {/* Custom Query Callout Banner */}
-        <section className="rounded-3xl border border-[#dfb776]/35 bg-velvet p-8 sm:p-14 text-center text-[#faf8f5] shadow-2xl relative overflow-hidden">
-          {/* Ambient Golden Glow Effect */}
-          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-[#dfb776]/15 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-[#dfb776]/15 blur-3xl pointer-events-none" />
-
+        <section className="rounded-2xl border border-neutral-800 bg-neutral-950 p-8 sm:p-14 text-center text-white shadow-xl relative overflow-hidden">
           <div className="relative z-10 max-w-3xl mx-auto space-y-4">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-[#dfb776] border border-[#dfb776]/35 px-4 py-1 rounded-full bg-[#dfb776]/10">
-              <span>✦</span> Personalized Styling &amp; Custom Sourcing <span>✦</span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-400 border border-neutral-800 px-3.5 py-1 rounded-full bg-neutral-900/80">
+              Personalized Styling &amp; Custom Sourcing
             </span>
             <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-tight">
               Looking for something else? Enquire with us on WhatsApp!
             </h2>
-            <p className="mx-auto max-w-2xl text-xs sm:text-sm text-[#faf8f5]/85 leading-relaxed font-light">
+            <p className="mx-auto max-w-2xl text-xs sm:text-sm text-neutral-400 leading-relaxed font-light">
               Whether you are curating a bridal trousseau, matching specific family wedding colors, or seeking a rare heritage weave, our master stylists are ready to share video walkthroughs and tailored collections.
             </p>
-            <div className="pt-3 flex justify-center">
+            <div className="pt-2 flex justify-center">
               <a
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I am looking for a customized saree/jewelry order. Could you please assist me?')}`}
                 target="_blank"
                 rel="noreferrer"
-                className="cursor-pointer inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#0d3b2c] via-[#14533d] to-[#0f4432] px-8 py-4 text-xs sm:text-sm font-semibold uppercase tracking-[0.16em] text-[#fbf7f0] border border-[#dfb776]/50 shadow-xl transition-all hover:brightness-110 hover:shadow-2xl hover:border-[#dfb776]"
+                className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-white text-neutral-950 hover:bg-neutral-100 px-7 py-3.5 text-xs font-semibold uppercase tracking-wider shadow-lg transition-all active:scale-[0.98]"
               >
                 <span className="h-4 w-4 shrink-0 text-[#25d366]"><WhatsAppIcon /></span>
                 Enquire with us on WhatsApp
@@ -743,30 +739,30 @@ export default function HomePage() {
         </section>
 
         {/* Dedicated Inline About Us Section */}
-        <section id="about-us" className="scroll-mt-24 rounded-3xl border border-[#e8dfd1] bg-white/95 p-6 sm:p-10 lg:p-14 shadow-sm relative overflow-hidden">
+        <section id="about-us" className="scroll-mt-24 rounded-2xl border border-neutral-200/80 bg-white p-6 sm:p-10 lg:p-14 shadow-2xs relative">
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-14 items-center">
             <div>
-              <span className="inline-block text-[10px] font-bold uppercase tracking-[0.25em] text-gold-600 bg-gold-500/10 border border-gold-500/25 px-3 py-1 rounded-full mb-3">
+              <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-400 mb-2">
                 The Shreivara Heritage
               </span>
-              <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-maroon-900 leading-tight">
+              <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-neutral-950 leading-tight">
                 Sarees and fine jewelry for life's treasured moments.
               </h2>
-              <p className="mt-5 text-xs sm:text-sm leading-relaxed text-neutral-600 font-light">
+              <p className="mt-4 text-xs sm:text-sm leading-relaxed text-neutral-600 font-light">
                 Founded with a devotion to authentic Indian textiles, Shreivara Handlooms bridges generational artisan weaving with modern elegance. From the pure zari temple borders of Kanchipuram to the featherlight cottons of Mangalagiri and handcrafted South Indian bridal jewelry, every piece in our studio is personally curated for longevity, beauty, and festive warmth.
               </p>
 
               {/* Callout Box */}
-              <div className="mt-8 rounded-2xl border border-gold-500/40 bg-[#faf6ee]/90 p-6 shadow-2xs relative">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-maroon-900">Customized Bridal &amp; Festive Orders</p>
-                <p className="mt-1.5 text-xs sm:text-sm text-neutral-700 leading-relaxed font-light">
+              <div className="mt-8 rounded-xl border border-neutral-200 bg-neutral-50/70 p-6 shadow-2xs">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-neutral-950">Customized Bridal &amp; Festive Orders</p>
+                <p className="mt-1.5 text-xs sm:text-sm text-neutral-600 leading-relaxed font-light">
                   Reach us on WhatsApp for inquiries and customized orders. We provide real-time drape previews, blouse fabric suggestions, and worldwide delivery support.
                 </p>
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your custom saree & jewelry orders.')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="cursor-pointer mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-maroon-900 via-[#3a0f19] to-[#24080e] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#faf8f5] border border-gold-400/35 transition hover:brightness-110 shadow-sm"
+                  className="cursor-pointer mt-4 inline-flex items-center gap-2 rounded-xl bg-neutral-950 hover:bg-black px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition shadow-xs"
                 >
                   <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
                   Order / Inquire on WhatsApp (+91 90005 10329)
@@ -775,14 +771,14 @@ export default function HomePage() {
             </div>
 
             {/* Shop Location & Address Details */}
-            <div className="rounded-2xl border border-[#e8dfd1] bg-[#fbf9f5] p-7 space-y-6 shadow-2xs">
-              <div className="border-b border-[#ebdcc9] pb-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">Atelier Visit</p>
-                <h3 className="font-brand text-2xl font-medium text-maroon-900 mt-1">Shop Location &amp; Visit Details</h3>
+            <div className="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-7 space-y-6 shadow-2xs">
+              <div className="border-b border-neutral-200 pb-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-400">Atelier Visit</p>
+                <h3 className="font-brand text-2xl font-normal text-neutral-950 mt-1">Shop Location &amp; Visit Details</h3>
               </div>
               <div className="space-y-4 text-xs sm:text-sm text-neutral-700">
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4ebe0] border border-gold-400/30 text-sm">📍</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white border border-neutral-200 text-sm shadow-2xs">📍</span>
                   <div>
                     <p className="font-semibold text-neutral-900">Studio Address</p>
                     <p className="text-neutral-600 mt-0.5">Shreivara Handlooms &amp; Fine Jewelry</p>
@@ -791,28 +787,28 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4ebe0] border border-gold-400/30 text-sm">🕒</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white border border-neutral-200 text-sm shadow-2xs">🕒</span>
                   <div>
                     <p className="font-semibold text-neutral-900">Studio Hours</p>
                     <p className="text-neutral-600 mt-0.5">Monday – Saturday: 10:30 AM – 7:30 PM IST</p>
                   </div>
                 </div>
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4ebe0] border border-gold-400/30 text-sm">📞</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white border border-neutral-200 text-sm shadow-2xs">📞</span>
                   <div>
                     <p className="font-semibold text-neutral-900">Phone &amp; WhatsApp</p>
-                    <a href="tel:+919000510329" className="text-maroon-900 font-medium hover:underline mt-0.5 block">+91 90005 10329</a>
+                    <a href="tel:+919000510329" className="text-neutral-900 font-medium hover:underline mt-0.5 block">+91 90005 10329</a>
                   </div>
                 </div>
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4ebe0] border border-gold-400/30 text-sm">✉️</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white border border-neutral-200 text-sm shadow-2xs">✉️</span>
                   <div>
                     <p className="font-semibold text-neutral-900">Email Inquiries</p>
-                    <a href="mailto:shreivara@gmail.com" className="text-maroon-900 font-medium hover:underline mt-0.5 block">shreivara@gmail.com</a>
+                    <a href="mailto:shreivara@gmail.com" className="text-neutral-900 font-medium hover:underline mt-0.5 block">shreivara@gmail.com</a>
                   </div>
                 </div>
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4ebe0] border border-gold-400/30 text-sm">✈️</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white border border-neutral-200 text-sm shadow-2xs">✈️</span>
                   <div>
                     <p className="font-semibold text-neutral-900">Worldwide Shipping</p>
                     <p className="text-neutral-600 mt-0.5">Express doorstep delivery across India and reliable worldwide shipping via DHL / FedEx.</p>

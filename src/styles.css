@@ -49,12 +49,9 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: #fbf9f5;
-  background-image: radial-gradient(circle at 50% 0%, rgba(223, 183, 118, 0.08) 0%, transparent 60%),
-                    linear-gradient(180deg, #fcfbf8 0%, #f7f3ec 50%, #fcfbf8 100%);
-  background-attachment: fixed;
-  color: #27211d;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background-color: #fafafa;
+  color: #171717;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   cursor: default;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -75,31 +72,14 @@ select {
   font-family: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
 }
 
-/* Metallic & Editorial Text Gradients */
-.text-gold-gradient {
-  background: linear-gradient(135deg, #f5e2bc 0%, #dfb776 50%, #9e7638 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.text-maroon-gradient {
-  background: linear-gradient(135deg, #23080e 0%, #441420 60%, #681f31 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Luxury Couture Cards & Shadows */
-.soft-card {
-  box-shadow: 0 14px 40px rgba(35, 8, 14, 0.06);
-}
-
+/* Slick modern card hover lift */
 .fashion-card {
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
 }
 
 .fashion-card:hover {
-  transform: translateY(-7px);
-  box-shadow: 0 24px 50px -12px rgba(35, 8, 14, 0.16), 0 0 0 1px rgba(223, 183, 118, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.08);
 }
 
 /* Glassmorphism Navigation */
@@ -108,30 +88,21 @@ select {
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* Gold Hairline Dividers & Accents */
-.border-gold-subtle {
-  border-color: rgba(223, 183, 118, 0.3);
-}
-
-.bg-velvet {
-  background: linear-gradient(145deg, #180408 0%, #290a12 50%, #150307 100%);
-}
-
-/* Custom Scrollbar for Luxury Aesthetics */
+/* Sleek Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f7f3ec;
+  background: #fafafa;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dfb776;
-  border-radius: 4px;
+  background: #d4d4d4;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c59a58;
+  background: #a3a3a3;
 }

@@ -26,43 +26,42 @@ export default function AboutPage() {
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8 lg:py-14 space-y-16">
       {/* Editorial Hero Feature */}
-      <section className="grid overflow-hidden rounded-3xl border border-[#dfb776]/35 bg-velvet text-[#faf8f5] shadow-2xl md:grid-cols-2 relative">
+      <section className="grid overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 text-white shadow-xl md:grid-cols-2 relative">
         <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16 relative z-10">
-          <span className="inline-block w-fit text-[10px] font-bold uppercase tracking-[0.3em] text-[#dfb776] bg-[#dfb776]/10 border border-[#dfb776]/30 px-3.5 py-1 rounded-full mb-4">
+          <span className="inline-block w-fit text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-400 border border-neutral-800 px-3 py-1 rounded-full mb-4">
             The Shreivara edit
           </span>
           <h1 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal leading-tight text-white tracking-tight">
             Sarees and jewellery for the moments worth keeping.
           </h1>
-          <p className="mt-5 max-w-xl text-xs sm:text-sm leading-relaxed text-[#faf8f5]/80 font-light">
+          <p className="mt-4 max-w-xl text-xs sm:text-sm leading-relaxed text-neutral-400 font-light">
             Shreivara brings together expressive sarees and traditional jewellery for celebrations, gifting, and days that call for something special. Explore Kanchi Pattu, Mangalagiri, Fancy Silk, and Organza &amp; Chiffon, then ask us about our jewellery collection.
           </p>
-          <div className="mt-8">
+          <div className="mt-7">
             <Link
               to="/#collections"
-              className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-maroon-900 shadow-md transition-all hover:brightness-105 hover:shadow-lg"
+              className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-white text-neutral-950 px-6 py-3 text-xs font-semibold uppercase tracking-wider shadow-sm transition hover:bg-neutral-100"
             >
               Explore the collection
             </Link>
           </div>
         </div>
-        <div className="relative min-h-80 md:min-h-full overflow-hidden">
+        <div className="relative min-h-80 md:min-h-full overflow-hidden bg-neutral-900">
           <img
             src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=85"
             alt="A richly colored traditional saree"
             className="h-full min-h-80 w-full object-cover transition-transform duration-700 hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#140407]/60 md:bg-gradient-to-r md:from-[#180408]/80 md:to-transparent pointer-events-none" />
         </div>
       </section>
 
       {/* Thoughtful Selection Editorial Section */}
-      <section className="grid gap-8 border-b border-[#e8dfd1] pb-12 sm:grid-cols-2 lg:gap-16">
+      <section className="grid gap-8 border-b border-neutral-200 pb-12 sm:grid-cols-2 lg:gap-16">
         <div>
-          <span className="inline-block text-[10px] font-bold uppercase tracking-[0.25em] text-gold-600 bg-gold-500/10 border border-gold-500/25 px-3 py-1 rounded-full mb-3">
+          <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-400 mb-2">
             A thoughtful selection
           </span>
-          <h2 className="mt-2 font-brand text-3xl sm:text-4xl font-normal text-maroon-900 leading-tight">
+          <h2 className="font-brand text-3xl sm:text-4xl font-normal text-neutral-950 leading-tight">
             Find a weave for your occasion.
           </h2>
         </div>
@@ -78,28 +77,28 @@ export default function AboutPage() {
         {collections.map(([name, description]) => (
           <div
             key={name}
-            className="rounded-2xl border border-[#e8dfd1] bg-white/80 p-6 shadow-2xs hover:border-[#dfb776] transition-all hover:shadow-xs"
+            className="rounded-xl border border-neutral-200/80 bg-white p-6 shadow-2xs hover:border-neutral-900 transition-all"
           >
-            <span className="text-gold-600 text-xs">✦</span>
-            <h3 className="mt-2 font-brand text-2xl font-normal text-maroon-900">{name}</h3>
+            <span className="text-neutral-400 text-xs">✦</span>
+            <h3 className="mt-2 font-brand text-2xl font-normal text-neutral-950">{name}</h3>
             <p className="mt-2 text-xs sm:text-sm text-neutral-500 font-light leading-relaxed">{description}</p>
           </div>
         ))}
       </section>
 
       {/* Traditional Jewellery Callout */}
-      <section className="flex flex-col items-start justify-between gap-6 rounded-2xl border border-[#dfb776]/35 bg-[#faf6ee] p-8 sm:flex-row sm:items-center shadow-xs">
+      <section className="flex flex-col items-start justify-between gap-6 rounded-xl border border-neutral-200/80 bg-neutral-50/70 p-8 sm:flex-row sm:items-center shadow-2xs">
         <div>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">Finishing Touch</span>
-          <h2 className="mt-1 font-brand text-2xl sm:text-3xl font-medium text-maroon-900">Traditional Jewellery</h2>
-          <p className="mt-1.5 text-xs sm:text-sm text-neutral-600 font-light">Ask us about the jewellery available to complete your look.</p>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-neutral-400">Finishing Touch</span>
+          <h2 className="mt-1 font-brand text-2xl sm:text-3xl font-normal text-neutral-950">Traditional Jewellery</h2>
+          <p className="mt-1 text-xs sm:text-sm text-neutral-600 font-light">Ask us about the jewellery available to complete your look.</p>
         </div>
         {WHATSAPP_NUMBER && (
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to see your jewellery collection.')}`}
             target="_blank"
             rel="noreferrer"
-            className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#0d3b2c] via-[#14533d] to-[#0f4432] px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#fbf7f0] border border-[#dfb776]/40 shadow-sm transition hover:brightness-110"
+            className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-neutral-950 hover:bg-black px-6 py-3 text-xs font-semibold uppercase tracking-wider text-white shadow-xs transition"
           >
             <WhatsAppIcon />
             Enquire on WhatsApp
