@@ -1,17 +1,40 @@
 @import 'tailwindcss';
 
 @theme {
+  /* Rich heritage maroon palette */
   --color-maroon-950: #140407;
-  --color-maroon-900: #23080e;
-  --color-maroon-850: #330d16;
-  --color-maroon-800: #441420;
-  --color-maroon-700: #5c1f2d;
-  --color-gold-300: #f5e2bc;
+  --color-maroon-900: #3d0c14;
+  --color-maroon-850: #5a1220;
+  --color-maroon-800: #6e1a2a;
+  --color-maroon-700: #8b2438;
+  --color-maroon-600: #a83048;
+  --color-maroon-500: #c44060;
+  --color-maroon-400: #d4687e;
+  --color-maroon-100: #fae8ec;
+  --color-maroon-50: #fdf2f4;
+
+  /* Champagne gold palette */
+  --color-gold-50: #fdf8ef;
+  --color-gold-100: #f9eed8;
+  --color-gold-200: #f5e2bc;
+  --color-gold-300: #edcf96;
   --color-gold-400: #dfb776;
   --color-gold-500: #c59a58;
   --color-gold-600: #9e7638;
+  --color-gold-700: #7b5c2a;
+  --color-gold-800: #5a4220;
+
+  /* Emerald accents for success states */
   --color-emerald-800: #0d3b2c;
   --color-emerald-900: #08281e;
+
+  /* Warm ivory backgrounds */
+  --color-ivory-50: #fffdf8;
+  --color-ivory-100: #fef9f0;
+  --color-ivory-200: #fcf3e4;
+  --color-ivory-300: #f5e8d4;
+
+  /* Brand Fonts */
   --font-brand: 'Cormorant Garamond', Georgia, serif;
   --font-display: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -49,8 +72,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: #fafafa;
-  color: #171717;
+  background-color: #fffdf8;
+  color: #2c1810;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   cursor: default;
   -webkit-font-smoothing: antialiased;
@@ -79,7 +102,7 @@ select {
 
 .fashion-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 40px -8px rgba(61, 12, 20, 0.12), 0 4px 12px rgba(197, 154, 88, 0.08);
 }
 
 /* Glassmorphism Navigation */
@@ -88,21 +111,38 @@ select {
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* Sleek Minimalist Scrollbar */
+/* Warm Luxury Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #fafafa;
+  background: #fef9f0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
+  background: #dfb776;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a3a3a3;
+  background: #c59a58;
+}
+
+/* Subtle shimmer animation for accent elements */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-accent {
+  background: linear-gradient(90deg, transparent 0%, rgba(197, 154, 88, 0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Warm gradient overlay for hero-like sections */
+.warm-gradient {
+  background: linear-gradient(135deg, #3d0c14 0%, #5a1220 40%, #3d0c14 100%);
 }
