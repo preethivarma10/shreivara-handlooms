@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 
 const DEFAULT_PRODUCTS = [
@@ -127,6 +127,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
     .map((item) => ({ ...item, product: products.find((product) => product.sku === item.sku) }))
     .filter((item) => item.product);
   const total = visibleCart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
+  const isFreeDelivery = total >= 3000;
 
   function startWhatsAppOrder() {
     const itemLines = visibleCart.map(({ product, quantity }) => {
@@ -140,6 +141,9 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
       ...itemLines,
       '',
       `*Order Total: ${formatCurrency(total)}*`,
+      isFreeDelivery ? '🎉 *Eligible for Free Delivery!*' : '',
+      '',
+      '📌 *Notice:* Prices exclusive of delivery charges & GST. Location-based shipping confirmed on chat.',
       '',
       'Please reply with availability confirmation.',
       '',
@@ -150,7 +154,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
       'Phone:',
       '',
       'Thank you for ordering with Shreivara! We will get back to you at the earliest.'
-    ].join('\n');
+    ].filter(Boolean).join('\n');
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   }
 
@@ -208,11 +212,36 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
             );
           }) : <p className="py-12 text-center font-brand text-xl text-gray-500">Your bag is waiting for something beautiful.</p>}
         </div>
-        {visibleCart.length > 0 && <div className="border-t border-[#e4dccd] px-6 py-5">
-          <div className="mb-4 flex justify-between font-semibold text-maroon-900"><span>Subtotal</span><span>₹{total.toLocaleString('en-IN')}</span></div>
-          <button type="button" onClick={startWhatsAppOrder} className="cursor-pointer w-full rounded-lg bg-maroon-900 px-5 py-3 text-sm font-semibold tracking-wide text-[#f8f5ed] transition hover:bg-maroon-800">Order on WhatsApp</button>
-          <p className="mt-3 text-center text-xs text-gray-500">We’ll confirm availability and delivery with you.</p>
-        </div>}
+
+        {visibleCart.length > 0 && (
+          <div className="border-t border-[#e4dccd] px-6 py-4 space-y-3.5 bg-[#f5f0e4]">
+            {/* Payment & Shipping Notices */}
+            <div className="rounded-lg border border-amber-300/80 bg-white/80 p-3.5 text-xs text-[#524434] space-y-1.5 shadow-xs">
+              <p className="font-semibold text-emerald-800 flex items-center gap-1.5">
+                <span>🎉</span> Free Delivery on orders above ₹3,000!
+              </p>
+              <p className="text-[11px] leading-relaxed text-gray-700">
+                • Prices are exclusive of delivery charges and GST.
+              </p>
+              <p className="text-[11px] leading-relaxed text-gray-700">
+                • Delivery charges vary based on location. Please connect with us on WhatsApp for exact shipping details.
+              </p>
+            </div>
+
+            <div className="flex justify-between font-semibold text-maroon-900 text-base">
+              <span>Subtotal</span>
+              <span>₹{total.toLocaleString('en-IN')}</span>
+            </div>
+            <button
+              type="button"
+              onClick={startWhatsAppOrder}
+              className="cursor-pointer w-full rounded-lg bg-maroon-900 px-5 py-3 text-sm font-semibold tracking-wide text-[#f8f5ed] transition hover:bg-maroon-800"
+            >
+              Order on WhatsApp
+            </button>
+            <p className="text-center text-xs text-gray-500">We’ll confirm availability and delivery with you.</p>
+          </div>
+        )}
       </section>
     </div>
   );
@@ -222,12 +251,29 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
   const location = useLocation();
   const navigate = useNavigate();
 
+  function navigateToTop() {
+    if (location.pathname !== '/') {
+      navigate('/#top');
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function navigateToCollections() {
     if (location.pathname !== '/') {
       navigate('/#collections');
       return;
     }
     const elem = document.getElementById('collections') || document.getElementById('catalog');
+    elem?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function navigateToAboutUs() {
+    if (location.pathname !== '/') {
+      navigate('/#about-us');
+      return;
+    }
+    const elem = document.getElementById('about-us');
     elem?.scrollIntoView({ behavior: 'smooth' });
   }
 
@@ -249,25 +295,50 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#ded5c6] bg-[#f6f2e9]/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          onClick={navigateToCollections}
-          className="cursor-pointer flex shrink-0 items-center gap-2.5 bg-transparent border-0 p-0 text-left"
-          aria-label="Shreivara home"
-        >
-          <span className="font-brand text-2xl font-semibold tracking-tight text-maroon-900 sm:text-3xl">Shreivara</span>
-        </button>
-        <nav aria-label="Main navigation" className="hidden items-center gap-8 text-sm text-gray-700 lg:flex">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 lg:px-8">
+        {/* Left Side: Brand Logo + Home + About Us + Search Bar */}
+        <div className="flex flex-1 items-center gap-3 sm:gap-6 lg:gap-8">
           <button
             type="button"
-            onClick={navigateToCollections}
-            className="cursor-pointer transition hover:text-maroon-900 bg-transparent border-0 p-0"
+            onClick={navigateToTop}
+            className="cursor-pointer flex shrink-0 items-center gap-2 bg-transparent border-0 p-0 text-left"
+            aria-label="Shreivara home"
           >
-            Home
+            <span className="font-brand text-2xl font-semibold tracking-tight text-maroon-900 sm:text-3xl">Shreivara</span>
           </button>
-          <Link to="/about" className="cursor-pointer transition hover:text-maroon-900">About us</Link>
-        </nav>
+
+          <nav aria-label="Main navigation" className="flex items-center gap-4 sm:gap-6 text-sm font-medium text-gray-700">
+            <button
+              type="button"
+              onClick={navigateToCollections}
+              className="cursor-pointer transition hover:text-maroon-900 bg-transparent border-0 p-0 whitespace-nowrap"
+            >
+              Home
+            </button>
+            <button
+              type="button"
+              onClick={navigateToAboutUs}
+              className="cursor-pointer transition hover:text-maroon-900 bg-transparent border-0 p-0 whitespace-nowrap"
+            >
+              About Us
+            </button>
+          </nav>
+
+          {/* Search Bar placed directly next to About Us */}
+          <label className="relative flex-1 max-w-xs sm:max-w-sm hidden sm:block">
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search sarees, jewelry, SKU..."
+              aria-label="Search catalogue by name or SKU"
+              className="w-full rounded-full border border-[#d9d0c1] bg-white/70 py-1.5 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none sm:text-sm"
+            />
+            <SearchIcon />
+          </label>
+        </div>
+
+        {/* Right Side: Cart + Owner */}
         <div className="flex items-center justify-end gap-1.5 sm:gap-3">
           <button
             type="button"
@@ -289,9 +360,26 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
           )}
         </div>
       </div>
+
+      {/* Mobile search bar on small screens */}
+      <div className="border-t border-[#e6dfd3] px-4 py-2 sm:hidden">
+        <label className="relative block w-full">
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search sarees, jewelry, SKU..."
+            aria-label="Search catalogue"
+            className="w-full rounded-full border border-[#d9d0c1] bg-white/70 py-1.5 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none"
+          />
+          <SearchIcon />
+        </label>
+      </div>
+
+      {/* Category sub-navigation bar */}
       <div className="border-t border-[#e6dfd3]">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-4 py-2 sm:px-6 lg:flex-row lg:justify-between lg:gap-6 lg:px-8">
-          <nav aria-label="Shop categories" className="-mx-4 flex w-full items-center justify-start gap-5 overflow-x-auto whitespace-nowrap px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-700 sm:mx-0 sm:gap-7 sm:px-0 sm:text-xs lg:w-auto">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
+          <nav aria-label="Shop categories" className="-mx-4 flex w-full items-center justify-start gap-5 overflow-x-auto whitespace-nowrap px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-gray-700 sm:mx-0 sm:gap-7 sm:px-0 sm:text-xs">
             {['All Sarees', ...categories].map((item) => (
               <button
                 key={item}
@@ -304,17 +392,6 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
               </button>
             ))}
           </nav>
-          <label className="relative w-full max-w-xl lg:w-64">
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search catalogue or SKU..."
-              aria-label="Search catalogue by name or SKU"
-              className="w-full rounded-full border border-[#d9d0c1] bg-transparent py-2 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none sm:text-sm"
-            />
-            <SearchIcon />
-          </label>
         </div>
       </div>
     </header>

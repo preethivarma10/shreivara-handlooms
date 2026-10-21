@@ -24,6 +24,83 @@ function BagIcon() {
   );
 }
 
+const CATEGORY_CARDS = [
+  {
+    category: 'Kanchi Pattu',
+    title: 'Kanchi Pattu Silk',
+    tagline: 'Pure Mulberry Silk & Lustrous Gold Zari',
+    description: 'Woven in the ancient temple town of Kanchipuram with pure mulberry silk yarns and contrast korvai borders. Renowned for its heirloom weight, regal drape, and auspicious bridal heritage.',
+    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    category: 'Mangalagiri',
+    title: 'Mangalagiri Handloom',
+    tagline: 'Super-fine Breathable Weave & Nizam Borders',
+    description: 'Crafted by master artisans on traditional pit looms in the historic foothills of Mangalagiri. Revered for its crisp, lightweight combed cotton texture, pure zari Nizam borders, and all-day comfort.',
+    image: 'https://images.unsplash.com/photo-1583391733956-62e74ed5b29c?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    category: 'Fancy Silk',
+    title: 'Fancy Silk & Resham',
+    tagline: 'Festive Sheen, Dual-Tone Palette & Fluid Fall',
+    description: 'A festive celebration of lightweight designer silks woven with delicate resham jaal, floral bel motifs, and iridescent dual tones. Tailored for effortless draping during poojas, sangeets, and parties.',
+    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    category: 'Organza & Chiffon',
+    title: 'Organza & Chiffon',
+    tagline: 'Translucent Ethereal Grace & Scalloped Edges',
+    description: 'Whisper-light, sheer fabric with a delicate crisp body that falls into graceful contemporary pleats. Adorned with hand-embroidered scalloped borders and subtle metallic highlights for modern celebrations.',
+    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    category: 'Jewellery',
+    title: 'Fine Heritage Jewelry',
+    tagline: 'Temple Heritage Motifs & Handcrafted Kundan',
+    description: 'South Indian bridal temple chokers, antique necklace sets, and Kundan-pearl creations. Finished with divine goddess embossing, matte antique gold polish, and lustrous cluster pearls.',
+    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80'
+  }
+];
+
+const DEFAULT_ORDERS = [
+  {
+    id: 'SHR-ORD-101',
+    customerName: 'Sravani Rao',
+    phone: '+91 98490 12345',
+    items: 'Royal Kanjivaram Silk (SHR-001) × 1',
+    total: 14999,
+    orderDate: '2026-10-18',
+    status: 'Dispatched',
+    courier: 'DTDC Express',
+    trackingNumber: 'DTDC8829104',
+    dispatchDate: '2026-10-19'
+  },
+  {
+    id: 'SHR-ORD-102',
+    customerName: 'Ananya Verma',
+    phone: '+91 99887 65432',
+    items: 'Mangalagiri Cotton Elegance (SHR-002) × 2',
+    total: 8998,
+    orderDate: '2026-10-20',
+    status: 'Dispatched',
+    courier: 'Blue Dart',
+    trackingNumber: 'BLUED7739102',
+    dispatchDate: '2026-10-21'
+  },
+  {
+    id: 'SHR-ORD-103',
+    customerName: 'Pooja Reddy',
+    phone: '+91 97001 54321',
+    items: 'Antique Goddess Temple Choker (JWL-001) × 1',
+    total: 7999,
+    orderDate: '2026-10-21',
+    status: 'Pending',
+    courier: '',
+    trackingNumber: '',
+    dispatchDate: ''
+  }
+];
+
 function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
   const sizes = product.sizes ? product.sizes.split(',').map((size) => size.trim()).filter(Boolean) : [];
   const imageUrl = product.image.startsWith('/') ? `${window.location.origin}${product.image}` : product.image;
@@ -145,7 +222,207 @@ function ProductForm({ product, onSave, onCancel, submitLabel }) {
   );
 }
 
+function DispatchedOrdersManager() {
+  const [orders, setOrders] = useState(() => {
+    try {
+      const stored = localStorage.getItem('shreivara-orders');
+      if (stored) return JSON.parse(stored);
+    } catch (_) {}
+    return DEFAULT_ORDERS;
+  });
+
+  const [filter, setFilter] = useState('All');
+  const [editingId, setEditingId] = useState(null);
+  const [courierInput, setCourierInput] = useState('');
+  const [trackingInput, setTrackingInput] = useState('');
+
+  function persist(newOrders) {
+    setOrders(newOrders);
+    try {
+      localStorage.setItem('shreivara-orders', JSON.stringify(newOrders));
+    } catch (_) {}
+  }
+
+  function markDispatched(id) {
+    const today = new Date().toISOString().split('T')[0];
+    const updated = orders.map((o) => {
+      if (o.id === id) {
+        return {
+          ...o,
+          status: 'Dispatched',
+          dispatchDate: o.dispatchDate || today,
+          courier: o.courier || 'DTDC Express'
+        };
+      }
+      return o;
+    });
+    persist(updated);
+  }
+
+  function saveTracking(id) {
+    const today = new Date().toISOString().split('T')[0];
+    const updated = orders.map((o) => {
+      if (o.id === id) {
+        return {
+          ...o,
+          courier: courierInput || o.courier,
+          trackingNumber: trackingInput || o.trackingNumber,
+          status: 'Dispatched',
+          dispatchDate: o.dispatchDate || today
+        };
+      }
+      return o;
+    });
+    persist(updated);
+    setEditingId(null);
+  }
+
+  const filtered = orders.filter((o) => (filter === 'All' ? true : o.status === filter));
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4">
+        <div>
+          <h2 className="font-brand text-2xl font-bold text-maroon-900">Dispatched Orders Management</h2>
+          <p className="text-xs text-gray-500">Track shipments, update couriers, and manage customer fulfillment.</p>
+        </div>
+        <div className="flex gap-2">
+          {['All', 'Pending', 'Dispatched'].map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setFilter(tab)}
+              className={`cursor-pointer rounded-full px-3.5 py-1 text-xs font-semibold transition ${
+                filter === tab ? 'bg-maroon-900 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead>
+            <tr className="border-b border-gray-300 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+              <th className="py-2.5 pr-4">Order ID & Date</th>
+              <th className="py-2.5 px-4">Customer</th>
+              <th className="py-2.5 px-4">Item Details</th>
+              <th className="py-2.5 px-4">Total</th>
+              <th className="py-2.5 px-4">Status</th>
+              <th className="py-2.5 px-4">Courier & Tracking</th>
+              <th className="py-2.5 pl-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {filtered.map((order) => (
+              <tr key={order.id} className="hover:bg-amber-50/40">
+                <td className="py-3 pr-4 font-semibold text-maroon-900">
+                  {order.id}
+                  <div className="text-[10px] font-normal text-gray-400">{order.orderDate}</div>
+                </td>
+                <td className="py-3 px-4">
+                  <p className="font-semibold text-gray-800">{order.customerName}</p>
+                  <p className="text-[10px] text-gray-500">{order.phone}</p>
+                </td>
+                <td className="py-3 px-4 max-w-xs truncate text-gray-700">{order.items}</td>
+                <td className="py-3 px-4 font-semibold text-gray-900">{formatCurrency(order.total)}</td>
+                <td className="py-3 px-4">
+                  <span
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                      order.status === 'Dispatched'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {order.status}
+                  </span>
+                  {order.dispatchDate && (
+                    <div className="text-[9px] text-gray-500 mt-0.5">Disp: {order.dispatchDate}</div>
+                  )}
+                </td>
+                <td className="py-3 px-4">
+                  {editingId === order.id ? (
+                    <div className="flex flex-col gap-1.5">
+                      <input
+                        type="text"
+                        placeholder="Courier (e.g. DTDC)"
+                        value={courierInput}
+                        onChange={(e) => setCourierInput(e.target.value)}
+                        className="rounded border border-gray-300 px-2 py-1 text-xs"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Tracking / AWB #"
+                        value={trackingInput}
+                        onChange={(e) => setTrackingInput(e.target.value)}
+                        className="rounded border border-gray-300 px-2 py-1 text-xs"
+                      />
+                      <div className="flex gap-1.5 mt-1">
+                        <button
+                          type="button"
+                          onClick={() => saveTracking(order.id)}
+                          className="cursor-pointer rounded bg-emerald-800 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-900"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(null)}
+                          className="cursor-pointer rounded border border-gray-300 px-2 py-0.5 text-[10px] text-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : order.courier || order.trackingNumber ? (
+                    <div>
+                      <p className="font-semibold text-gray-800">{order.courier || 'Courier'}</p>
+                      <p className="font-mono text-[10px] text-gray-500">{order.trackingNumber || 'Pending AWB'}</p>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] text-gray-400 italic">No tracking info</span>
+                  )}
+                </td>
+                <td className="py-3 pl-4 text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    {order.status !== 'Dispatched' && (
+                      <button
+                        type="button"
+                        onClick={() => markDispatched(order.id)}
+                        className="cursor-pointer rounded bg-emerald-800 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-emerald-900"
+                      >
+                        Mark Dispatched
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(order.id);
+                        setCourierInput(order.courier || '');
+                        setTrackingInput(order.trackingNumber || '');
+                      }}
+                      className="cursor-pointer rounded border border-maroon-900 px-2 py-1 text-[10px] font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white"
+                    >
+                      {editingId === order.id ? 'Editing' : 'Update Tracking'}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && (
+          <p className="py-8 text-center text-xs text-gray-500">No orders found in this view.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct }) {
+  const [activeTab, setActiveTab] = useState('catalogue');
   const [editingSku, setEditingSku] = useState('');
   const [deleteError, setDeleteError] = useState('');
 
@@ -162,37 +439,77 @@ function AdminPanel({ products, onAddProduct, onUpdateProduct, onDeleteProduct }
   }
 
   return (
-    <aside className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-12 sm:px-6 lg:px-8">
-      <div className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Owner console</p>
-        <h2 className="mt-1 font-brand text-2xl font-bold text-maroon-900">Add New Product</h2>
-        <div className="mt-6"><ProductForm submitLabel="Add product" onSave={onAddProduct} /></div>
-      </div>
-      <section className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8" aria-labelledby="manage-products-heading">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Catalogue</p>
-        <h2 id="manage-products-heading" className="mt-1 font-brand text-2xl font-bold text-maroon-900">Manage Products</h2>
-        {deleteError && <p className="mt-4 text-sm text-red-800" role="alert">{deleteError}</p>}
-        <div className="mt-5 grid gap-4">
-          {products.map((product) => editingSku === product.sku
-            ? <div key={product.sku} className="rounded-xl border border-gray-200 p-4">
-                <ProductForm product={product} submitLabel="Save changes" onSave={(formData) => onUpdateProduct(product.sku, formData)} onCancel={() => setEditingSku('')} />
-              </div>
-            : <article key={product.sku} className="grid gap-4 rounded-xl border border-gray-200 p-4 sm:grid-cols-[96px_1fr_auto] sm:items-center">
-                <img src={product.image} alt={product.name} className="h-24 w-24 rounded-lg object-cover" />
-                <div>
-                  <p className="font-semibold text-maroon-900">{product.name}</p>
-                  <p className="mt-1 text-sm text-gray-600">{product.sku} · {product.category} · Stock: {product.stock ?? 5}</p>
-                  <p className="mt-1 text-sm text-gray-700">{formatCurrency(product.sellingPrice)} <span className="text-gray-500">/ {formatCurrency(product.originalPrice)}</span></p>
-                  {product.offerDetails && <p className="mt-1 text-sm text-gray-600">{product.offerDetails}</p>}
-                </div>
-                <div className="flex gap-2 sm:flex-col">
-                  <button type="button" onClick={() => { setDeleteError(''); setEditingSku(product.sku); }} className="cursor-pointer rounded-lg border border-maroon-900 px-4 py-2 text-sm font-semibold text-maroon-900">Edit</button>
-                  <button type="button" onClick={() => deleteProduct(product)} className="cursor-pointer rounded-lg border border-red-700 px-4 py-2 text-sm font-semibold text-red-700">Delete</button>
-                </div>
-              </article>)}
-          {products.length === 0 && <p className="text-sm text-gray-600">No products have been added yet.</p>}
+    <aside className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-16 sm:px-6 lg:px-8 mt-12 border-t border-gold-500/30 pt-8">
+      {/* Admin Panel Header & Tabs */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gold-500/30 pb-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Administrative Portal</p>
+          <h2 className="mt-1 font-brand text-3xl font-bold text-maroon-900">Owner Console</h2>
         </div>
-      </section>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('catalogue')}
+            className={`cursor-pointer rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
+              activeTab === 'catalogue'
+                ? 'bg-maroon-900 text-white'
+                : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Catalogue Management
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('orders')}
+            className={`cursor-pointer rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-wider transition ${
+              activeTab === 'orders'
+                ? 'bg-maroon-900 text-white'
+                : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Dispatched Orders
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'orders' ? (
+        <section className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8">
+          <DispatchedOrdersManager />
+        </section>
+      ) : (
+        <>
+          <div className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Product Entry</p>
+            <h2 className="mt-1 font-brand text-2xl font-bold text-maroon-900">Add New Product</h2>
+            <div className="mt-6"><ProductForm submitLabel="Add product" onSave={onAddProduct} /></div>
+          </div>
+          <section className="soft-card rounded-2xl border border-gold-500/40 bg-white p-6 sm:p-8" aria-labelledby="manage-products-heading">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Inventory</p>
+            <h2 id="manage-products-heading" className="mt-1 font-brand text-2xl font-bold text-maroon-900">Manage Catalogue & Stock</h2>
+            {deleteError && <p className="mt-4 text-sm text-red-800" role="alert">{deleteError}</p>}
+            <div className="mt-5 grid gap-4">
+              {products.map((product) => editingSku === product.sku
+                ? <div key={product.sku} className="rounded-xl border border-gray-200 p-4">
+                    <ProductForm product={product} submitLabel="Save changes" onSave={(formData) => onUpdateProduct(product.sku, formData)} onCancel={() => setEditingSku('')} />
+                  </div>
+                : <article key={product.sku} className="grid gap-4 rounded-xl border border-gray-200 p-4 sm:grid-cols-[96px_1fr_auto] sm:items-center">
+                    <img src={product.image} alt={product.name} className="h-24 w-24 rounded-lg object-cover" />
+                    <div>
+                      <p className="font-semibold text-maroon-900">{product.name}</p>
+                      <p className="mt-1 text-sm text-gray-600">{product.sku} · {product.category} · Stock: {product.stock ?? 5}</p>
+                      <p className="mt-1 text-sm text-gray-700">{formatCurrency(product.sellingPrice)} <span className="text-gray-500">/ {formatCurrency(product.originalPrice)}</span></p>
+                      {product.offerDetails && <p className="mt-1 text-sm text-gray-600">{product.offerDetails}</p>}
+                    </div>
+                    <div className="flex gap-2 sm:flex-col">
+                      <button type="button" onClick={() => { setDeleteError(''); setEditingSku(product.sku); }} className="cursor-pointer rounded-lg border border-maroon-900 px-4 py-2 text-sm font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white">Edit</button>
+                      <button type="button" onClick={() => deleteProduct(product)} className="cursor-pointer rounded-lg border border-red-700 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-700 hover:text-white">Delete</button>
+                    </div>
+                  </article>)}
+              {products.length === 0 && <p className="text-sm text-gray-600">No products have been added yet.</p>}
+            </div>
+          </section>
+        </>
+      )}
     </aside>
   );
 }
@@ -209,9 +526,7 @@ export default function HomePage() {
     productsError,
     cartItems,
     setCartItems,
-    addToBag,
-    savedSkus,
-    setSavedSkus
+    addToBag
   } = useOutletContext();
 
   const filteredProducts = useMemo(() => {
@@ -308,20 +623,73 @@ export default function HomePage() {
     persistProducts(next);
     setProducts(next);
     setCartItems((current) => current.filter((item) => item.sku !== sku));
-    setSavedSkus((current) => current.filter((savedSku) => savedSku !== sku));
     return {};
+  }
+
+  function handleCategoryClick(catName) {
+    setCategory(catName);
+    document.getElementById('catalog-grid')?.scrollIntoView({ behavior: 'smooth' });
   }
 
   return (
     <main id="top" className="w-full flex-1">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Combined Collections & Sarees Section */}
-        <section id="collections" className="scroll-mt-24">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-16">
+
+        {/* 1. Category Image & Explanation Cards Section */}
+        <section aria-labelledby="craft-heritage-heading" className="scroll-mt-24 pt-2">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">Heritage Weaves &amp; Craft</p>
+              <h2 id="craft-heritage-heading" className="mt-1 font-brand text-3xl font-medium text-maroon-900 sm:text-4xl">
+                Explore by Craft
+              </h2>
+            </div>
+            <p className="text-xs text-gray-500">Click any craft card to view collection</p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {CATEGORY_CARDS.map((card) => (
+              <div
+                key={card.category}
+                onClick={() => handleCategoryClick(card.category)}
+                className="cursor-pointer group flex flex-col overflow-hidden rounded-xl border border-[#ded5c6] bg-[#fbf9f4] shadow-xs transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-gold-500/60"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-[#e8dfd0]">
+                  <img
+                    src={card.image}
+                    alt={card.title}
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <span className="absolute bottom-2.5 left-3 text-[11px] font-bold uppercase tracking-wider text-white">
+                    {card.category}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-4">
+                  <h3 className="font-brand text-lg font-semibold text-maroon-900 group-hover:text-gold-600 transition">
+                    {card.title}
+                  </h3>
+                  <p className="mt-1 text-[11px] font-medium text-gold-600 leading-snug">
+                    {card.tagline}
+                  </p>
+                  <p className="mt-2 text-xs leading-relaxed text-[#5c5040] line-clamp-4">
+                    {card.description}
+                  </p>
+                  <span className="mt-auto pt-3 text-[10px] font-semibold uppercase tracking-wider text-maroon-900 group-hover:underline">
+                    View collection →
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 2. Top Collections Section (Title changed, 'Curated for you' removed) */}
+        <section id="collections" className="scroll-mt-24 pt-4 border-t border-[#ded5c6]">
           <div id="catalog" className="scroll-mt-24">
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">Curated for you</p>
-                <h1 className="mt-1 font-brand text-4xl font-medium text-maroon-900 sm:text-5xl">Collections</h1>
+                <h1 className="font-brand text-4xl font-medium text-maroon-900 sm:text-5xl">Top Collections</h1>
                 <p className="mt-1 text-sm text-[#786c5b]">Sarees to Treasures • Handcrafted with Heritage Artistry</p>
               </div>
               <p className="text-xs text-gray-500" aria-live="polite">
@@ -354,32 +722,121 @@ export default function HomePage() {
             </div>
 
             {/* Products Grid */}
-            {productsLoading ? (
-              <p className="py-12 text-center text-sm text-gray-600" role="status">Loading the collection…</p>
-            ) : productsError ? (
-              <p className="py-12 text-center text-sm text-red-800" role="alert">{productsError}</p>
-            ) : filteredProducts.length ? (
-              <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={`${product.sku}-${product.name}`}
-                    product={product}
-                    cartQuantity={cartItems?.find((item) => item.sku === product.sku)?.quantity || 0}
-                    onAddToBag={() => addToBag(product.sku)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
-                <div>
-                  <p className="text-lg font-semibold text-gray-700">No items match your search.</p>
-                  <p className="mt-2 text-sm text-gray-500">Try a different search term or category filter.</p>
+            <div id="catalog-grid" className="scroll-mt-28">
+              {productsLoading ? (
+                <p className="py-12 text-center text-sm text-gray-600" role="status">Loading the collection…</p>
+              ) : productsError ? (
+                <p className="py-12 text-center text-sm text-red-800" role="alert">{productsError}</p>
+              ) : filteredProducts.length ? (
+                <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+                  {filteredProducts.map((product) => (
+                    <ProductCard
+                      key={`${product.sku}-${product.name}`}
+                      product={product}
+                      cartQuantity={cartItems?.find((item) => item.sku === product.sku)?.quantity || 0}
+                      onAddToBag={() => addToBag(product.sku)}
+                    />
+                  ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
+                  <div>
+                    <p className="text-lg font-semibold text-gray-700">No items match your search.</p>
+                    <p className="mt-2 text-sm text-gray-500">Try a different search term or category filter.</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
+
+        {/* 3. Custom Query Callout Banner */}
+        <section className="rounded-2xl border border-gold-500/40 bg-gradient-to-br from-maroon-900 via-[#483321] to-maroon-900 p-8 sm:p-12 text-center text-[#f8f5ed] shadow-md">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-500">Personalized Styling &amp; Custom Sourcing</p>
+          <h2 className="mt-2 font-brand text-3xl sm:text-4xl font-medium tracking-tight text-white">
+            Looking for something else? Enquire with us on WhatsApp!
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-sm text-[#f8f5ed]/80 leading-relaxed">
+            Whether you are curating a bridal trousseau, matching specific family wedding colors, or seeking a rare heritage weave, our master stylists are ready to share video walkthroughs and tailored collections.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I am looking for a customized saree/jewelry order. Could you please assist me?')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="cursor-pointer inline-flex items-center gap-2.5 rounded-full bg-[#25d366] px-6 py-3.5 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white shadow-md transition hover:bg-[#1ebe5d]"
+            >
+              <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
+              Enquire with us on WhatsApp
+            </a>
+          </div>
+        </section>
+
+        {/* 4. Dedicated Inline About Us Section */}
+        <section id="about-us" className="scroll-mt-24 rounded-2xl border border-[#ded5c6] bg-white p-6 sm:p-10 lg:p-12 shadow-xs">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">The Shreivara Heritage</p>
+              <h2 className="mt-2 font-brand text-3xl sm:text-4xl font-medium text-maroon-900">
+                Sarees and fine jewelry for life's treasured moments.
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-gray-700">
+                Founded with a devotion to authentic Indian textiles, Shreivara Handlooms bridges generational artisan weaving with modern elegance. From the pure zari temple borders of Kanchipuram to the featherlight cottons of Mangalagiri and handcrafted South Indian bridal jewelry, every piece in our studio is personally curated for longevity, beauty, and festive warmth.
+              </p>
+
+              {/* Callout Box */}
+              <div className="mt-6 rounded-xl border border-gold-500/50 bg-[#faf6ee] p-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-maroon-900">Customized Bridal &amp; Festive Orders</p>
+                <p className="mt-1 text-xs sm:text-sm text-[#5c4a35] leading-relaxed">
+                  Reach us on WhatsApp for inquiries and customized orders. We provide real-time drape previews, blouse fabric suggestions, and worldwide delivery support.
+                </p>
+                <a
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your custom saree & jewelry orders.')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="cursor-pointer mt-3.5 inline-flex items-center gap-2 rounded-lg bg-maroon-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-maroon-800"
+                >
+                  <span className="h-3.5 w-3.5"><WhatsAppIcon /></span>
+                  Order / Inquire on WhatsApp (+91 90005 10329)
+                </a>
+              </div>
+            </div>
+
+            {/* Shop Location & Address Details */}
+            <div className="rounded-xl border border-[#e4dccd] bg-[#fbf9f4] p-6 space-y-5">
+              <h3 className="font-brand text-xl font-bold text-maroon-900">Shop Location &amp; Visit Details</h3>
+              <div className="space-y-3 text-xs sm:text-sm text-gray-700">
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">📍 Studio Address:</span>
+                  <div>
+                    <p className="font-semibold text-maroon-900">Shreivara Handlooms &amp; Fine Jewelry</p>
+                    <p className="text-gray-600">Plot No. 42, Heritage Weavers Lane, Jubilee Hills</p>
+                    <p className="text-gray-600">Hyderabad, Telangana — 500033, India</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">🕒 Studio Hours:</span>
+                  <p className="text-gray-600">Monday – Saturday: 10:30 AM – 7:30 PM IST</p>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">📞 Direct Phone &amp; WhatsApp:</span>
+                  <a href="tel:+919000510329" className="text-maroon-900 font-medium hover:underline">+91 90005 10329</a>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">✉️ Email:</span>
+                  <a href="mailto:shreivara@gmail.com" className="text-maroon-900 font-medium hover:underline">shreivara@gmail.com</a>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">✈️ Shipping:</span>
+                  <p className="text-gray-600">Express doorstep delivery across India and worldwide shipping via trusted international couriers.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
+
       {ownerOpen && (
         <AdminPanel
           products={products}
