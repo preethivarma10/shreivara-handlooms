@@ -13,6 +13,34 @@
   --font-sans: 'DM Sans', sans-serif;
 }
 
+*,
+*::before,
+*::after {
+  cursor: default;
+}
+
+input,
+textarea {
+  cursor: text;
+}
+
+button,
+a,
+select,
+summary,
+[role="button"],
+[type="button"],
+[type="submit"],
+[type="reset"],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+button:disabled,
+[disabled] {
+  cursor: not-allowed !important;
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
@@ -20,6 +48,7 @@ body {
   background: #f6f2e9;
   color: #332c23;
   font-family: 'DM Sans', sans-serif;
+  cursor: default;
 }
 
 button,
