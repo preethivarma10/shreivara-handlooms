@@ -45,6 +45,10 @@ const DEFAULT_PRODUCTS = [
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
+}
+
 const StoreContext = createContext(null);
 
 export function useStore() {
@@ -97,11 +101,25 @@ function StorePanel({ panel, products, cartItems, setCartItems, savedSkus, setSa
   const total = visibleCart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
 
   function startWhatsAppOrder() {
+    const itemLines = visibleCart.map(({ product, quantity }) => {
+      const lineTotal = product.sellingPrice * quantity;
+      return `• ${product.name} [${product.sku}] × ${quantity} = ${formatCurrency(lineTotal)}`;
+    });
     const message = [
-      'Hello Shreivara, I would like to enquire about these pieces:',
-      ...visibleCart.map(({ product, quantity }) => `${product.name} (${product.sku}) × ${quantity} — ₹${product.sellingPrice.toLocaleString('en-IN')}`),
-      `Total: ₹${total.toLocaleString('en-IN')}`,
-      'Please confirm availability and size options.'
+      '🛍️ *New Order — Shreivara*',
+      '',
+      '*Items ordered:*',
+      ...itemLines,
+      '',
+      `*Order Total: ${formatCurrency(total)}*`,
+      '',
+      'Please reply with availability confirmation.',
+      '',
+      '📦 *Shipping details:*',
+      'Name:',
+      'Address:',
+      'City & Pincode:',
+      'Phone:'
     ].join('\n');
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   }

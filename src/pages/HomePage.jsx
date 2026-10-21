@@ -6,18 +6,19 @@ function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
 }
 
-function BookmarkIcon({ filled = false }) {
-  return <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 4.75A1.75 1.75 0 0 1 8.5 3h7a1.75 1.75 0 0 1 1.75 1.75V21l-5.75-3.5L5.75 21V4.75Z" /></svg>;
-}
-
-function BagIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5.5 8.5h13l1 12h-15l1-12Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 9V6a3 3 0 0 1 6 0v3" /></svg>;
+function WhatsAppIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.558 4.121 1.535 5.847L.057 23.667a.5.5 0 0 0 .612.612l5.82-1.478A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.012-1.373l-.36-.214-3.727.947.963-3.617-.234-.373A9.818 9.818 0 0 1 2.182 12C2.182 6.573 6.573 2.182 12 2.182S21.818 6.573 21.818 12 17.427 21.818 12 21.818z" />
+    </svg>
+  );
 }
 
 function ProductCard({ product, isSaved, onToggleSaved, onAddToBag }) {
   const sizes = product.sizes ? product.sizes.split(',').map((size) => size.trim()).filter(Boolean) : [];
   const imageUrl = product.image.startsWith('/') ? `${window.location.origin}${product.image}` : product.image;
-  const message = encodeURIComponent([
+  const waMessage = encodeURIComponent([
     'Hello Shreivara, I would like to place an order:',
     `Product: ${product.name}`,
     `SKU: ${product.sku}`,
@@ -26,7 +27,9 @@ function ProductCard({ product, isSaved, onToggleSaved, onAddToBag }) {
     product.sellingPrice < product.originalPrice ? `Original price: ${formatCurrency(product.originalPrice)}` : '',
     product.offerDetails ? `Offer: ${product.offerDetails}` : '',
     sizes.length ? `Available sizes: ${sizes.join(', ')}` : '',
-    `Product image: ${imageUrl}`
+    `Product image: ${imageUrl}`,
+    '',
+    'Please confirm availability and share delivery details.'
   ].filter(Boolean).join('\n'));
   const discount = Math.round(((product.originalPrice - product.sellingPrice) / product.originalPrice) * 100);
   return (
@@ -35,11 +38,30 @@ function ProductCard({ product, isSaved, onToggleSaved, onAddToBag }) {
       <div className="p-4 sm:p-5"><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{product.category}</p><h3 className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900">{product.name}</h3><div className="mt-3 flex items-center gap-2"><span className="text-lg font-semibold text-maroon-900">{formatCurrency(product.sellingPrice)}</span><span className="text-sm text-gray-400 line-through">{formatCurrency(product.originalPrice)}</span><span className="ml-auto text-[10px] uppercase tracking-widest text-gray-500">{product.sku}</span></div>
         {product.offerDetails && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-maroon-900">{product.offerDetails}</p>}
         {sizes.length > 0 && <p className="mt-2 text-sm text-gray-600">Available sizes: {sizes.join(', ')}</p>}
-        <button type="button" onClick={onAddToBag} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-sm bg-maroon-900 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#f8f5ed] transition hover:bg-maroon-800"><span className="h-4 w-4"><BagIcon /></span>Add to bag</button>
-        {WHATSAPP_NUMBER && <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex w-full items-center justify-center rounded-sm border border-[#c8b99f] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-maroon-900 transition hover:bg-[#eee8dc]">Enquire on WhatsApp</a>}</div>
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-sm bg-[#25d366] px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#1ebe5d]"
+          >
+            <span className="h-3.5 w-3.5 shrink-0"><WhatsAppIcon /></span>
+            Order on WhatsApp
+          </a>
+          <button
+            type="button"
+            onClick={onAddToBag}
+            className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-maroon-900 px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-maroon-900 transition hover:bg-maroon-900 hover:text-[#f8f5ed]"
+          >
+            <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
+            Add to Cart
+          </button>
+        </div>
+      </div>
     </article>
   );
 }
+
 
 function ProductForm({ product, onSave, onCancel, submitLabel }) {
   const [error, setError] = useState('');
