@@ -523,7 +523,7 @@ export default function SiteLayout() {
 
   return (
     <StoreContext.Provider value={context}>
-      <div className="flex min-h-screen flex-col bg-[#faf8f5]">
+      <div className="flex min-h-screen flex-col bg-white">
         <SiteHeader
           {...context}
           ownerAllowed={ownerAllowed}
@@ -545,9 +545,9 @@ export default function SiteLayout() {
           <div
             role="status"
             aria-live="polite"
-            className="pointer-events-none fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-gold-500/40 bg-maroon-900 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-[#faf8f5] shadow-[0_18px_40px_rgba(43,13,20,0.35)] transition-all duration-300"
+            className="pointer-events-none fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-neutral-800 bg-neutral-950 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-white shadow-xl transition-all duration-300"
           >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-700 text-[11px] font-bold text-white">✓</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white">✓</span>
             <span>{toastMessage}</span>
           </div>
         )}
