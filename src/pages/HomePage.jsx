@@ -150,52 +150,87 @@ export default function HomePage() {
     document.title = 'Shreivara | Luxury Ethnic Weaves';
   }, []);
 
-  async function addProduct(formData) {
-    return saveProductRequest('/api/products', { method: 'POST', body: formData }, 'The product could not be saved.').then((result) => {
-      setProducts((current) => [result, ...current]);
-      setCategory('All Sarees');
-      return result;
+  function persistProducts(next) {
+    try {
+      window.localStorage.setItem('shreivara-products', JSON.stringify(next));
+    } catch (error) {
+      console.error('Could not save products to localStorage.', error);
+      throw new Error('Your browser storage is full. Try removing some products first.');
+    }
+  }
+
+  function readImageAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !(file instanceof File)) { resolve(null); return; }
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Could not read the image file.'));
+      reader.readAsDataURL(file);
     });
   }
 
+  async function addProduct(formData) {
+    const sku = (formData.get('sku') || '').toString().trim();
+    if (!sku) throw new Error('SKU is required.');
+    if (products.some((p) => p.sku === sku)) throw new Error(`A product with SKU "${sku}" already exists.`);
+
+    const imageFile = formData.get('image');
+    const imageUrl = await readImageAsDataUrl(imageFile instanceof File && imageFile.size > 0 ? imageFile : null);
+    if (!imageUrl) throw new Error('Please select a product image.');
+
+    const newProduct = {
+      sku,
+      name: (formData.get('name') || '').toString().trim(),
+      category: (formData.get('category') || '').toString().trim(),
+      originalPrice: Number(formData.get('originalPrice')),
+      sellingPrice: Number(formData.get('sellingPrice')),
+      sizes: (formData.get('sizes') || '').toString().trim(),
+      offerDetails: (formData.get('offerDetails') || '').toString().trim(),
+      image: imageUrl,
+    };
+    const next = [newProduct, ...products];
+    persistProducts(next);
+    setProducts(next);
+    setCategory('All Sarees');
+    return newProduct;
+  }
+
   async function updateProduct(sku, formData) {
-    const result = await saveProductRequest(`/api/products?sku=${encodeURIComponent(sku)}`, { method: 'PUT', body: formData }, 'The product could not be updated.');
-    setProducts((current) => current.map((product) => product.sku === sku ? result.product : product));
-    return result;
+    const imageFile = formData.get('image');
+    const hasNewImage = imageFile instanceof File && imageFile.size > 0;
+    const imageUrl = hasNewImage ? await readImageAsDataUrl(imageFile) : null;
+
+    const next = products.map((p) => {
+      if (p.sku !== sku) return p;
+      return {
+        ...p,
+        name: (formData.get('name') || '').toString().trim() || p.name,
+        category: (formData.get('category') || '').toString().trim() || p.category,
+        originalPrice: Number(formData.get('originalPrice')) || p.originalPrice,
+        sellingPrice: Number(formData.get('sellingPrice')) || p.sellingPrice,
+        sizes: (formData.get('sizes') || '').toString().trim(),
+        offerDetails: (formData.get('offerDetails') || '').toString().trim(),
+        ...(imageUrl ? { image: imageUrl } : {}),
+      };
+    });
+    persistProducts(next);
+    setProducts(next);
+    return { product: next.find((p) => p.sku === sku) };
   }
 
   async function deleteProduct(sku) {
-    const result = await saveProductRequest(`/api/products?sku=${encodeURIComponent(sku)}`, { method: 'DELETE' }, 'The product could not be deleted.');
-    setProducts((current) => current.filter((product) => product.sku !== sku));
+    const next = products.filter((p) => p.sku !== sku);
+    persistProducts(next);
+    setProducts(next);
     setCartItems((current) => current.filter((item) => item.sku !== sku));
     setSavedSkus((current) => current.filter((savedSku) => savedSku !== sku));
-    return result;
+    return {};
   }
 
   function toggleSaved(sku) {
     setSavedSkus((current) => current.includes(sku)
       ? current.filter((savedSku) => savedSku !== sku)
       : [...current, sku]);
-  }
-
-  async function saveProductRequest(url, options, failureMessage) {
-    let response;
-    try {
-      response = await fetch(url, options);
-    } catch {
-      throw new Error('Could not reach the product service. Please try again.');
-    }
-
-    let result;
-    try {
-      result = await response.json();
-    } catch {
-      throw new Error('The product service returned an invalid response.');
-    }
-    if (!response.ok) {
-      throw new Error(typeof result.error === 'string' ? result.error : failureMessage);
-    }
-    return result;
   }
 
   return (

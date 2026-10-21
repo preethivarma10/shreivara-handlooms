@@ -1,4 +1,47 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+
+const DEFAULT_PRODUCTS = [
+  {
+    sku: 'SHR-001',
+    name: 'Royal Kanjivaram Silk',
+    category: 'Kanchi Pattu',
+    originalPrice: 18999,
+    sellingPrice: 14999,
+    sizes: 'Free size',
+    offerDetails: 'Grand launch offer — limited stock!',
+    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    sku: 'SHR-002',
+    name: 'Mangalagiri Cotton Elegance',
+    category: 'Mangalagiri',
+    originalPrice: 5999,
+    sellingPrice: 4499,
+    sizes: 'Free size',
+    offerDetails: '',
+    image: 'https://images.unsplash.com/photo-1583391733956-62e74ed5b29c?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    sku: 'SHR-003',
+    name: 'Fancy Silk Fiesta',
+    category: 'Fancy Silk',
+    originalPrice: 9499,
+    sellingPrice: 7299,
+    sizes: 'Free size',
+    offerDetails: 'Buy 2, get 10% off',
+    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80'
+  },
+  {
+    sku: 'SHR-004',
+    name: 'Organza Blossom',
+    category: 'Organza & Chiffon',
+    originalPrice: 7999,
+    sellingPrice: 5999,
+    sizes: 'Free size',
+    offerDetails: '',
+    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'
+  }
+];
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 
@@ -235,36 +278,33 @@ export default function SiteLayout() {
     }
   }, [savedSkus]);
 
-  useEffect(() => {
-    if (productsLoading || productsError) return;
-    const productSkus = new Set(products.map((product) => product.sku));
-    setCartItems((current) => current.filter((item) => productSkus.has(item.sku)));
-    setSavedSkus((current) => current.filter((sku) => productSkus.has(sku)));
-  }, [products, productsError, productsLoading]);
-
   function addToBag(sku) {
     setCartItems((current) => addCartItem(current, sku));
   }
 
   useEffect(() => {
-    let active = true;
-    async function loadProducts() {
+    function loadProducts() {
       try {
-        const response = await fetch('/api/products');
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Could not load the product catalogue.');
-        if (!Array.isArray(result)) throw new Error('The product catalogue response was invalid.');
-        if (active) setProducts(result);
-      } catch (error) {
-        if (active) {
-          setProductsError(error instanceof Error ? error.message : 'Could not load the product catalogue.');
+        const stored = window.localStorage.getItem('shreivara-products');
+        if (stored !== null) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProducts(parsed);
+            setProductsLoading(false);
+            return;
+          }
         }
-      } finally {
-        if (active) setProductsLoading(false);
+      } catch (error) {
+        console.warn('Could not read products from localStorage, using defaults.', error);
       }
+      // Fall back to built-in default catalogue
+      setProducts(DEFAULT_PRODUCTS);
+      try {
+        window.localStorage.setItem('shreivara-products', JSON.stringify(DEFAULT_PRODUCTS));
+      } catch (_) { /* storage full or unavailable */ }
+      setProductsLoading(false);
     }
     loadProducts();
-    return () => { active = false; };
   }, []);
 
   const context = {
