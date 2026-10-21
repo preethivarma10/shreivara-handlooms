@@ -623,61 +623,34 @@ export default function HomePage() {
 
   return (
     <main id="top" className="w-full flex-1">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-16 sm:space-y-24">
-
-        {/* Haute Couture Lookbook Atmosphere Banner */}
-        <section className="relative overflow-hidden rounded-3xl border border-[#dfb776]/35 bg-velvet text-[#faf8f5] shadow-2xl p-8 sm:p-12 lg:p-16">
-          {/* Ambient radial glows */}
-          <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-[#dfb776]/10 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-[#dfb776]/10 blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 max-w-3xl space-y-4">
-            <span className="inline-block text-[10px] font-bold uppercase tracking-[0.3em] text-[#dfb776] bg-[#dfb776]/10 border border-[#dfb776]/30 px-3.5 py-1 rounded-full">
-              Haute Couture Handlooms • The Atelier Edit
-            </span>
-            <h1 className="font-brand text-4xl sm:text-5xl lg:text-6xl font-normal leading-[1.1] text-white tracking-tight">
-              Sarees and fine jewelry for life's treasured moments.
-            </h1>
-            <p className="max-w-2xl text-xs sm:text-sm leading-relaxed text-[#faf8f5]/85 font-light">
-              Generational master-weaves meet timeless celebration wear. Discover authentic Kanchi Pattu, delicate Mangalagiri cottons, statement fancy silks, and handcrafted temple jewelry ordered directly on WhatsApp.
-            </p>
-            <div className="pt-3 flex flex-wrap items-center gap-3">
-              <a
-                href="#collections"
-                className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-500 px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-maroon-900 shadow-md hover:brightness-105 hover:shadow-lg transition-all"
-              >
-                Explore Collections
-              </a>
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to schedule a personal drape walkthrough on WhatsApp.')}`}
-                target="_blank"
-                rel="noreferrer"
-                className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-[#dfb776]/50 bg-white/10 backdrop-blur-md px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#faf8f5] hover:bg-white/20 transition-all"
-              >
-                <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
-                Video Consultation
-              </a>
-            </div>
-          </div>
-        </section>
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-16 sm:space-y-20">
 
         {/* Top Collections Section */}
         <section id="collections" className="scroll-mt-24">
           <div id="catalog" className="scroll-mt-24">
-            <div className="mb-8 sm:mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between border-b border-[#ebdcc9] pb-6">
+            <div className="mb-8 sm:mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[#ebdcc9] pb-6">
               <div>
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.28em] text-gold-600 bg-gold-500/10 border border-gold-500/25 px-3 py-1 rounded-full mb-3">
                   <span>✦</span> Curated Haute Couture <span>✦</span>
                 </span>
-                <h2 className="font-brand text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-maroon-900">
+                <h1 className="font-brand text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-maroon-900">
                   Top Collections
-                </h2>
+                </h1>
                 <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 tracking-wide font-light">
                   Sarees to Treasures • Handcrafted with Heritage Artistry
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full border border-gold-500/30 bg-white/90 px-4 py-1.5 text-xs font-medium text-neutral-700 shadow-2xs font-mono" aria-live="polite">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                <a
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to schedule a personal drape walkthrough on WhatsApp.')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-maroon-900/30 bg-white/95 px-4 sm:px-5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-maroon-900 shadow-2xs hover:bg-maroon-900 hover:text-gold-300 transition-all hover:border-maroon-900 active:scale-[0.98]"
+                >
+                  <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
+                  Video Consultation
+                </a>
+                <span className="rounded-full border border-gold-500/30 bg-white/90 px-4 py-2 text-xs font-medium text-neutral-700 shadow-2xs font-mono" aria-live="polite">
                   {filteredProducts.length} {filteredProducts.length === 1 ? 'Design' : 'Designs'}
                 </span>
               </div>

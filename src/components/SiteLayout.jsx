@@ -360,11 +360,8 @@ function SiteHeader({ query, setQuery, setCategory, ownerAllowed, ownerOpen, set
           </label>
         </div>
 
-        {/* Right Side: Tilde symbol ~ + Cart + Owner Portal */}
+        {/* Right Side: Cart + Owner Portal */}
         <div className="flex items-center justify-end gap-1.5 sm:gap-2">
-          {/* Tild symbol before cart */}
-          <span className="text-[#c59a58] font-serif text-xl sm:text-2xl select-none px-1" aria-hidden="true">~</span>
-
           <button
             type="button"
             onClick={() => onOpenPanel('cart')}
