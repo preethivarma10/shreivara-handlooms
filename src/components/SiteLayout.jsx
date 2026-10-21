@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 
@@ -89,12 +89,13 @@ function SearchIcon() {
   );
 }
 
-function BookmarkIcon({ filled = false }) {
-  return <svg viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 4.75A1.75 1.75 0 0 1 8.5 3h7a1.75 1.75 0 0 1 1.75 1.75V21l-5.75-3.5L5.75 21V4.75Z" /></svg>;
-}
-
 function BagIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M5.5 8.5h13l1 12h-15l1-12Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 9V6a3 3 0 0 1 6 0v3" /></svg>;
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5.5 8.5h13l1 12h-15l1-12Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V6a3 3 0 0 1 6 0v3" />
+    </svg>
+  );
 }
 
 function addCartItem(current, sku, maxStock = 5) {
@@ -119,13 +120,12 @@ function readStoredList(key, validateItem) {
   }
 }
 
-function StorePanel({ panel, products, cartItems, setCartItems, savedSkus, setSavedSkus, onAddToBag, onClose }) {
-  if (!panel) return null;
+function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
+  if (!panel || panel !== 'cart') return null;
 
   const visibleCart = cartItems
     .map((item) => ({ ...item, product: products.find((product) => product.sku === item.sku) }))
     .filter((item) => item.product);
-  const savedProducts = savedSkus.map((sku) => products.find((product) => product.sku === sku)).filter(Boolean);
   const total = visibleCart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
 
   function startWhatsAppOrder() {
@@ -160,13 +160,13 @@ function StorePanel({ panel, products, cartItems, setCartItems, savedSkus, setSa
       <section role="dialog" aria-modal="true" aria-labelledby="store-panel-title" className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-[#f8f5ed] shadow-2xl">
         <div className="flex items-center justify-between border-b border-[#e4dccd] px-6 py-5">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-600">{panel === 'cart' ? 'Your selection' : 'Saved for later'}</p>
-            <h2 id="store-panel-title" className="mt-1 font-brand text-2xl font-medium text-maroon-900">{panel === 'cart' ? 'Shopping bag' : 'Saved pieces'}</h2>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-600">Your selection</p>
+            <h2 id="store-panel-title" className="mt-1 font-brand text-2xl font-medium text-maroon-900">Shopping bag</h2>
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-600 transition hover:bg-[#e9e1d3]">×</button>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-          {panel === 'cart' ? (visibleCart.length ? visibleCart.map(({ product, quantity }) => {
+          {visibleCart.length ? visibleCart.map(({ product, quantity }) => {
             const maxStock = product.stock ?? 5;
             const isMax = quantity >= maxStock;
             return (
@@ -206,22 +206,9 @@ function StorePanel({ panel, products, cartItems, setCartItems, savedSkus, setSa
                 </div>
               </article>
             );
-          }) : <p className="py-12 text-center font-brand text-xl text-gray-500">Your bag is waiting for something beautiful.</p>) : (savedProducts.length ? savedProducts.map((product) => (
-            <article key={product.sku} className="flex gap-4 border-b border-[#e4dccd] pb-4">
-              <img src={product.image} alt={product.name} className="h-24 w-20 rounded-lg object-cover" />
-              <div className="min-w-0 flex-1">
-                <h3 className="font-brand text-lg font-medium text-maroon-900">{product.name}</h3>
-                <p className="mt-1 text-sm text-gray-600">{product.category}</p>
-                <p className="mt-2 text-sm font-semibold text-maroon-900">₹{product.sellingPrice.toLocaleString('en-IN')}</p>
-                <div className="mt-3 flex gap-4 text-xs">
-                  <button type="button" onClick={() => { onAddToBag(product.sku); setSavedSkus((current) => current.filter((sku) => sku !== product.sku)); }} className="cursor-pointer font-semibold text-maroon-900 underline underline-offset-2">Add to bag</button>
-                  <button type="button" onClick={() => setSavedSkus((current) => current.filter((sku) => sku !== product.sku))} className="cursor-pointer text-gray-500 underline underline-offset-2 hover:text-red-700">Remove</button>
-                </div>
-              </div>
-            </article>
-          )) : <p className="py-12 text-center font-brand text-xl text-gray-500">Save a piece to find it here later.</p>)}
+          }) : <p className="py-12 text-center font-brand text-xl text-gray-500">Your bag is waiting for something beautiful.</p>}
         </div>
-        {panel === 'cart' && visibleCart.length > 0 && <div className="border-t border-[#e4dccd] px-6 py-5">
+        {visibleCart.length > 0 && <div className="border-t border-[#e4dccd] px-6 py-5">
           <div className="mb-4 flex justify-between font-semibold text-maroon-900"><span>Subtotal</span><span>₹{total.toLocaleString('en-IN')}</span></div>
           <button type="button" onClick={startWhatsAppOrder} className="cursor-pointer w-full rounded-lg bg-maroon-900 px-5 py-3 text-sm font-semibold tracking-wide text-[#f8f5ed] transition hover:bg-maroon-800">Order on WhatsApp</button>
           <p className="mt-3 text-center text-xs text-gray-500">We’ll confirm availability and delivery with you.</p>
@@ -231,7 +218,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, savedSkus, setSa
   );
 }
 
-function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, ownerOpen, setOwnerOpen, cartCount, savedCount, onOpenPanel }) {
+function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, ownerOpen, setOwnerOpen, cartCount, onOpenPanel }) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -282,15 +269,6 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
           <Link to="/about" className="cursor-pointer transition hover:text-maroon-900">About us</Link>
         </nav>
         <div className="flex items-center justify-end gap-1.5 sm:gap-3">
-          <button
-            type="button"
-            onClick={() => onOpenPanel('saved')}
-            aria-label={`Saved pieces, ${savedCount} ${savedCount === 1 ? 'item' : 'items'}`}
-            className="cursor-pointer relative inline-flex h-10 w-10 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#e9e1d3]"
-          >
-            <span className="h-5 w-5"><BookmarkIcon /></span>
-            {savedCount > 0 && <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 px-1 text-[9px] font-bold text-white">{savedCount}</span>}
-          </button>
           <button
             type="button"
             onClick={() => onOpenPanel('cart')}
@@ -376,9 +354,9 @@ export default function SiteLayout() {
   const [productsError, setProductsError] = useState('');
   const [cartItems, setCartItems] = useState(() => readStoredList('shreivara-cart', (item) =>
     typeof item?.sku === 'string' && Number.isSafeInteger(item.quantity) && item.quantity > 0));
-  const [savedSkus, setSavedSkus] = useState(() => readStoredList('shreivara-saved', (sku) =>
-    typeof sku === 'string' && sku.length > 0 && sku.length <= 64));
   const [activePanel, setActivePanel] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
+  const toastTimeoutRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -388,19 +366,24 @@ export default function SiteLayout() {
     }
   }, [cartItems]);
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('shreivara-saved', JSON.stringify(savedSkus));
-    } catch (error) {
-      console.error('Could not save saved pieces in browser storage.', error);
-    }
-  }, [savedSkus]);
+  function showToast(msg = 'Added to Cart!') {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToastMessage(msg);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage('');
+    }, 2000);
+  }
 
-  // Restrict Add to Cart by stock quantity, updating counts silently without any toast/alert
+  // Restrict Add to Cart by stock quantity; shows 'Added to Cart!' pop-up for 2s on success
   function addToBag(sku) {
     const prod = products.find((p) => p.sku === sku);
     const maxStock = prod?.stock ?? 5;
+    const existing = cartItems.find((item) => item.sku === sku);
+    if (existing && existing.quantity >= maxStock) {
+      return; // Already capped at max stock limit
+    }
     setCartItems((current) => addCartItem(current, sku, maxStock));
+    showToast('Added to Cart!');
   }
 
   useEffect(() => {
@@ -410,7 +393,6 @@ export default function SiteLayout() {
         if (stored !== null) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            // Ensure stock property is set and include default jewelry items if missing
             const withStock = parsed.map((p) => ({ ...p, stock: p.stock ?? 5 }));
             const hasJewelry = withStock.some((p) => p.category === 'Jewellery');
             const merged = hasJewelry
@@ -445,8 +427,6 @@ export default function SiteLayout() {
     cartItems,
     setCartItems,
     addToBag,
-    savedSkus,
-    setSavedSkus,
     productsLoading,
     productsError
   };
@@ -458,7 +438,6 @@ export default function SiteLayout() {
           {...context}
           ownerAllowed={ownerAllowed}
           cartCount={cartItems.reduce((count, item) => count + item.quantity, 0)}
-          savedCount={savedSkus.length}
           onOpenPanel={setActivePanel}
         />
         <Outlet context={context} />
@@ -468,11 +447,20 @@ export default function SiteLayout() {
           products={products}
           cartItems={cartItems}
           setCartItems={setCartItems}
-          savedSkus={savedSkus}
-          setSavedSkus={setSavedSkus}
-          onAddToBag={addToBag}
           onClose={() => setActivePanel('')}
         />
+
+        {/* Elegant 2-second 'Added to Cart!' Toast Notification */}
+        {toastMessage && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="pointer-events-none fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-gold-500/50 bg-maroon-900 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-[#f8f5ed] shadow-[0_16px_40px_rgba(40,25,12,0.35)] transition-all duration-300"
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-700 text-[11px] font-bold text-white">✓</span>
+            <span>{toastMessage}</span>
+          </div>
+        )}
       </div>
     </StoreContext.Provider>
   );
