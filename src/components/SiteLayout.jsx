@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 
-const DEFAULT_PRODUCTS = [
+export const DEFAULT_PRODUCTS = [
   {
     sku: 'SHR-001',
     name: 'Royal Kanjivaram Silk',
@@ -298,7 +298,7 @@ const SUTISANCHA_NAV_ITEMS = [
   { label: 'JEWELRY', categoryKey: 'Jewellery' }
 ];
 
-function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, ownerOpen, setOwnerOpen, cartCount, onOpenPanel }) {
+function SiteHeader({ query, setQuery, category, setCategory, cartCount, onOpenPanel }) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -321,26 +321,6 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
       const elem = document.getElementById('catalog');
       elem?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
-  }
-
-  function requestOwnerAccess() {
-    const ADMIN_PASSCODE = 'shreivara2026';
-    if (sessionStorage.getItem('shreivara_admin_unlocked') === 'true') {
-      setOwnerOpen((open) => !open);
-      return;
-    }
-    const entered = window.prompt('Enter passcode to unlock Admin Panel:');
-    if (entered === null) return;
-    if (entered.trim() === ADMIN_PASSCODE) {
-      sessionStorage.setItem('shreivara_admin_unlocked', 'true');
-      setOwnerOpen(true);
-      setTimeout(() => {
-        const elem = document.getElementById('admin-portal');
-        elem?.scrollIntoView({ behavior: 'smooth' });
-      }, 150);
-    } else {
-      window.alert('Incorrect passcode. Access denied.');
-    }
   }
 
   return (
@@ -406,7 +386,7 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
           </button>
         </div>
 
-        {/* Right-aligned action buttons (WhatsApp, Admin Lock, Cart) */}
+        {/* Right-aligned action buttons (WhatsApp, Cart) */}
         <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
           {/* WhatsApp Circular Action Button */}
           <a
@@ -419,31 +399,6 @@ function SiteHeader({ query, setQuery, category, setCategory, ownerAllowed, owne
           >
             <span className="h-4.5 w-4.5 shrink-0"><WhatsAppIcon /></span>
           </a>
-
-          {/* Admin Lock / Shield Action Button */}
-          <button
-            type="button"
-            onClick={requestOwnerAccess}
-            title={ownerOpen ? 'Close Admin Console' : 'Admin Panel Login (Passcode: shreivara2026)'}
-            aria-label="Admin Panel Login"
-            className={`cursor-pointer flex h-10 w-10 sm:h-10.5 sm:w-10.5 items-center justify-center rounded-full border transition-all duration-300 hover:scale-105 shadow-2xs ${
-              ownerOpen
-                ? 'bg-maroon-900 text-gold-200 border-gold-400'
-                : 'border-gold-400 bg-gold-50 text-maroon-800 hover:bg-maroon-900 hover:text-gold-200'
-            }`}
-          >
-            {ownerOpen ? (
-              <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 9.9-1" />
-              </svg>
-            ) : (
-              <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
-            )}
-          </button>
 
           {/* Cart Circular Action Button */}
           <button
@@ -519,9 +474,6 @@ function SiteFooter() {
 }
 
 export default function SiteLayout() {
-  const location = useLocation();
-  const ownerAllowed = new URLSearchParams(location.search).get('admin') === 'true';
-  const [ownerOpen, setOwnerOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('ALL');
   const [products, setProducts] = useState([]);
@@ -532,21 +484,6 @@ export default function SiteLayout() {
   const [activePanel, setActivePanel] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const toastTimeoutRef = useRef(null);
-
-  // Handle secret URL parameter ?admin=true
-  useEffect(() => {
-    if (ownerAllowed) {
-      if (sessionStorage.getItem('shreivara_admin_unlocked') === 'true') {
-        setOwnerOpen(true);
-      } else {
-        const entered = window.prompt('Enter passcode to unlock Admin Panel:');
-        if (entered && entered.trim() === 'shreivara2026') {
-          sessionStorage.setItem('shreivara_admin_unlocked', 'true');
-          setOwnerOpen(true);
-        }
-      }
-    }
-  }, [ownerAllowed]);
 
   useEffect(() => {
     try {
@@ -603,11 +540,21 @@ export default function SiteLayout() {
       setProductsLoading(false);
     }
     loadProducts();
+
+    // Listen to storage changes so updates from /admin reflect in storefront
+    function handleStorageChange(e) {
+      if (e.key === 'shreivara-products' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) setProducts(parsed);
+        } catch (_) {}
+      }
+    }
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const context = {
-    ownerOpen,
-    setOwnerOpen,
     query,
     setQuery,
     category,
@@ -626,7 +573,6 @@ export default function SiteLayout() {
       <div className="flex min-h-screen flex-col bg-cream pb-20 sm:pb-0">
         <SiteHeader
           {...context}
-          ownerAllowed={ownerAllowed}
           cartCount={cartItems.reduce((count, item) => count + item.quantity, 0)}
           onOpenPanel={setActivePanel}
         />
@@ -670,31 +616,12 @@ export default function SiteLayout() {
           </div>
         </nav>
 
-        {/* Floating Circular Sticky WhatsApp Button */}
-        <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your handloom sarees and fine jewelry.')}`}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Chat on WhatsApp (+91 90005 10329)"
-          title="Chat on WhatsApp (+91 90005 10329)"
-          className="fixed bottom-24 sm:bottom-8 right-5 sm:right-8 z-40 flex items-center justify-center h-13 w-13 sm:h-14 sm:w-14 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-white group cursor-pointer"
-        >
-          <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 sm:h-4 sm:w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 bg-emerald-500"></span>
-          </span>
-          <span className="h-6 w-6 sm:h-7 sm:w-7 text-white shrink-0"><WhatsAppIcon /></span>
-          <span className="pointer-events-none absolute right-16 hidden whitespace-nowrap rounded-lg bg-maroon-950/90 backdrop-blur-md px-3 py-1.5 text-xs font-medium text-gold-100 shadow-xl group-hover:block transition-all">
-            WhatsApp Order (+91 90005 10329)
-          </span>
-        </a>
-
         {/* Elegant 2-second 'Added to Cart!' Toast Notification */}
         {toastMessage && (
           <div
             role="status"
             aria-live="polite"
-            className="pointer-events-none fixed bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-gold-400 bg-maroon-900 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-gold-100 shadow-xl transition-all duration-300"
+            className="pointer-events-none fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-gold-400 bg-maroon-900 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-gold-100 shadow-xl transition-all duration-300"
           >
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white">✓</span>
             <span>{toastMessage}</span>
