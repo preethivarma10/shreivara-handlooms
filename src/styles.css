@@ -1,38 +1,42 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Rich heritage maroon palette */
+  /* Rich deep maroon palette */
   --color-maroon-950: #140407;
-  --color-maroon-900: #3d0c14;
-  --color-maroon-850: #5a1220;
-  --color-maroon-800: #6e1a2a;
-  --color-maroon-700: #8b2438;
-  --color-maroon-600: #a83048;
-  --color-maroon-500: #c44060;
-  --color-maroon-400: #d4687e;
-  --color-maroon-100: #fae8ec;
-  --color-maroon-50: #fdf2f4;
+  --color-maroon-900: #4A0E17;
+  --color-maroon-850: #58121E;
+  --color-maroon-800: #6E1A2A;
+  --color-maroon-700: #8B2438;
+  --color-maroon-600: #A83048;
+  --color-maroon-500: #C44060;
+  --color-maroon-400: #D4687E;
+  --color-maroon-100: #FAE8EC;
+  --color-maroon-50: #FDF2F4;
 
-  /* Champagne gold palette */
-  --color-gold-50: #fdf8ef;
-  --color-gold-100: #f9eed8;
-  --color-gold-200: #f5e2bc;
-  --color-gold-300: #edcf96;
-  --color-gold-400: #dfb776;
-  --color-gold-500: #c59a58;
-  --color-gold-600: #9e7638;
-  --color-gold-700: #7b5c2a;
-  --color-gold-800: #5a4220;
+  /* Muted metallic gold palette */
+  --color-gold-50: #FDF9F0;
+  --color-gold-100: #F9F0DA;
+  --color-gold-200: #F2E3BC;
+  --color-gold-300: #E6CE8A;
+  --color-gold-400: #D4AF37;
+  --color-gold-500: #B8952B;
+  --color-gold-600: #93751E;
+  --color-gold-700: #705814;
+  --color-gold-800: #4E3C0B;
 
   /* Emerald accents for success states */
   --color-emerald-800: #0d3b2c;
   --color-emerald-900: #08281e;
 
-  /* Warm ivory backgrounds */
-  --color-ivory-50: #fffdf8;
-  --color-ivory-100: #fef9f0;
-  --color-ivory-200: #fcf3e4;
-  --color-ivory-300: #f5e8d4;
+  /* Editorial cream & warm ivory backgrounds */
+  --color-cream: #FAF7F2;
+  --color-cream-50: #FAF7F2;
+  --color-cream-100: #F4EFE7;
+  --color-cream-200: #EAE2D5;
+  --color-ivory-50: #FAF7F2;
+  --color-ivory-100: #F5EFE6;
+  --color-ivory-200: #EEE5D7;
+  --color-ivory-300: #E4D9C7;
 
   /* Brand Fonts */
   --font-brand: 'Cormorant Garamond', Georgia, serif;
@@ -72,8 +76,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: #fffdf8;
-  color: #2c1810;
+  background-color: #FAF7F2;
+  color: #2C1810;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   cursor: default;
   -webkit-font-smoothing: antialiased;
@@ -102,7 +106,7 @@ select {
 
 .fashion-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 40px -8px rgba(61, 12, 20, 0.12), 0 4px 12px rgba(197, 154, 88, 0.08);
+  box-shadow: 0 20px 40px -10px rgba(74, 14, 23, 0.15), 0 4px 16px rgba(212, 175, 55, 0.1);
 }
 
 /* Glassmorphism Navigation */
@@ -118,16 +122,16 @@ select {
 }
 
 ::-webkit-scrollbar-track {
-  background: #fef9f0;
+  background: #FAF8F5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dfb776;
+  background: #D4AF37;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c59a58;
+  background: #B8952B;
 }
 
 /* Subtle shimmer animation for accent elements */
@@ -137,12 +141,12 @@ select {
 }
 
 .shimmer-accent {
-  background: linear-gradient(90deg, transparent 0%, rgba(197, 154, 88, 0.15) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.18) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 3s ease-in-out infinite;
 }
 
 /* Warm gradient overlay for hero-like sections */
 .warm-gradient {
-  background: linear-gradient(135deg, #3d0c14 0%, #5a1220 40%, #3d0c14 100%);
+  background: linear-gradient(135deg, #4A0E17 0%, #58121E 45%, #38080F 100%);
 }
