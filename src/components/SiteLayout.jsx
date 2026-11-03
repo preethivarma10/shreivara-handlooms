@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
+import { fetchProductsFromSupabase } from '../lib/supabase.js';
 
 export const DEFAULT_PRODUCTS = [
   {
@@ -532,7 +533,23 @@ export default function SiteLayout() {
   }
 
   useEffect(() => {
-    function loadProducts() {
+    async function loadProducts() {
+      // 1. Try fetching from Supabase cloud database first
+      try {
+        const remote = await fetchProductsFromSupabase();
+        if (Array.isArray(remote) && remote.length > 0) {
+          setProducts(remote);
+          setProductsLoading(false);
+          try {
+            window.localStorage.setItem('shreivara-products', JSON.stringify(remote));
+          } catch (_) {}
+          return;
+        }
+      } catch (err) {
+        console.warn('Could not fetch from Supabase:', err);
+      }
+
+      // 2. Fallback to localStorage or default products
       try {
         const stored = window.localStorage.getItem('shreivara-products');
         if (stored !== null) {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
+import { fetchProductsFromSupabase, isSupabaseConfigured } from '../lib/supabase.js';
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
@@ -25,37 +26,55 @@ function BagIcon() {
 
 
 
-function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
-  const sizes = product.sizes ? product.sizes.split(',').map((size) => size.trim()).filter(Boolean) : [];
-  const imageUrl = product.image.startsWith('/') ? `${window.location.origin}${product.image}` : product.image;
-  const maxStock = product.stock ?? 5;
-  const isSoldOut = product.available === false || maxStock <= 0;
+function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
+  const p = product || item || {};
+  const rawSizes = p.sizes || '';
+  const sizes = Array.isArray(rawSizes)
+    ? rawSizes
+    : typeof rawSizes === 'string' && rawSizes
+    ? rawSizes.split(',').map((size) => size.trim()).filter(Boolean)
+    : [];
+
+  const rawImage = p.image || p.image_url || p.imageUrl || p.photo || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80';
+  const imageUrl = typeof rawImage === 'string' && rawImage.startsWith('/')
+    ? `${window.location.origin}${rawImage}`
+    : rawImage;
+
+  const sellingPrice = Number(p.sellingPrice ?? p.selling_price ?? p.price ?? 3999);
+  const originalPrice = Number(p.originalPrice ?? p.original_price ?? p.mrp ?? p.price ?? (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999));
+  const sku = String(p.sku || p.id || 'SHR-001');
+  const name = p.name || p.title || 'Handloom Saree';
+  const category = p.category || 'Kanchi Pattu';
+  const offerDetails = p.offerDetails || p.offer_details || '';
+
+  const maxStock = Number(p.stock ?? 5);
+  const isSoldOut = p.available === false || maxStock <= 0;
   const isMaxReached = cartQuantity >= maxStock;
 
   const waMessage = encodeURIComponent([
     isSoldOut ? 'Hello Shreivara, I noticed this piece is currently sold out and would like to enquire about a custom weave / restock:' : 'Hello Shreivara, I would like to place an order:',
-    `Product: ${product.name}`,
-    `SKU: ${product.sku}`,
-    `Category: ${product.category}`,
-    `Price: ${formatCurrency(product.sellingPrice)}`,
-    product.sellingPrice < product.originalPrice ? `Original price: ${formatCurrency(product.originalPrice)}` : '',
-    product.offerDetails ? `Offer: ${product.offerDetails}` : '',
+    `Product: ${name}`,
+    `SKU: ${sku}`,
+    `Category: ${category}`,
+    `Price: ${formatCurrency(sellingPrice)}`,
+    sellingPrice < originalPrice ? `Original price: ${formatCurrency(originalPrice)}` : '',
+    offerDetails ? `Offer: ${offerDetails}` : '',
     sizes.length ? `Available sizes: ${sizes.join(', ')}` : '',
     `Product image: ${imageUrl}`,
     '',
     'Thank you for ordering with Shreivara! We will get back to you at the earliest.'
   ].filter(Boolean).join('\n'));
 
-  const discount = Math.round(((product.originalPrice - product.sellingPrice) / product.originalPrice) * 100);
-  const displayDiscount = discount > 0 ? `${discount}% OFF` : '40% OFF';
+  const discount = originalPrice > sellingPrice ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100) : 0;
+  const displayDiscount = discount > 0 ? `${discount}% OFF` : 'FESTIVE EDIT';
 
   return (
     <article className="fashion-card group relative flex flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-xs hover:shadow-xl transition-all duration-300">
       {/* Full-Bleed Tall Vertical Product Image */}
       <div className="relative aspect-[2/3] sm:aspect-[3/4] w-full overflow-hidden bg-neutral-100">
         <img
-          src={product.image}
-          alt={product.name}
+          src={imageUrl}
+          alt={name}
           className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${isSoldOut ? 'grayscale-40 opacity-80' : ''
             }`}
           loading="lazy"
@@ -82,7 +101,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
             <span className="text-[#D4AF37]">★</span> 4.9
           </span>
           <span className="rounded-md bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[8.5px] font-mono tracking-wider text-white uppercase shadow-2xs">
-            {product.sku}
+            {sku}
           </span>
         </div>
       </div>
@@ -91,7 +110,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">
-            {product.category}
+            {category}
           </p>
           <span className="text-[9.5px] text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
             Handloom Mark
@@ -100,24 +119,24 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
 
         {/* Clean Minimal Title */}
         <h3 className="mt-1.5 font-brand text-lg sm:text-xl font-normal leading-snug text-neutral-900 group-hover:text-maroon-800 transition-colors line-clamp-1">
-          {product.name}
+          {name}
         </h3>
 
         {/* Original vs Discounted Prices */}
         <div className="mt-2.5 flex items-baseline gap-2">
           <span className="text-xl sm:text-2xl font-bold text-maroon-950 font-brand tracking-tight">
-            {formatCurrency(product.sellingPrice)}
+            {formatCurrency(sellingPrice)}
           </span>
-          {product.originalPrice > product.sellingPrice && (
+          {originalPrice > sellingPrice && (
             <span className="text-xs text-neutral-400 line-through font-light">
-              {formatCurrency(product.originalPrice)}
+              {formatCurrency(originalPrice)}
             </span>
           )}
         </div>
 
-        {product.offerDetails && (
+        {offerDetails && (
           <p className="mt-2 rounded-lg border border-gold-200/80 bg-gold-50/70 px-2.5 py-1 text-[11px] font-medium text-maroon-900 flex items-center gap-1">
-            <span className="text-gold-600">✦</span> {product.offerDetails}
+            <span className="text-gold-600">✦</span> {offerDetails}
           </p>
         )}
 
@@ -163,11 +182,28 @@ export default function HomePage() {
     category,
     setCategory,
     products,
+    setProducts,
     productsLoading,
     productsError,
     cartItems,
     addToBag
   } = useOutletContext();
+
+  useEffect(() => {
+    async function syncFromSupabase() {
+      if (isSupabaseConfigured) {
+        try {
+          const remote = await fetchProductsFromSupabase();
+          if (Array.isArray(remote) && remote.length > 0 && setProducts) {
+            setProducts(remote);
+          }
+        } catch (err) {
+          console.warn('Error loading from Supabase in HomePage:', err);
+        }
+      }
+    }
+    syncFromSupabase();
+  }, [setProducts]);
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();

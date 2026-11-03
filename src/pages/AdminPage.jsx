@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 import { DEFAULT_PRODUCTS } from '../components/SiteLayout.jsx';
+import {
+  insertProductToSupabase,
+  updateProductInSupabase,
+  deleteProductFromSupabase,
+  toggleProductAvailabilityInSupabase,
+  fetchProductsFromSupabase,
+  isSupabaseConfigured,
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+} from '../lib/supabase.js';
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
@@ -589,9 +599,33 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('catalogue');
   const [editingSku, setEditingSku] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [showDbModal, setShowDbModal] = useState(false);
+  const [supabaseUrlInput, setSupabaseUrlInput] = useState(SUPABASE_URL || '');
+  const [supabaseKeyInput, setSupabaseKeyInput] = useState(SUPABASE_ANON_KEY || '');
+  const [dbModalNotice, setDbModalNotice] = useState('');
 
   useEffect(() => {
     document.title = 'Admin Panel | Shreivara Handlooms';
+  }, []);
+
+  // Fetch from Supabase Cloud on mount if configured
+  useEffect(() => {
+    async function syncFromSupabase() {
+      if (isSupabaseConfigured) {
+        try {
+          const remote = await fetchProductsFromSupabase();
+          if (Array.isArray(remote) && remote.length > 0) {
+            setProducts(remote);
+            try {
+              localStorage.setItem('shreivara-products', JSON.stringify(remote));
+            } catch (_) {}
+          }
+        } catch (err) {
+          console.warn('Error loading from Supabase in Admin:', err);
+        }
+      }
+    }
+    syncFromSupabase();
   }, []);
 
   // When opened, prompt for the passcode (shreivara2026) if not already unlocked
@@ -674,8 +708,24 @@ export default function AdminPage() {
       image: imageUrl,
       available: formData.get('available') !== null,
     };
+
+    // Sync to Supabase Cloud Database if configured
+    let supabaseNotice = '';
+    if (isSupabaseConfigured) {
+      const { error: sbError } = await insertProductToSupabase(newProduct);
+      if (sbError) {
+        console.warn('Supabase insert notice:', sbError.message);
+        supabaseNotice = `\n(Saved locally. Supabase note: ${sbError.message})`;
+      } else {
+        supabaseNotice = '\n(Synced to Supabase Cloud Database!)';
+      }
+    }
+
     const next = [newProduct, ...products];
     persistProducts(next);
+
+    // Alert confirmation as requested
+    window.alert("Product added to storefront successfully!" + supabaseNotice);
     return newProduct;
   }
 
@@ -700,13 +750,25 @@ export default function AdminPage() {
       };
     });
     persistProducts(next);
+
+    if (isSupabaseConfigured) {
+      const updated = next.find((p) => p.sku === sku);
+      if (updated) {
+        updateProductInSupabase(sku, updated).catch((err) => console.warn('Supabase update error:', err));
+      }
+    }
+
     return { product: next.find((p) => p.sku === sku) };
   }
 
   async function toggleAvailability(sku) {
     const next = products.map((p) => {
       if (p.sku !== sku) return p;
-      return { ...p, available: p.available === false ? true : false };
+      const nextAvail = p.available === false ? true : false;
+      if (isSupabaseConfigured) {
+        toggleProductAvailabilityInSupabase(sku, nextAvail).catch((err) => console.warn('Supabase toggle error:', err));
+      }
+      return { ...p, available: nextAvail };
     });
     persistProducts(next);
   }
@@ -715,11 +777,28 @@ export default function AdminPage() {
     if (!window.confirm(`Delete "${product.name}"? This will permanently remove it from the catalogue.`)) return;
     setDeleteError('');
     try {
+      if (isSupabaseConfigured) {
+        await deleteProductFromSupabase(product.sku);
+      }
       const next = products.filter((p) => p.sku !== product.sku);
       persistProducts(next);
       setEditingSku('');
     } catch (error) {
       setDeleteError(error instanceof Error ? error.message : 'The product could not be deleted.');
+    }
+  }
+
+  function handleSaveSupabaseCredentials(e) {
+    e.preventDefault();
+    try {
+      localStorage.setItem('shreivara_supabase_url', supabaseUrlInput.trim());
+      localStorage.setItem('shreivara_supabase_anon_key', supabaseKeyInput.trim());
+      setDbModalNotice('Credentials saved! Reloading to connect with Supabase…');
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    } catch (err) {
+      setDbModalNotice('Error saving credentials to browser storage.');
     }
   }
 
@@ -819,7 +898,22 @@ export default function AdminPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setShowDbModal(true)}
+              className={`cursor-pointer inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition border ${
+                isSupabaseConfigured
+                  ? 'border-emerald-500/80 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 shadow-2xs'
+                  : 'border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-2xs'
+              }`}
+              title="Configure Supabase Cloud Database"
+            >
+              <span className={`h-2 w-2 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              <span className="hidden sm:inline">{isSupabaseConfigured ? 'Supabase Connected' : 'Connect Supabase'}</span>
+              <span className="sm:hidden">{isSupabaseConfigured ? 'Cloud' : 'DB'}</span>
+            </button>
+
             <a
               href={storefrontUrl}
               target={storefrontUrl.startsWith('http') ? '_blank' : undefined}
@@ -836,7 +930,7 @@ export default function AdminPage() {
               className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-neutral-300 hover:border-red-400 hover:bg-red-50 hover:text-red-800 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 shadow-2xs transition"
               title="Lock console and sign out"
             >
-              <span>Lock Console</span>
+              <span>Lock</span>
               <span>🔒</span>
             </button>
           </div>
@@ -1032,6 +1126,114 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+
+      {/* Supabase Cloud Database Configuration Modal */}
+      {showDbModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-xl rounded-3xl bg-white border border-gold-300 p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-neutral-100 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gold-600">Database Connection</span>
+                <h3 className="font-brand text-2xl font-bold text-maroon-950">Supabase Cloud Settings</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDbModal(false)}
+                className="cursor-pointer rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className={`p-3.5 rounded-2xl border text-xs font-medium ${
+              isSupabaseConfigured
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                : 'bg-amber-50 border-amber-300 text-amber-900'
+            }`}>
+              {isSupabaseConfigured
+                ? '✓ Supabase is connected! Products added and edited in this dashboard sync directly to your cloud database.'
+                : '○ Supabase is not yet configured. The store is currently running on browser local storage. Enter your credentials below to connect your cloud database.'}
+            </div>
+
+            {dbModalNotice && (
+              <p className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs font-semibold text-blue-800">
+                {dbModalNotice}
+              </p>
+            )}
+
+            <form onSubmit={handleSaveSupabaseCredentials} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-700 mb-1">
+                  Supabase Project URL
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://xyzcompany.supabase.co"
+                  value={supabaseUrlInput}
+                  onChange={(e) => setSupabaseUrlInput(e.target.value)}
+                  className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-xs font-mono focus:border-maroon-900 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-700 mb-1">
+                  Supabase Anon Public API Key
+                </label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  value={supabaseKeyInput}
+                  onChange={(e) => setSupabaseKeyInput(e.target.value)}
+                  className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-xs font-mono focus:border-maroon-900 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDbModal(false)}
+                  className="cursor-pointer rounded-xl border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="cursor-pointer rounded-xl bg-maroon-900 hover:bg-maroon-800 text-white font-bold uppercase tracking-wider text-xs px-5 py-2 shadow-xs"
+                >
+                  Save &amp; Connect
+                </button>
+              </div>
+            </form>
+
+            {/* SQL Table Helper */}
+            <div className="border-t border-neutral-100 pt-4 space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-700">
+                Need to create the products table?
+              </p>
+              <p className="text-xs text-neutral-500">
+                In your Supabase project dashboard, go to the <strong>SQL Editor</strong> and run:
+              </p>
+              <pre className="p-3 bg-neutral-900 text-emerald-400 rounded-xl text-[10.5px] font-mono overflow-x-auto leading-relaxed">
+{`create table if not exists products (
+  sku text primary key,
+  name text not null,
+  category text not null,
+  original_price numeric not null,
+  selling_price numeric not null,
+  stock integer default 5,
+  sizes text default '',
+  offer_details text default '',
+  image text not null,
+  available boolean default true,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
