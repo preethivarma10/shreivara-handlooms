@@ -369,20 +369,29 @@ function SiteHeader({ query, setQuery, category, setCategory, cartCount, onOpenP
           </label>
         </div>
 
-        {/* Center: Brand Logo 'Shreivara' with subtitle 'HANDLOOMS & FINE JEWELRY' */}
+        {/* Center: Brand Logo 'Shreivara' with official profile avatar and subtitle 'HANDLOOMS & FINE JEWELRY' */}
         <div className="flex flex-col items-center justify-center text-center px-2">
           <button
             type="button"
             onClick={handleBrandClick}
-            className="cursor-pointer bg-transparent border-0 p-0 text-center group"
+            className="cursor-pointer bg-transparent border-0 p-0 text-center group flex items-center justify-center gap-2.5 sm:gap-3.5"
             aria-label="Shreivara - Return to Home"
           >
-            <span className="font-brand text-2xl sm:text-3xl md:text-4xl font-medium tracking-[0.24em] uppercase text-maroon-950 group-hover:text-maroon-800 transition-colors block leading-tight">
-              Shreivara
-            </span>
-            <span className="text-[8.5px] sm:text-[10px] font-semibold tracking-[0.32em] uppercase text-gold-600 block mt-0.5">
-              HANDLOOMS &amp; FINE JEWELRY
-            </span>
+            <div className="relative h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-full overflow-hidden border-2 border-gold-400/90 bg-[#0A1612] shadow-sm group-hover:scale-105 group-hover:border-gold-300 transition-all duration-300">
+              <img
+                src="/shreivara-logo.jpg"
+                alt="Shreivara Official Profile Logo"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="text-left">
+              <span className="font-brand text-2xl sm:text-3xl md:text-4xl font-medium tracking-[0.24em] uppercase text-maroon-950 group-hover:text-maroon-800 transition-colors block leading-tight">
+                Shreivara
+              </span>
+              <span className="text-[8.5px] sm:text-[10px] font-semibold tracking-[0.32em] uppercase text-gold-600 block mt-0.5">
+                HANDLOOMS &amp; FINE JEWELRY
+              </span>
+            </div>
           </button>
         </div>
 
@@ -449,9 +458,18 @@ function SiteHeader({ query, setQuery, category, setCategory, cartCount, onOpenP
 function SiteFooter() {
   return (
     <footer className="border-t border-gold-300 bg-gradient-to-b from-maroon-900 via-maroon-950 to-maroon-950 px-4 py-16 text-center text-sm">
-      <div className="mx-auto max-w-7xl space-y-4">
-        <p className="font-brand text-3xl font-medium tracking-[0.24em] uppercase text-gold-300">Shreivara</p>
-        <p className="text-xs tracking-[0.2em] text-gold-400/70 uppercase">Direct WhatsApp Orders • Heritage Artistry • Worldwide Delivery</p>
+      <div className="mx-auto max-w-7xl space-y-4 flex flex-col items-center">
+        <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden border-2 border-gold-400/90 shadow-xl bg-[#0A1612]">
+          <img
+            src="/shreivara-logo.jpg"
+            alt="Shreivara Handlooms Official Profile Logo"
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div>
+          <p className="font-brand text-3xl font-medium tracking-[0.24em] uppercase text-gold-300">Shreivara</p>
+          <p className="text-xs tracking-[0.2em] text-gold-400/70 uppercase mt-1">Direct WhatsApp Orders • Heritage Artistry • Worldwide Delivery</p>
+        </div>
         <div className="flex flex-col items-center justify-center gap-2 pt-2 text-xs sm:flex-row sm:gap-6 text-gold-200">
           <a href="mailto:shreivara@gmail.com" className="cursor-pointer hover:text-white transition">
             shreivara@gmail.com

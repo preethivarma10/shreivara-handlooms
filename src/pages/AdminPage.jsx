@@ -728,11 +728,15 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md bg-white rounded-3xl border border-gold-300/80 shadow-2xl p-8 sm:p-10 space-y-6 text-center">
-          <div className="space-y-2">
-            <span className="inline-block p-3.5 rounded-full bg-gold-50 border border-gold-300 text-maroon-900 text-2xl shadow-xs">
-              🔐
-            </span>
-            <p className="font-brand text-3xl font-medium tracking-wide text-maroon-950 uppercase">Shreivara</p>
+          <div className="space-y-2 flex flex-col items-center">
+            <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-gold-400/90 shadow-md bg-[#0A1612]">
+              <img
+                src="/shreivara-logo.jpg"
+                alt="Shreivara Handlooms Official Profile"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <p className="font-brand text-3xl font-medium tracking-wide text-maroon-950 uppercase mt-1">Shreivara</p>
             <p className="text-[10px] font-bold tracking-[0.28em] uppercase text-gold-600">Admin Panel Access</p>
           </div>
 
@@ -798,7 +802,14 @@ export default function AdminPage() {
       <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-gold-300/80 shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <a href={storefrontUrl} className="cursor-pointer group flex items-baseline gap-2">
+            <a href={storefrontUrl} className="cursor-pointer group flex items-center gap-2.5">
+              <div className="relative h-8 w-8 rounded-full overflow-hidden border border-gold-400/90 bg-[#0A1612] shadow-2xs">
+                <img
+                  src="/shreivara-logo.jpg"
+                  alt="Shreivara Official Profile Logo"
+                  className="h-full w-full object-cover"
+                />
+              </div>
               <span className="font-brand text-2xl font-medium tracking-[0.2em] uppercase text-maroon-950 group-hover:text-maroon-800 transition">
                 Shreivara
               </span>

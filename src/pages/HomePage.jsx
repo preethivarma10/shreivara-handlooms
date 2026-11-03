@@ -56,9 +56,8 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
         <img
           src={product.image}
           alt={product.name}
-          className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${
-            isSoldOut ? 'grayscale-40 opacity-80' : ''
-          }`}
+          className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${isSoldOut ? 'grayscale-40 opacity-80' : ''
+            }`}
           loading="lazy"
         />
         {/* Subtle hover gradient */}
@@ -141,13 +140,12 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
             type="button"
             disabled={isSoldOut || isMaxReached}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] transition-all active:scale-[0.98] text-center ${
-              isSoldOut
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] transition-all active:scale-[0.98] text-center ${isSoldOut
                 ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
                 : isMaxReached
-                ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
-                : 'border border-maroon-900 bg-maroon-900 text-gold-100 hover:bg-maroon-800 shadow-xs'
-            }`}
+                  ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
+                  : 'border border-maroon-900 bg-maroon-900 text-gold-100 hover:bg-maroon-800 shadow-xs'
+              }`}
           >
             <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
             {isSoldOut ? 'Sold Out' : isMaxReached ? 'Limit Reached' : 'Add to Cart'}
@@ -391,7 +389,7 @@ export default function HomePage() {
 
         {/* 3. Custom Query Callout Banner */}
         <section className="rounded-3xl border border-gold-400/30 warm-gradient p-10 sm:p-14 lg:p-16 text-center text-white shadow-xl relative overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.07]" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23c59a58\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'}} />
+          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23c59a58\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
           <div className="relative z-10 max-w-3xl mx-auto space-y-5">
             <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-300 border border-gold-500/30 px-4 py-1.5 rounded-full bg-maroon-800/60 backdrop-blur-xs">
               Personalized Styling &amp; Custom Sourcing
@@ -501,9 +499,23 @@ export default function HomePage() {
         <section id="about-us" className="scroll-mt-28 rounded-3xl border border-gold-200/90 bg-cream-50 p-8 sm:p-12 lg:p-16 shadow-sm relative">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div>
-              <span className="inline-block text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-600 mb-2.5">
-                The Shreivara Heritage
-              </span>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl overflow-hidden border-2 border-gold-400/90 shadow-md bg-[#0A1612]">
+                  <img
+                    src="/shreivara-logo.jpg"
+                    alt="Shreivara Handlooms Official Profile"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div>
+                  <span className="inline-block text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-600">
+                    The Shreivara Heritage
+                  </span>
+                  <p className="font-brand text-2xl sm:text-3xl font-bold text-maroon-950 uppercase tracking-wider">
+                    Shreivara Handlooms
+                  </p>
+                </div>
+              </div>
               <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-maroon-900 leading-tight">
                 Sarees and fine jewelry for life's treasured moments.
               </h2>
