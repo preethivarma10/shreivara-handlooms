@@ -52,7 +52,7 @@ export async function handler(event) {
 
   const supabase = getSupabaseClient();
 
-  if (event.httpMethod === 'GET') {
+  if (event.httpMethod === 'GET' || event.httpMethod === 'HEAD') {
     if (supabase) {
       try {
         const { data, error } = await supabase.from('products').select('*');

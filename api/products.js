@@ -51,8 +51,8 @@ export default async function handler(req, res) {
 
   const supabase = getSupabaseClient();
 
-  // ── GET: Fetch Products ──
-  if (req.method === 'GET') {
+  // ── GET / HEAD: Fetch Products ──
+  if (req.method === 'GET' || req.method === 'HEAD') {
     if (supabase) {
       try {
         const { data, error } = await supabase.from('products').select('*');
