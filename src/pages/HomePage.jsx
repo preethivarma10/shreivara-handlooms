@@ -238,6 +238,24 @@ export default function HomePage() {
     });
   }, [category, products, query]);
 
+  const displayCategories = useMemo(() => {
+    const base = ['ALL', 'KANCHI PATTU', 'MANGALAGIRI', 'FANCY SILK', 'ORGANZA', 'JEWELRY'];
+    const baseKeys = new Set(['ALL', 'KANCHI PATTU', 'MANGALAGIRI', 'FANCY SILK', 'ORGANZA', 'JEWELRY', 'ORGANZA & CHIFFON', 'JEWELLERY']);
+    const custom = [];
+    (products || []).forEach((p) => {
+      const cat = (p.category || '').trim();
+      if (cat) {
+        const upper = cat.toUpperCase();
+        if (!baseKeys.has(upper) && !custom.includes(upper)) {
+          if (!upper.includes('KANCHI') && !upper.includes('MANGALAGIRI') && !upper.includes('FANCY') && !upper.includes('ORGANZA') && !upper.includes('JEWEL')) {
+            custom.push(upper);
+          }
+        }
+      }
+    });
+    return [...base, ...custom];
+  }, [products]);
+
   useEffect(() => {
     document.title = 'Shreivara Handlooms | Premium Sarees & Fine Jewelry';
   }, []);
@@ -368,7 +386,7 @@ export default function HomePage() {
 
             {/* Category Filter Chips */}
             <div className="mb-10 sm:mb-12 flex flex-wrap gap-2.5 sm:gap-3" aria-label="Filter collections by category">
-              {['ALL', 'KANCHI PATTU', 'MANGALAGIRI', 'FANCY SILK', 'ORGANZA', 'JEWELRY'].map((item) => {
+              {displayCategories.map((item) => {
                 const isSelected =
                   (item === 'ALL' && (category === 'ALL' || category === 'All Collections' || category === 'All Sarees')) ||
                   category.toUpperCase() === item.toUpperCase() ||

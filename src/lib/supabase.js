@@ -2,8 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Reads from Vite environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)
 // or allows runtime configuration stored in localStorage
-const envUrl = import.meta.env.VITE_SUPABASE_URL;
-const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const envUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || '';
+const envKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_ANON_KEY) || '';
 
 const localUrl = typeof window !== 'undefined' ? localStorage.getItem('shreivara_supabase_url') : '';
 const localKey = typeof window !== 'undefined' ? localStorage.getItem('shreivara_supabase_anon_key') : '';

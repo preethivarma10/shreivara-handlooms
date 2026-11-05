@@ -299,9 +299,27 @@ const SUTISANCHA_NAV_ITEMS = [
   { label: 'JEWELRY', categoryKey: 'Jewellery' }
 ];
 
-function SiteHeader({ query, setQuery, category, setCategory, cartCount, onOpenPanel }) {
+function SiteHeader({ query, setQuery, category, setCategory, products = [], cartCount, onOpenPanel }) {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Dynamically include any custom or manually added categories from products
+  const navItems = (function () {
+    const defaultKeys = new Set(SUTISANCHA_NAV_ITEMS.map((item) => item.categoryKey.toLowerCase()));
+    const seen = new Set();
+    const extra = [];
+    (products || []).forEach((p) => {
+      const cat = (p.category || '').trim();
+      if (cat && !defaultKeys.has(cat.toLowerCase()) && !seen.has(cat.toLowerCase())) {
+        seen.add(cat.toLowerCase());
+        extra.push({
+          label: cat.toUpperCase(),
+          categoryKey: cat
+        });
+      }
+    });
+    return [...SUTISANCHA_NAV_ITEMS, ...extra];
+  })();
 
   // Reset category, clear search, and scroll to top when Brand is clicked to show all collections & products freshly
   function handleBrandClick() {
@@ -431,7 +449,7 @@ function SiteHeader({ query, setQuery, category, setCategory, cartCount, onOpenP
       {/* 4. Horizontal Category Navigation Bar (ALL, KANCHI PATTU, MANGALAGIRI, FANCY SILK, ORGANZA, JEWELRY) */}
       <nav aria-label="Collections category navigation" className="border-t border-gold-200/70 bg-[#FAF7F2]">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 sm:gap-7 md:gap-9 overflow-x-auto px-4 py-2.5 sm:py-3 scrollbar-none">
-          {SUTISANCHA_NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isSelected =
               (item.categoryKey === 'ALL' && (category === 'ALL' || category === 'All Collections' || category === 'All Sarees')) ||
               category === item.categoryKey;
@@ -556,11 +574,7 @@ export default function SiteLayout() {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
             const withStock = parsed.map((p) => ({ ...p, stock: p.stock ?? 5 }));
-            const hasJewelry = withStock.some((p) => p.category === 'Jewellery');
-            const merged = hasJewelry
-              ? withStock
-              : [...withStock, ...DEFAULT_PRODUCTS.filter((dp) => dp.category === 'Jewellery')];
-            setProducts(merged);
+            setProducts(withStock);
             setProductsLoading(false);
             return;
           }
@@ -578,6 +592,7 @@ export default function SiteLayout() {
 
     // Listen to storage changes so updates from /admin reflect in storefront
     function handleStorageChange(e) {
+      // StorageEvent from other tabs has e.key; our same-tab StorageEvent also has it
       if (e.key === 'shreivara-products' && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
@@ -585,8 +600,18 @@ export default function SiteLayout() {
         } catch (_) {}
       }
     }
+    // Custom event fallback for same-tab updates (admin panel → storefront)
+    function handleCustomUpdate(e) {
+      if (Array.isArray(e.detail)) {
+        setProducts(e.detail);
+      }
+    }
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('shreivara-products-updated', handleCustomUpdate);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('shreivara-products-updated', handleCustomUpdate);
+    };
   }, []);
 
   const context = {

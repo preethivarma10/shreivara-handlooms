@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 import { DEFAULT_PRODUCTS } from '../components/SiteLayout.jsx';
@@ -56,11 +56,21 @@ const DEFAULT_ORDERS = [
   }
 ];
 
-function ProductForm({ product, onSave, onCancel, submitLabel }) {
+function ProductForm({ product, onSave, onCancel, submitLabel, availableCategories = categories }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState(product?.image || '');
+
+  // Manual category support
+  const isCustomExisting = Boolean(product?.category && !categories.includes(product.category));
+  const [isManualCategory, setIsManualCategory] = useState(isCustomExisting);
+  const [selectedCategory, setSelectedCategory] = useState(
+    product?.category && availableCategories.includes(product.category)
+      ? product.category
+      : availableCategories[0] || 'Kanchi Pattu'
+  );
+  const [manualCategoryValue, setManualCategoryValue] = useState(isCustomExisting ? product.category : '');
 
   function handleFileChange(e) {
     const file = e.target.files?.[0];
@@ -89,6 +99,8 @@ function ProductForm({ product, onSave, onCancel, submitLabel }) {
       if (!product) {
         form.reset();
         setImagePreview('');
+        setIsManualCategory(false);
+        setManualCategoryValue('');
       }
       setNotice(result?.warning || (product ? 'Product updated successfully.' : 'Product added successfully.'));
     } catch (submitError) {
@@ -113,12 +125,60 @@ function ProductForm({ product, onSave, onCancel, submitLabel }) {
         <input name="name" required maxLength="120" defaultValue={product?.name ?? ''} placeholder="Royal Gold Temple Saree" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
       
-      <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
-        Category
-        <select name="category" required defaultValue={product?.category ?? categories[0]} className="cursor-pointer rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none">
-          {categories.map((item) => <option key={item}>{item}</option>)}
-        </select>
-      </label>
+      <div className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
+        <div className="flex items-center justify-between">
+          <span>Category *</span>
+          <button
+            type="button"
+            onClick={() => {
+              setIsManualCategory((prev) => !prev);
+              if (!isManualCategory && !manualCategoryValue) {
+                setManualCategoryValue('');
+              }
+            }}
+            className="cursor-pointer text-[10.5px] font-bold text-maroon-900 hover:text-gold-700 underline tracking-normal normal-case transition"
+          >
+            {isManualCategory ? '← Choose from list' : '+ Enter manually'}
+          </button>
+        </div>
+
+        {isManualCategory ? (
+          <div>
+            <input
+              name="category"
+              required
+              type="text"
+              placeholder="e.g. Banarasi Silk, Linen, Bridal Jewelry"
+              value={manualCategoryValue}
+              onChange={(e) => setManualCategoryValue(e.target.value)}
+              className="w-full rounded-xl border-2 border-gold-400 bg-gold-50/40 px-3 py-2.5 text-sm font-normal text-maroon-950 focus:border-maroon-900 focus:outline-none placeholder:text-neutral-400"
+              autoFocus
+            />
+            <span className="text-[10px] text-neutral-500 font-normal normal-case tracking-normal mt-1 block">
+              Type custom category name (will appear in storefront filters)
+            </span>
+          </div>
+        ) : (
+          <select
+            name="category"
+            required
+            value={selectedCategory}
+            onChange={(e) => {
+              if (e.target.value === '__MANUAL__') {
+                setIsManualCategory(true);
+              } else {
+                setSelectedCategory(e.target.value);
+              }
+            }}
+            className="cursor-pointer rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none"
+          >
+            {availableCategories.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+            <option value="__MANUAL__">+ Enter New Category Manually...</option>
+          </select>
+        )}
+      </div>
       
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Original price (INR)
@@ -599,6 +659,16 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('catalogue');
   const [editingSku, setEditingSku] = useState('');
   const [deleteError, setDeleteError] = useState('');
+
+  // Dynamically derive all available categories (default + custom ones added to products)
+  const availableCategories = useMemo(() => {
+    return Array.from(
+      new Set([
+        ...categories,
+        ...products.map((p) => (p.category || '').trim()).filter(Boolean)
+      ])
+    );
+  }, [products]);
   const [showDbModal, setShowDbModal] = useState(false);
   const [supabaseUrlInput, setSupabaseUrlInput] = useState(SUPABASE_URL || '');
   const [supabaseKeyInput, setSupabaseKeyInput] = useState(SUPABASE_ANON_KEY || '');
@@ -668,9 +738,19 @@ export default function AdminPage() {
   function persistProducts(next) {
     setProducts(next);
     try {
-      localStorage.setItem('shreivara-products', JSON.stringify(next));
-      // Dispatch storage event so open storefront tabs update immediately
-      window.dispatchEvent(new Event('storage'));
+      const json = JSON.stringify(next);
+      localStorage.setItem('shreivara-products', json);
+      // Notify other tabs via StorageEvent (key+newValue required for listener)
+      try {
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'shreivara-products',
+          newValue: json,
+          storageArea: window.localStorage,
+        }));
+      } catch (_) {
+        // Fallback: custom event for same-window listeners
+        window.dispatchEvent(new CustomEvent('shreivara-products-updated', { detail: next }));
+      }
     } catch (error) {
       console.error('Could not save products to localStorage.', error);
       throw new Error('Storage is full. Please remove unused images or products.');
@@ -1006,7 +1086,11 @@ export default function AdminPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Product Entry</p>
                 <h2 className="mt-1 font-brand text-2xl font-bold text-maroon-950">Add New Saree or Jewelry Piece</h2>
               </div>
-              <ProductForm submitLabel="Add Product to Storefront" onSave={addProduct} />
+              <ProductForm
+                submitLabel="Add Product to Storefront"
+                onSave={addProduct}
+                availableCategories={availableCategories}
+              />
             </section>
 
             {/* Manage Catalogue & Stock Section */}
@@ -1032,6 +1116,7 @@ export default function AdminPage() {
                       <ProductForm
                         product={product}
                         submitLabel="Save Changes"
+                        availableCategories={availableCategories}
                         onSave={(formData) => {
                           updateProduct(product.sku, formData);
                           setEditingSku('');
