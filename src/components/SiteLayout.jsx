@@ -552,11 +552,31 @@ export default function SiteLayout() {
 
   useEffect(() => {
     async function loadProducts() {
-      // 1. Try fetching from Supabase cloud database first if configured
+      setProductsLoading(true);
+
+      // 1. Primary: Make an actual HTTP API call to backend /api/products
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const apiProducts = await response.json();
+          if (Array.isArray(apiProducts) && apiProducts.length > 0) {
+            const withStock = apiProducts.map((p) => ({ ...p, stock: p.stock ?? 5 }));
+            setProducts(withStock);
+            setProductsLoading(false);
+            try {
+              window.localStorage.setItem('shreivara-products', JSON.stringify(withStock));
+            } catch (_) {}
+            return;
+          }
+        }
+      } catch (apiErr) {
+        console.warn('API call to /api/products failed:', apiErr);
+      }
+
+      // 2. Secondary: Try fetching from Supabase cloud database if configured
       try {
         const remote = await fetchProductsFromSupabase();
         if (Array.isArray(remote) && remote.length > 0) {
-          // Merge remote products with any locally added admin products so nothing is lost
           let combined = remote;
           try {
             const stored = window.localStorage.getItem('shreivara-products');
@@ -581,7 +601,7 @@ export default function SiteLayout() {
         console.warn('Could not fetch from Supabase:', err);
       }
 
-      // 2. Read from localStorage
+      // 3. Fallback: Read from localStorage
       try {
         const stored = window.localStorage.getItem('shreivara-products');
         if (stored !== null) {
@@ -597,7 +617,7 @@ export default function SiteLayout() {
         console.warn('Could not read products from localStorage, using defaults.', error);
       }
 
-      // 3. Fallback to default catalog
+      // 4. Ultimate fallback to default catalog
       setProducts(DEFAULT_PRODUCTS);
       try {
         window.localStorage.setItem('shreivara-products', JSON.stringify(DEFAULT_PRODUCTS));

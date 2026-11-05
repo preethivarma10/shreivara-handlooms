@@ -190,7 +190,21 @@ export default function HomePage() {
   } = useOutletContext();
 
   useEffect(() => {
-    async function syncFromSupabase() {
+    async function fetchProductsFromBackend() {
+      // 1. Unconditionally make the network API call to fetch product list
+      try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const apiProducts = await response.json();
+          if (Array.isArray(apiProducts) && apiProducts.length > 0 && setProducts) {
+            setProducts(apiProducts);
+          }
+        }
+      } catch (apiErr) {
+        console.warn('API call to /api/products in HomePage failed:', apiErr);
+      }
+
+      // 2. Also check Supabase if configured
       if (isSupabaseConfigured) {
         try {
           const remote = await fetchProductsFromSupabase();
@@ -206,7 +220,7 @@ export default function HomePage() {
         }
       }
     }
-    syncFromSupabase();
+    fetchProductsFromBackend();
   }, [setProducts]);
 
   const filteredProducts = useMemo(() => {

@@ -754,9 +754,26 @@ export default function AdminPage() {
     document.title = 'Admin Panel | Shreivara Handlooms';
   }, []);
 
-  // Fetch from Supabase Cloud on mount if configured
+  // Fetch from backend API /api/products and Supabase on mount
   useEffect(() => {
-    async function syncFromSupabase() {
+    async function loadAdminCatalog() {
+      // 1. Fetch from backend API
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const apiData = await res.json();
+          if (Array.isArray(apiData) && apiData.length > 0) {
+            setProducts(apiData);
+            try {
+              localStorage.setItem('shreivara-products', JSON.stringify(apiData));
+            } catch (_) {}
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch from /api/products in Admin:', err);
+      }
+
+      // 2. Fetch from Supabase Cloud if configured
       if (isSupabaseConfigured) {
         try {
           const remote = await fetchProductsFromSupabase();
@@ -771,7 +788,7 @@ export default function AdminPage() {
         }
       }
     }
-    syncFromSupabase();
+    loadAdminCatalog();
   }, []);
 
   // When opened, prompt for the passcode (shreivara2026) if not already unlocked
@@ -895,7 +912,18 @@ export default function AdminPage() {
       available: formData.get('available') !== null,
     };
 
-    // Sync to Supabase Cloud Database if configured
+    // 1. Post to backend /api/products API
+    try {
+      await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct),
+      });
+    } catch (apiErr) {
+      console.warn('Backend API post error:', apiErr);
+    }
+
+    // 2. Sync to Supabase Cloud Database if configured
     let supabaseNotice = '';
     if (isSupabaseConfigured) {
       const { error: sbError } = await insertProductToSupabase(newProduct);
@@ -935,32 +963,60 @@ export default function AdminPage() {
     });
     persistProducts(next);
 
-    if (isSupabaseConfigured) {
-      const updated = next.find((p) => p.sku === sku);
-      if (updated) {
+    const updated = next.find((p) => p.sku === sku);
+    if (updated) {
+      try {
+        await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated),
+        });
+      } catch (_) {}
+
+      if (isSupabaseConfigured) {
         updateProductInSupabase(sku, updated).catch((err) => console.warn('Supabase update error:', err));
       }
     }
 
-    return { product: next.find((p) => p.sku === sku) };
+    return { product: updated };
   }
 
   async function toggleAvailability(sku) {
     const next = products.map((p) => {
       if (p.sku !== sku) return p;
       const nextAvail = p.available === false ? true : false;
-      if (isSupabaseConfigured) {
-        toggleProductAvailabilityInSupabase(sku, nextAvail).catch((err) => console.warn('Supabase toggle error:', err));
-      }
       return { ...p, available: nextAvail };
     });
     persistProducts(next);
+
+    const updated = next.find((p) => p.sku === sku);
+    if (updated) {
+      try {
+        await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated),
+        });
+      } catch (_) {}
+
+      if (isSupabaseConfigured) {
+        toggleProductAvailabilityInSupabase(sku, updated.available).catch((err) => console.warn('Supabase toggle error:', err));
+      }
+    }
   }
 
   async function deleteProduct(product) {
     if (!window.confirm(`Delete "${product.name}"? This will permanently remove it from the catalogue.`)) return;
     setDeleteError('');
     try {
+      // 1. Call backend API to delete
+      try {
+        await fetch(`/api/products?sku=${encodeURIComponent(product.sku)}`, {
+          method: 'DELETE',
+        });
+      } catch (_) {}
+
+      // 2. Call Supabase to delete if configured
       if (isSupabaseConfigured) {
         await deleteProductFromSupabase(product.sku);
       }
