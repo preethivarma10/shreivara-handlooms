@@ -552,14 +552,28 @@ export default function SiteLayout() {
 
   useEffect(() => {
     async function loadProducts() {
-      // 1. Try fetching from Supabase cloud database first
+      // 1. Try fetching from Supabase cloud database first if configured
       try {
         const remote = await fetchProductsFromSupabase();
         if (Array.isArray(remote) && remote.length > 0) {
-          setProducts(remote);
+          // Merge remote products with any locally added admin products so nothing is lost
+          let combined = remote;
+          try {
+            const stored = window.localStorage.getItem('shreivara-products');
+            if (stored) {
+              const localList = JSON.parse(stored);
+              if (Array.isArray(localList) && localList.length > 0) {
+                const remoteSkus = new Set(remote.map((r) => r.sku));
+                const localOnly = localList.filter((l) => !remoteSkus.has(l.sku));
+                combined = [...localOnly, ...remote];
+              }
+            }
+          } catch (_) {}
+          const withStock = combined.map((p) => ({ ...p, stock: p.stock ?? 5 }));
+          setProducts(withStock);
           setProductsLoading(false);
           try {
-            window.localStorage.setItem('shreivara-products', JSON.stringify(remote));
+            window.localStorage.setItem('shreivara-products', JSON.stringify(withStock));
           } catch (_) {}
           return;
         }
@@ -567,7 +581,7 @@ export default function SiteLayout() {
         console.warn('Could not fetch from Supabase:', err);
       }
 
-      // 2. Fallback to localStorage or default products
+      // 2. Read from localStorage
       try {
         const stored = window.localStorage.getItem('shreivara-products');
         if (stored !== null) {
@@ -582,6 +596,8 @@ export default function SiteLayout() {
       } catch (error) {
         console.warn('Could not read products from localStorage, using defaults.', error);
       }
+
+      // 3. Fallback to default catalog
       setProducts(DEFAULT_PRODUCTS);
       try {
         window.localStorage.setItem('shreivara-products', JSON.stringify(DEFAULT_PRODUCTS));
@@ -590,25 +606,49 @@ export default function SiteLayout() {
     }
     loadProducts();
 
-    // Listen to storage changes so updates from /admin reflect in storefront
+    // 1. BroadcastChannel: instant, zero-delay sync across tabs and windows
+    let bc = null;
+    try {
+      bc = new BroadcastChannel('shreivara_products_channel');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'PRODUCTS_UPDATED' && Array.isArray(event.data.products)) {
+          setProducts(event.data.products);
+          setProductsLoading(false);
+        }
+      };
+    } catch (_) {}
+
+    // 2. Native StorageEvent: fires when another tab modifies localStorage
     function handleStorageChange(e) {
-      // StorageEvent from other tabs has e.key; our same-tab StorageEvent also has it
-      if (e.key === 'shreivara-products' && e.newValue) {
+      if (!e.key || e.key === 'shreivara-products') {
         try {
-          const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed)) setProducts(parsed);
+          const stored = window.localStorage.getItem('shreivara-products');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setProducts(parsed);
+              setProductsLoading(false);
+            }
+          }
         } catch (_) {}
       }
     }
-    // Custom event fallback for same-tab updates (admin panel → storefront)
+
+    // 3. CustomEvent: fires for same-window updates
     function handleCustomUpdate(e) {
-      if (Array.isArray(e.detail)) {
+      if (Array.isArray(e.detail) && e.detail.length > 0) {
         setProducts(e.detail);
+        setProductsLoading(false);
       }
     }
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('shreivara-products-updated', handleCustomUpdate);
+
     return () => {
+      if (bc) {
+        try { bc.close(); } catch (_) {}
+      }
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('shreivara-products-updated', handleCustomUpdate);
     };

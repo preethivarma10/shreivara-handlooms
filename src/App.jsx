@@ -22,18 +22,34 @@ export default function App() {
     );
   }
 
-  // Customer Storefront: ONLY customer pages, zero admin routes
+  // Customer Storefront & Admin Portal
   return (
     <>
       <AuthCallbackHandler />
       <Routes>
+        <Route
+          path="admin"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center font-brand text-maroon-900 text-lg">Loading Admin Console…</div>}>
+              <AdminPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="admin.html"
+          element={
+            <Suspense fallback={<div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center font-brand text-maroon-900 text-lg">Loading Admin Console…</div>}>
+              <AdminPage />
+            </Suspense>
+          }
+        />
         <Route element={<SiteLayout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<Navigate to="/#about-us" replace />} />
           <Route path="about.html" element={<Navigate to="/#about-us" replace />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="login.html" element={<LoginPage />} />
-          {/* Any attempt to access /admin or unknown routes on the customer site redirects directly to homepage */}
+          {/* Any attempt to access unknown routes redirects directly to homepage */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

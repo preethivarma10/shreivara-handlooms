@@ -195,7 +195,11 @@ export default function HomePage() {
         try {
           const remote = await fetchProductsFromSupabase();
           if (Array.isArray(remote) && remote.length > 0 && setProducts) {
-            setProducts(remote);
+            setProducts((prev) => {
+              const remoteSkus = new Set(remote.map((r) => r.sku));
+              const localOnly = (prev || []).filter((p) => !remoteSkus.has(p.sku));
+              return [...localOnly, ...remote];
+            });
           }
         } catch (err) {
           console.warn('Error loading from Supabase in HomePage:', err);

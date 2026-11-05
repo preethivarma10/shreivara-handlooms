@@ -56,11 +56,60 @@ const DEFAULT_ORDERS = [
   }
 ];
 
+export async function readAndCompressImage(file, maxWidth = 900, maxHeight = 1200, quality = 0.75) {
+  if (!file || !(file instanceof File)) return null;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read the image file.'));
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      if (typeof dataUrl !== 'string') {
+        resolve(null);
+        return;
+      }
+      // If SVG or very small file (< 35 KB), use directly
+      if (file.type === 'image/svg+xml' || file.size < 35 * 1024) {
+        resolve(dataUrl);
+        return;
+      }
+      const img = new Image();
+      img.onerror = () => resolve(dataUrl);
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(dataUrl);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressed);
+        } catch (_) {
+          resolve(dataUrl);
+        }
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function ProductForm({ product, onSave, onCancel, submitLabel, availableCategories = categories }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState(product?.image || '');
+  const [imageSizeNote, setImageSizeNote] = useState('');
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
   // Manual category support
   const isCustomExisting = Boolean(product?.category && !categories.includes(product.category));
@@ -72,19 +121,22 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
   );
   const [manualCategoryValue, setManualCategoryValue] = useState(isCustomExisting ? product.category : '');
 
-  function handleFileChange(e) {
+  async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image file is larger than 5 MB. Please choose a smaller image.');
-        return;
+      setError('');
+      setImageSizeNote('Compressing image…');
+      try {
+        const compressed = await readAndCompressImage(file);
+        if (compressed) {
+          setImagePreview(compressed);
+          const kb = Math.round((compressed.length * 3 / 4) / 1024);
+          setImageSizeNote(`✓ Compressed & Ready (~${kb} KB)`);
+        }
+      } catch (err) {
+        setError('Could not process image. Please try another file.');
+        setImageSizeNote('');
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImagePreview(reader.result);
-        setError('');
-      };
-      reader.readAsDataURL(file);
     }
   }
 
@@ -206,29 +258,53 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
       </label>
       
       <div className="grid gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2">
-        <span>Product image (Upload file converted to Base64)</span>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <input
-            name="image"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            required={!product && !imagePreview}
-            onChange={handleFileChange}
-            className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-normal file:mr-3 file:rounded-lg file:border-0 file:bg-maroon-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white focus:border-maroon-900 focus:outline-none cursor-pointer"
-          />
-          {imagePreview && (
-            <div className="flex items-center gap-2.5 shrink-0 bg-gold-50/70 p-2 rounded-xl border border-gold-300">
-              <img
-                src={imagePreview}
-                alt="Product preview"
-                className="h-14 w-14 rounded-lg object-cover border border-gold-400 shadow-2xs"
-              />
-              <div className="text-[10px] text-maroon-950">
-                <span className="block font-bold text-emerald-800">✓ Base64 Ready</span>
-                <span className="text-neutral-500 font-normal">Preview loaded</span>
+        <div className="flex items-center justify-between">
+          <span>Product Image *</span>
+          <span className="text-[10px] text-neutral-400 font-normal lowercase tracking-normal">Upload photo or paste URL</span>
+        </div>
+        <div className="space-y-3">
+          <input type="hidden" name="compressedImage" value={imagePreview || ''} />
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <input
+              name="image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              required={!product && !imagePreview && !imageUrlInput}
+              onChange={handleFileChange}
+              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-normal file:mr-3 file:rounded-lg file:border-0 file:bg-maroon-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white focus:border-maroon-900 focus:outline-none cursor-pointer"
+            />
+            {imagePreview && (
+              <div className="flex items-center gap-2.5 shrink-0 bg-gold-50/70 p-2 rounded-xl border border-gold-300">
+                <img
+                  src={imagePreview}
+                  alt="Product preview"
+                  className="h-14 w-14 rounded-lg object-cover border border-gold-400 shadow-2xs"
+                />
+                <div className="text-[10px] text-maroon-950">
+                  <span className="block font-bold text-emerald-800">{imageSizeNote || '✓ Ready for Storefront'}</span>
+                  <span className="text-neutral-500 font-normal">Preview loaded</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-neutral-500 uppercase tracking-wider shrink-0">Or Image URL:</span>
+            <input
+              name="imageUrl"
+              type="url"
+              placeholder="https://images.unsplash.com/... or direct image link"
+              value={imageUrlInput}
+              onChange={(e) => {
+                setImageUrlInput(e.target.value);
+                if (e.target.value.trim().startsWith('http')) {
+                  setImagePreview(e.target.value.trim());
+                  setImageSizeNote('✓ External URL Linked');
+                }
+              }}
+              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-1.5 text-xs font-normal focus:border-maroon-900 focus:outline-none placeholder:text-neutral-400"
+            />
+          </div>
         </div>
       </div>
       
@@ -740,31 +816,62 @@ export default function AdminPage() {
     try {
       const json = JSON.stringify(next);
       localStorage.setItem('shreivara-products', json);
-      // Notify other tabs via StorageEvent (key+newValue required for listener)
-      try {
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: 'shreivara-products',
-          newValue: json,
-          storageArea: window.localStorage,
-        }));
-      } catch (_) {
-        // Fallback: custom event for same-window listeners
-        window.dispatchEvent(new CustomEvent('shreivara-products-updated', { detail: next }));
-      }
     } catch (error) {
-      console.error('Could not save products to localStorage.', error);
-      throw new Error('Storage is full. Please remove unused images or products.');
+      console.warn('Direct save to localStorage failed, cleaning heavy entries...', error);
+      try {
+        // Strip out any oversized legacy base64 images that might be filling the quota
+        const trimmed = next.map((p) => {
+          if (typeof p.image === 'string' && p.image.length > 250000) {
+            return { ...p, image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80' };
+          }
+          return p;
+        });
+        localStorage.setItem('shreivara-products', JSON.stringify(trimmed));
+      } catch (innerError) {
+        console.error('Could not save products to localStorage.', innerError);
+        throw new Error('Browser storage quota exceeded. Please remove some products or use Image URLs.');
+      }
     }
+
+    // 1. BroadcastChannel: instant, guaranteed sync across all tabs & windows on this domain
+    try {
+      const bc = new BroadcastChannel('shreivara_products_channel');
+      bc.postMessage({ type: 'PRODUCTS_UPDATED', products: next });
+      bc.close();
+    } catch (_) {}
+
+    // 2. StorageEvent for cross-tab listeners
+    try {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'shreivara-products',
+        newValue: JSON.stringify(next),
+        storageArea: window.localStorage,
+      }));
+    } catch (_) {}
+
+    // 3. CustomEvent for same-window listeners
+    try {
+      window.dispatchEvent(new CustomEvent('shreivara-products-updated', { detail: next }));
+    } catch (_) {}
   }
 
-  function readImageAsDataUrl(file) {
-    return new Promise((resolve, reject) => {
-      if (!file || !(file instanceof File)) { resolve(null); return; }
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Could not read the image file.'));
-      reader.readAsDataURL(file);
-    });
+  async function resolveProductImage(formData) {
+    // 1. Prioritize direct Image URL if entered
+    const urlInput = (formData.get('imageUrl') || '').toString().trim();
+    if (urlInput) return urlInput;
+
+    // 2. Next check pre-compressed image dataUrl from ProductForm
+    const compressed = (formData.get('compressedImage') || '').toString().trim();
+    if (compressed) return compressed;
+
+    // 3. Fallback to processing uploaded file
+    const imageFile = formData.get('image');
+    if (imageFile instanceof File && imageFile.size > 0) {
+      const result = await readAndCompressImage(imageFile);
+      if (result) return result;
+    }
+
+    return null;
   }
 
   async function addProduct(formData) {
@@ -772,9 +879,8 @@ export default function AdminPage() {
     if (!sku) throw new Error('SKU is required.');
     if (products.some((p) => p.sku === sku)) throw new Error(`A product with SKU "${sku}" already exists.`);
 
-    const imageFile = formData.get('image');
-    const imageUrl = await readImageAsDataUrl(imageFile instanceof File && imageFile.size > 0 ? imageFile : null);
-    if (!imageUrl) throw new Error('Please select a product image.');
+    const imageUrl = await resolveProductImage(formData);
+    if (!imageUrl) throw new Error('Please select a product image or enter an image URL.');
 
     const newProduct = {
       sku,
@@ -804,15 +910,13 @@ export default function AdminPage() {
     const next = [newProduct, ...products];
     persistProducts(next);
 
-    // Alert confirmation as requested
-    window.alert("Product added to storefront successfully!" + supabaseNotice);
+    // Alert confirmation
+    window.alert(`Product "${newProduct.name}" (SKU: ${sku}) added successfully!\nIt is now live on your Storefront.` + supabaseNotice);
     return newProduct;
   }
 
   async function updateProduct(sku, formData) {
-    const imageFile = formData.get('image');
-    const hasNewImage = imageFile instanceof File && imageFile.size > 0;
-    const imageUrl = hasNewImage ? await readImageAsDataUrl(imageFile) : null;
+    const newImage = await resolveProductImage(formData);
 
     const next = products.map((p) => {
       if (p.sku !== sku) return p;
@@ -826,7 +930,7 @@ export default function AdminPage() {
         sizes: (formData.get('sizes') || '').toString().trim(),
         offerDetails: (formData.get('offerDetails') || '').toString().trim(),
         available: formData.get('available') !== null,
-        ...(imageUrl ? { image: imageUrl } : {}),
+        ...(newImage ? { image: newImage } : {}),
       };
     });
     persistProducts(next);
