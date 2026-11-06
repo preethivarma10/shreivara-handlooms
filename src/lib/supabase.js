@@ -20,7 +20,10 @@ export const isSupabaseConfigured = Boolean(
 
 export const supabase = isSupabaseConfigured
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+  : createClient(
+      'https://shreivara-placeholder.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy'
+    );
 
 /**
  * Fetch all products from Supabase 'products' table.

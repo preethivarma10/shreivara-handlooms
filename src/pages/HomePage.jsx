@@ -1,7 +1,37 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
-import { fetchProductsFromSupabase, isSupabaseConfigured } from '../lib/supabase.js';
+import { supabase } from '../lib/supabase.js';
+
+function normalizeProduct(item, idx = 0) {
+  const sellingPrice = Number(item.selling_price ?? item.sellingPrice ?? item.price ?? 3999);
+  const originalPrice = Number(
+    item.original_price ??
+    item.originalPrice ??
+    item.mrp ??
+    item.price ??
+    (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999)
+  );
+  const rawImage = item.image || item.image_url || item.imageUrl || item.photo || '';
+  const description = item.description || item.offer_details || item.offerDetails || '';
+
+  return {
+    id: item.id || `prod-${idx}`,
+    sku: String(item.sku || item.id || `SHR-${String(idx + 1).padStart(3, '0')}`),
+    name: item.name || item.title || 'Handloom Piece',
+    category: item.category || 'Kanchi Pattu',
+    sellingPrice,
+    originalPrice: originalPrice || sellingPrice,
+    price: sellingPrice,
+    description,
+    offerDetails: item.offer_details || item.offerDetails || '',
+    image: rawImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+    imageUrl: rawImage,
+    stock: Number(item.stock ?? 5),
+    sizes: item.sizes ?? '',
+    available: item.available !== false,
+  };
+}
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
@@ -45,6 +75,7 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
   const sku = String(p.sku || p.id || 'SHR-001');
   const name = p.name || p.title || 'Handloom Saree';
   const category = p.category || 'Kanchi Pattu';
+  const description = p.description || p.offerDetails || p.offer_details || '';
   const offerDetails = p.offerDetails || p.offer_details || '';
 
   const maxStock = Number(p.stock ?? 5);
@@ -58,7 +89,8 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
     `Category: ${category}`,
     `Price: ${formatCurrency(sellingPrice)}`,
     sellingPrice < originalPrice ? `Original price: ${formatCurrency(originalPrice)}` : '',
-    offerDetails ? `Offer: ${offerDetails}` : '',
+    description ? `Description: ${description}` : '',
+    offerDetails && offerDetails !== description ? `Offer: ${offerDetails}` : '',
     sizes.length ? `Available sizes: ${sizes.join(', ')}` : '',
     `Product image: ${imageUrl}`,
     '',
@@ -134,7 +166,13 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
           )}
         </div>
 
-        {offerDetails && (
+        {description && (
+          <p className="mt-2 text-xs text-neutral-600 font-light line-clamp-2 leading-relaxed">
+            {description}
+          </p>
+        )}
+
+        {offerDetails && offerDetails !== description && (
           <p className="mt-2 rounded-lg border border-gold-200/80 bg-gold-50/70 px-2.5 py-1 text-[11px] font-medium text-maroon-900 flex items-center gap-1">
             <span className="text-gold-600">✦</span> {offerDetails}
           </p>
@@ -177,51 +215,109 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
 
 
 export default function HomePage() {
+  const outlet = useOutletContext() || {};
   const {
-    query,
-    category,
-    setCategory,
-    products,
-    setProducts,
-    productsLoading,
-    productsError,
-    cartItems,
-    addToBag
-  } = useOutletContext();
+    query = '',
+    category = 'ALL',
+    setCategory = () => {},
+    setProducts: setContextProducts,
+    cartItems = [],
+    addToBag = () => {},
+  } = outlet;
 
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Directly fetch all products from Supabase database on page load
   useEffect(() => {
-    async function fetchProductsFromBackend() {
-      // 1. Unconditionally make the network API call to fetch product list
+    let isMounted = true;
+
+    async function fetchProductsFromDatabase() {
+      setLoading(true);
+      setError(null);
+
       try {
-        const response = await fetch('/api/products');
-        if (response.ok) {
-          const apiProducts = await response.json();
-          if (Array.isArray(apiProducts) && apiProducts.length > 0 && setProducts) {
-            setProducts(apiProducts);
+        const { data, error: sbError } = await supabase
+          .from('products')
+          .select('*');
+
+        if (sbError) {
+          console.error('Error fetching from Supabase products table:', sbError.message);
+          // Gracefully try backend API or local cache if Supabase connection fails
+          let fallbackLoaded = false;
+          try {
+            const apiRes = await fetch('/api/products');
+            if (apiRes.ok) {
+              const apiData = await apiRes.json();
+              if (Array.isArray(apiData) && apiData.length > 0 && isMounted) {
+                const mapped = apiData.map(normalizeProduct);
+                setProducts(mapped);
+                if (setContextProducts) setContextProducts(mapped);
+                fallbackLoaded = true;
+              }
+            }
+          } catch (_) {}
+
+          if (!fallbackLoaded) {
+            try {
+              const stored = window.localStorage.getItem('shreivara-products');
+              if (stored) {
+                const storedList = JSON.parse(stored);
+                if (Array.isArray(storedList) && storedList.length > 0 && isMounted) {
+                  const mapped = storedList.map(normalizeProduct);
+                  setProducts(mapped);
+                  if (setContextProducts) setContextProducts(mapped);
+                  fallbackLoaded = true;
+                }
+              }
+            } catch (_) {}
+          }
+
+          if (isMounted && !fallbackLoaded) {
+            setError(sbError.message);
+            setProducts([]);
+          }
+        } else if (Array.isArray(data)) {
+          if (isMounted) {
+            const mapped = data.map(normalizeProduct);
+            setProducts(mapped);
+            if (setContextProducts) setContextProducts(mapped);
+            try {
+              window.localStorage.setItem('shreivara-products', JSON.stringify(mapped));
+            } catch (_) {}
           }
         }
-      } catch (apiErr) {
-        console.warn('API call to /api/products in HomePage failed:', apiErr);
-      }
-
-      // 2. Also check Supabase if configured
-      if (isSupabaseConfigured) {
-        try {
-          const remote = await fetchProductsFromSupabase();
-          if (Array.isArray(remote) && remote.length > 0 && setProducts) {
-            setProducts((prev) => {
-              const remoteSkus = new Set(remote.map((r) => r.sku));
-              const localOnly = (prev || []).filter((p) => !remoteSkus.has(p.sku));
-              return [...localOnly, ...remote];
-            });
-          }
-        } catch (err) {
-          console.warn('Error loading from Supabase in HomePage:', err);
+      } catch (err) {
+        console.error('Unexpected exception during Supabase products query:', err);
+        if (isMounted) {
+          setError(err.message || 'Failed to fetch products from Supabase');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
     }
-    fetchProductsFromBackend();
-  }, [setProducts]);
+
+    fetchProductsFromDatabase();
+
+    // Listen for cross-tab updates when admin adds or modifies products
+    let bc = null;
+    try {
+      bc = new BroadcastChannel('shreivara_products_channel');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'PRODUCTS_UPDATED') {
+          fetchProductsFromDatabase();
+        }
+      };
+    } catch (_) {}
+
+    return () => {
+      isMounted = false;
+      if (bc) bc.close();
+    };
+  }, [setContextProducts]);
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -429,13 +525,26 @@ export default function HomePage() {
 
             {/* Products Grid — Tall Vertical Sutisancha Card Proportions */}
             <div id="catalog-grid" className="scroll-mt-28">
-              {productsLoading ? (
+              {loading ? (
                 <div className="py-24 text-center">
-                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-solid border-maroon-700 border-r-transparent mb-3" />
-                  <p className="text-sm font-medium text-maroon-600 font-light">Curating the collection…</p>
+                  <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-solid border-maroon-700 border-r-transparent mb-4" />
+                  <p className="font-brand text-xl text-maroon-900 font-medium">Curating Handcrafted Collection…</p>
+                  <p className="mt-1 text-xs text-neutral-500 font-light">Loading authentic weaves directly from our Supabase database</p>
                 </div>
-              ) : productsError ? (
-                <p className="py-16 text-center text-sm text-red-800" role="alert">{productsError}</p>
+              ) : error && products.length === 0 ? (
+                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-red-200 bg-red-50/50 p-12 text-center shadow-xs">
+                  <div className="max-w-md mx-auto">
+                    <p className="font-brand text-xl font-normal text-red-900">Unable to load collection</p>
+                    <p className="mt-2 text-xs text-red-600 font-light">{error}</p>
+                    <button
+                      type="button"
+                      onClick={() => window.location.reload()}
+                      className="mt-4 px-5 py-2 text-xs font-semibold rounded-full bg-maroon-900 text-gold-100 hover:bg-maroon-800 transition"
+                    >
+                      Retry Connection
+                    </button>
+                  </div>
+                </div>
               ) : filteredProducts.length ? (
                 <div className="grid gap-5 sm:gap-6 lg:gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {filteredProducts.map((product) => (
@@ -450,8 +559,14 @@ export default function HomePage() {
               ) : (
                 <div className="flex min-h-64 items-center justify-center rounded-3xl border border-dashed border-gold-300 bg-white/70 p-12 text-center shadow-xs">
                   <div>
-                    <p className="font-brand text-2xl font-normal text-maroon-800">No pieces match your search.</p>
-                    <p className="mt-2 text-xs text-maroon-400 font-light">Try selecting a different category filter or clear your search term.</p>
+                    <p className="font-brand text-2xl font-normal text-maroon-800">
+                      {products.length === 0 ? 'No products available.' : 'No pieces match your search.'}
+                    </p>
+                    <p className="mt-2 text-xs text-maroon-400 font-light">
+                      {products.length === 0
+                        ? 'New heritage weaves will be listed shortly. Please check back soon or enquire on WhatsApp!'
+                        : 'Try selecting a different category filter or clear your search term.'}
+                    </p>
                   </div>
                 </div>
               )}
