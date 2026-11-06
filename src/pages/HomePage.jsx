@@ -54,16 +54,14 @@ function BagIcon() {
   );
 }
 
-
-
 function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
   const p = product || item || {};
   const rawSizes = p.sizes || '';
   const sizes = Array.isArray(rawSizes)
     ? rawSizes
     : typeof rawSizes === 'string' && rawSizes
-    ? rawSizes.split(',').map((size) => size.trim()).filter(Boolean)
-    : [];
+      ? rawSizes.split(',').map((size) => size.trim()).filter(Boolean)
+      : [];
 
   const rawImage = p.image || p.image_url || p.imageUrl || p.photo || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80';
   const imageUrl = typeof rawImage === 'string' && rawImage.startsWith('/')
@@ -198,10 +196,10 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
             disabled={isSoldOut || isMaxReached}
             onClick={onAddToBag}
             className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] transition-all active:scale-[0.98] text-center ${isSoldOut
+              ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
+              : isMaxReached
                 ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
-                : isMaxReached
-                  ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
-                  : 'border border-maroon-900 bg-maroon-900 text-gold-100 hover:bg-maroon-800 shadow-xs'
+                : 'border border-maroon-900 bg-maroon-900 text-gold-100 hover:bg-maroon-800 shadow-xs'
               }`}
           >
             <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
@@ -213,16 +211,15 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
   );
 }
 
-
 export default function HomePage() {
   const outlet = useOutletContext() || {};
   const {
     query = '',
     category = 'ALL',
-    setCategory = () => {},
+    setCategory = () => { },
     setProducts: setContextProducts,
     cartItems = [],
-    addToBag = () => {},
+    addToBag = () => { },
   } = outlet;
 
   const [products, setProducts] = useState([]);
@@ -257,7 +254,7 @@ export default function HomePage() {
                 fallbackLoaded = true;
               }
             }
-          } catch (_) {}
+          } catch (_) { }
 
           if (!fallbackLoaded) {
             try {
@@ -271,7 +268,7 @@ export default function HomePage() {
                   fallbackLoaded = true;
                 }
               }
-            } catch (_) {}
+            } catch (_) { }
           }
 
           if (isMounted && !fallbackLoaded) {
@@ -285,7 +282,7 @@ export default function HomePage() {
             if (setContextProducts) setContextProducts(mapped);
             try {
               window.localStorage.setItem('shreivara-products', JSON.stringify(mapped));
-            } catch (_) {}
+            } catch (_) { }
           }
         }
       } catch (err) {
@@ -311,7 +308,7 @@ export default function HomePage() {
           fetchProductsFromDatabase();
         }
       };
-    } catch (_) {}
+    } catch (_) { }
 
     return () => {
       isMounted = false;
@@ -373,8 +370,6 @@ export default function HomePage() {
   useEffect(() => {
     document.title = 'Shreivara Handlooms | Premium Sarees & Fine Jewelry';
   }, []);
-
-
 
   return (
     <main id="top" className="w-full flex-1">
@@ -778,8 +773,6 @@ export default function HomePage() {
         </section>
 
       </div>
-
-
     </main>
   );
 }
