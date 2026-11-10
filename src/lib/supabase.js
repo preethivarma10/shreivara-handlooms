@@ -181,3 +181,6 @@ export async function toggleProductAvailabilityInSupabase(sku, available) {
     return { error: err };
   }
 }
+
+export default supabase;
+
