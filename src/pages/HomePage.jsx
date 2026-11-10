@@ -55,6 +55,14 @@ function BagIcon() {
   );
 }
 
+function SearchIcon() {
+  return (
+    <svg className="h-4 w-4 text-gold-400/80 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+}
+
 function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
   const p = product || item || {};
   const rawSizes = p.sizes || '';
@@ -101,27 +109,27 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
   const displayDiscount = discount > 0 ? `${discount}% OFF` : 'FESTIVE EDIT';
 
   return (
-    <article className="fashion-card group relative flex flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white shadow-xs hover:shadow-xl transition-all duration-300">
+    <article className="fashion-card group relative flex flex-col overflow-hidden rounded-2xl border border-gold-500/30 bg-[#16070B]/90 backdrop-blur-md shadow-xl hover:border-gold-400 hover:shadow-2xl transition-all duration-300">
       {/* Full-Bleed Tall Vertical Product Image */}
-      <div className="relative aspect-[2/3] sm:aspect-[3/4] w-full overflow-hidden bg-neutral-100">
+      <div className="relative aspect-[2/3] sm:aspect-[3/4] w-full overflow-hidden bg-black/60">
         <img
           src={imageUrl}
           alt={name}
-          className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${isSoldOut ? 'grayscale-40 opacity-80' : ''
+          className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${isSoldOut ? 'grayscale-40 opacity-70' : ''
             }`}
           loading="lazy"
         />
         {/* Subtle hover gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
         {/* Floating Discount Badge or Sold Out Badge */}
         <div className="absolute left-3 top-3 z-10 pointer-events-none flex flex-col gap-1">
           {isSoldOut ? (
-            <span className="rounded-md bg-neutral-900/90 text-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+            <span className="rounded-md bg-neutral-900/90 text-white border border-neutral-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-md">
               SOLD OUT
             </span>
           ) : (
-            <span className="rounded-md bg-[#D9383A] text-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+            <span className="rounded-md bg-gradient-to-r from-maroon-900 to-[#800F2F] text-gold-200 border border-gold-400/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-md">
               {displayDiscount}
             </span>
           )}
@@ -129,10 +137,10 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
 
         {/* Top-Right Star Rating & SKU */}
         <div className="absolute right-3 top-3 flex flex-col items-end gap-1 z-10 pointer-events-none">
-          <span className="inline-flex items-center gap-1 rounded-md bg-white/95 backdrop-blur-md px-2 py-0.5 text-[9.5px] font-bold text-maroon-950 border border-neutral-200 shadow-2xs">
+          <span className="inline-flex items-center gap-1 rounded-md bg-black/80 backdrop-blur-md px-2 py-0.5 text-[9.5px] font-bold text-gold-300 border border-gold-500/40 shadow-md">
             <span className="text-[#D4AF37]">★</span> 4.9
           </span>
-          <span className="rounded-md bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[8.5px] font-mono tracking-wider text-white uppercase shadow-2xs">
+          <span className="rounded-md bg-maroon-950/80 backdrop-blur-md px-1.5 py-0.5 text-[8.5px] font-mono tracking-wider text-gold-200 uppercase border border-gold-500/30 shadow-md">
             {sku}
           </span>
         </div>
@@ -141,22 +149,22 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
       {/* Card Body */}
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-center justify-between">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-400">
             {category}
           </p>
-          <span className="text-[9.5px] text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+          <span className="text-[9.5px] text-emerald-300 font-semibold bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/40">
             Handloom Mark
           </span>
         </div>
 
-        {/* Clean Minimal Title */}
-        <h3 className="mt-1.5 font-brand text-lg sm:text-xl font-normal leading-snug text-neutral-900 group-hover:text-maroon-800 transition-colors line-clamp-1">
+        {/* Title */}
+        <h3 className="mt-1.5 font-brand text-lg sm:text-xl font-normal leading-snug text-white group-hover:text-gold-200 transition-colors line-clamp-1">
           {name}
         </h3>
 
         {/* Original vs Discounted Prices */}
         <div className="mt-2.5 flex items-baseline gap-2">
-          <span className="text-xl sm:text-2xl font-bold text-maroon-950 font-brand tracking-tight">
+          <span className="text-xl sm:text-2xl font-bold text-gold-300 font-brand tracking-tight">
             {formatCurrency(sellingPrice)}
           </span>
           {originalPrice > sellingPrice && (
@@ -167,19 +175,19 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
         </div>
 
         {description && (
-          <p className="mt-2 text-xs text-neutral-600 font-light line-clamp-2 leading-relaxed">
+          <p className="mt-2 text-xs text-neutral-300 font-light line-clamp-2 leading-relaxed">
             {description}
           </p>
         )}
 
         {offerDetails && offerDetails !== description && (
-          <p className="mt-2 rounded-lg border border-gold-200/80 bg-gold-50/70 px-2.5 py-1 text-[11px] font-medium text-maroon-900 flex items-center gap-1">
-            <span className="text-gold-600">✦</span> {offerDetails}
+          <p className="mt-2 rounded-lg border border-gold-500/40 bg-maroon-950/70 px-2.5 py-1 text-[11px] font-medium text-gold-200 flex items-center gap-1">
+            <span className="text-gold-400">✦</span> {offerDetails}
           </p>
         )}
 
         {sizes.length > 0 && (
-          <p className="mt-1 text-[11px] text-neutral-500 font-light">Sizes: {sizes.join(', ')}</p>
+          <p className="mt-1 text-[11px] text-neutral-400 font-light">Sizes: {sizes.join(', ')}</p>
         )}
 
         {/* Action Buttons: Order on WhatsApp & Add to Cart */}
@@ -188,7 +196,7 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
             href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`}
             target="_blank"
             rel="noreferrer"
-            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#075E54] hover:bg-[#128C7E] px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] text-white shadow-xs transition-all active:scale-[0.98] text-center"
+            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-900 hover:from-emerald-700 hover:to-emerald-800 px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] text-white shadow-md border border-emerald-600/40 transition-all active:scale-[0.98] text-center"
           >
             <span className="h-3.5 w-3.5 shrink-0 text-[#25D366]"><WhatsAppIcon /></span>
             Order on WhatsApp
@@ -197,11 +205,11 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
             type="button"
             disabled={isSoldOut || isMaxReached}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] transition-all active:scale-[0.98] text-center ${isSoldOut
-              ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] transition-all active:scale-[0.98] text-center ${isSoldOut
+              ? 'cursor-not-allowed border border-neutral-800 bg-neutral-900 text-neutral-500'
               : isMaxReached
-                ? 'cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400'
-                : 'border border-maroon-900 bg-maroon-900 text-gold-100 hover:bg-maroon-800 shadow-xs'
+                ? 'cursor-not-allowed border border-neutral-800 bg-neutral-900 text-neutral-500'
+                : 'border border-gold-400/40 bg-gradient-to-r from-maroon-900 via-maroon-850 to-maroon-900 text-gold-100 hover:brightness-110 shadow-md'
               }`}
           >
             <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
@@ -215,14 +223,16 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
 
 export default function HomePage() {
   const outlet = useOutletContext() || {};
-  const {
-    query = '',
-    category = 'ALL',
-    setCategory = () => { },
-    setProducts: setContextProducts,
-    cartItems = [],
-    addToBag = () => { },
-  } = outlet;
+  const [internalQuery, setInternalQuery] = useState('');
+  const [internalCategory, setInternalCategory] = useState('ALL');
+
+  const query = outlet.query !== undefined ? outlet.query : internalQuery;
+  const setQuery = outlet.setQuery || setInternalQuery;
+  const category = outlet.category !== undefined ? outlet.category : internalCategory;
+  const setCategory = outlet.setCategory || setInternalCategory;
+  const cartItems = outlet.cartItems || [];
+  const addToBag = outlet.addToBag || (() => { });
+  const setContextProducts = outlet.setProducts;
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -384,14 +394,71 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main id="top" className="w-full flex-1">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-16 sm:space-y-20 lg:space-y-24">
+    <main id="top" className="w-full flex-1 bg-[#0A0306] text-white">
+      {/* Search & Navigation Bar Header */}
+      <section className="border-b border-gold-500/20 bg-neutral-950/80 backdrop-blur-md px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold-400">
+              Shreivara Catalog
+            </span>
+            <span className="h-1 w-1 rounded-full bg-gold-400/50" />
+            <span className="text-[11px] text-neutral-400 font-light">Heritage Weaves</span>
+          </div>
 
-        {/* 1. Festive Hero & Editorial Highlight Banner (Sutisancha Aesthetic) */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-maroon-950 via-[#3B0A12] to-maroon-900 text-white shadow-2xl border border-gold-500/30">
-          {/* Decorative gold patterned background watermark */}
+          <div className="relative w-full max-w-md">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search sarees, jewelry, SKU..."
+              className="w-full rounded-full border border-gold-500/30 bg-[#16070B] px-4 py-2 pr-10 text-xs text-white placeholder-neutral-400 focus:border-gold-400 focus:outline-none focus:ring-1 focus:ring-gold-400"
+            />
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+              <SearchIcon />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-12 sm:space-y-16 lg:space-y-20">
+
+        {/* 1. WhatsApp Inquiry Banner ("ENQUIRE WITH US ON WHATSAPP") */}
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-gold-500/40 bg-gradient-to-r from-maroon-950 via-[#3B0A12] to-maroon-950 p-6 sm:p-10 text-center shadow-2xl">
           <div
-            className="absolute inset-0 opacity-[0.08] pointer-events-none"
+            className="absolute inset-0 opacity-[0.07] pointer-events-none"
+            style={{
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23d4af37\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
+            }}
+          />
+          <div className="relative z-10 max-w-3xl mx-auto space-y-3">
+            <span className="inline-block text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-400 border border-gold-500/30 px-3.5 py-1 rounded-full bg-maroon-900/60 backdrop-blur-xs">
+              Personalized Styling &amp; Custom Sourcing
+            </span>
+            <h2 className="font-brand text-2xl sm:text-3xl lg:text-4xl font-normal text-gold-100">
+              Looking for something else? Enquire with us on WhatsApp!
+            </h2>
+            <p className="mx-auto max-w-2xl text-xs sm:text-sm text-gold-200/80 font-light leading-relaxed">
+              Whether you are curating a bridal trousseau, matching specific family wedding colors, or seeking a rare heritage weave, our master stylists are ready to share video walkthroughs and tailored collections.
+            </p>
+            <div className="pt-2 flex justify-center">
+              <a
+                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I am looking for a customized saree/jewelry order. Could you please assist me?')}`}
+                target="_blank"
+                rel="noreferrer"
+                className="cursor-pointer inline-flex items-center gap-2.5 rounded-full bg-[#25d366] hover:bg-[#1ebe5d] px-7 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider text-white shadow-xl transition-all active:scale-95"
+              >
+                <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
+                ENQUIRE WITH US ON WHATSAPP
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* 2. Festive Hero & Editorial Highlight Banner */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-black via-[#26060E] to-maroon-950 text-white shadow-2xl border border-gold-500/30">
+          <div
+            className="absolute inset-0 opacity-[0.06] pointer-events-none"
             style={{
               backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23d4af37\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
             }}
@@ -415,13 +482,13 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <p className="text-xs sm:text-sm text-gold-100/80 leading-relaxed font-light max-w-xl">
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-light max-w-xl">
                 Immerse yourself in authentic Kanchipuram pure silk, airy Mangalagiri weaves, and heirloom South Indian bridal jewelry. Handcrafted by generational master weavers for weddings, pujas, and treasured festivities.
               </p>
 
               {/* Festive Promo Code Pill */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                <div className="inline-flex items-center gap-2 rounded-xl border border-gold-400/50 bg-black/30 backdrop-blur-md px-4 py-2">
+                <div className="inline-flex items-center gap-2 rounded-xl border border-gold-400/50 bg-black/50 backdrop-blur-md px-4 py-2">
                   <span className="text-[10px] font-mono uppercase tracking-widest text-gold-300 font-semibold">Festive Code:</span>
                   <span className="font-mono text-sm font-bold tracking-wider text-white bg-maroon-800/90 px-2.5 py-0.5 rounded border border-gold-400/50">
                     UTSAV10
@@ -459,7 +526,7 @@ export default function HomePage() {
                   alt="Festive Royal Kanchipuram Handloom Saree"
                   className="h-full w-full object-cover object-top"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-maroon-950/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-gold-100">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-gold-300">Handcrafted Legacy</p>
@@ -474,18 +541,18 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 2. Top Collections & Sutisancha Tall Vertical Grid Section */}
+        {/* 3. Top Collections Section */}
         <section id="collections" className="scroll-mt-28">
           <div id="catalog" className="scroll-mt-28">
-            <div className="mb-8 sm:mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between border-b border-gold-200/80 pb-6">
+            <div className="mb-8 sm:mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between border-b border-gold-500/20 pb-6">
               <div>
-                <span className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-600 mb-2 block">
+                <span className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-400 mb-2 block">
                   Curated Handlooms &amp; Fine Jewelry
                 </span>
-                <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-maroon-950">
+                <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-white">
                   Top Collections
                 </h2>
-                <p className="mt-1 text-xs sm:text-sm text-neutral-600 font-light">
+                <p className="mt-1 text-xs sm:text-sm text-neutral-300 font-light">
                   Sarees to Treasures • Handcrafted with Heritage Artistry
                 </p>
               </div>
@@ -494,12 +561,12 @@ export default function HomePage() {
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to schedule a personal walkthrough on WhatsApp.')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-maroon-900 bg-maroon-900 text-gold-100 hover:bg-maroon-800 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] shadow-xs hover:shadow-md transition-all active:scale-[0.98]"
+                  className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-maroon-900 text-gold-100 hover:bg-maroon-800 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] shadow-md transition-all active:scale-[0.98]"
                 >
                   <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
                   Video Consultation
                 </a>
-                <span className="rounded-full border border-gold-300/80 bg-white px-4 py-2.5 text-xs font-medium text-maroon-900 shadow-2xs font-mono" aria-live="polite">
+                <span className="rounded-full border border-gold-500/40 bg-[#16070B] px-4 py-2.5 text-xs font-medium text-gold-300 shadow-sm font-mono" aria-live="polite">
                   {filteredProducts.length} {filteredProducts.length === 1 ? 'Design' : 'Designs'}
                 </span>
               </div>
@@ -520,8 +587,8 @@ export default function HomePage() {
                     aria-pressed={isSelected}
                     onClick={() => setCategory(item)}
                     className={`cursor-pointer rounded-full px-5 py-2 text-xs font-semibold tracking-wider transition-all uppercase ${isSelected
-                      ? 'bg-maroon-900 text-gold-100 shadow-sm border border-gold-400/40'
-                      : 'bg-white hover:bg-gold-50 text-maroon-900 hover:text-maroon-950 border border-gold-200/80 shadow-2xs'
+                      ? 'bg-gradient-to-r from-gold-400 to-gold-500 text-maroon-950 shadow-md font-bold'
+                      : 'bg-[#180A0E] hover:bg-[#250F16] text-gold-200 border border-gold-500/30'
                       }`}
                   >
                     {item}
@@ -530,23 +597,23 @@ export default function HomePage() {
               })}
             </div>
 
-            {/* Products Grid — Tall Vertical Sutisancha Card Proportions */}
+            {/* Products Grid */}
             <div id="catalog-grid" className="scroll-mt-28">
               {loading ? (
                 <div className="py-24 text-center">
-                  <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-solid border-maroon-700 border-r-transparent mb-4" />
-                  <p className="font-brand text-xl text-maroon-900 font-medium">Curating Handcrafted Collection…</p>
-                  <p className="mt-1 text-xs text-neutral-500 font-light">Loading authentic weaves directly from our Supabase database</p>
+                  <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-solid border-gold-400 border-r-transparent mb-4" />
+                  <p className="font-brand text-xl text-gold-200 font-medium">Curating Handcrafted Collection…</p>
+                  <p className="mt-1 text-xs text-neutral-400 font-light">Loading authentic weaves directly from our Supabase database</p>
                 </div>
               ) : error && products.length === 0 ? (
-                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-red-200 bg-red-50/50 p-12 text-center shadow-xs">
+                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-red-500/40 bg-red-950/20 p-12 text-center shadow-lg">
                   <div className="max-w-md mx-auto">
-                    <p className="font-brand text-xl font-normal text-red-900">Unable to load collection</p>
-                    <p className="mt-2 text-xs text-red-600 font-light">{error}</p>
+                    <p className="font-brand text-xl font-normal text-red-200">Unable to load collection</p>
+                    <p className="mt-2 text-xs text-red-400 font-light">{error}</p>
                     <button
                       type="button"
                       onClick={() => window.location.reload()}
-                      className="mt-4 px-5 py-2 text-xs font-semibold rounded-full bg-maroon-900 text-gold-100 hover:bg-maroon-800 transition"
+                      className="mt-4 px-5 py-2 text-xs font-semibold rounded-full bg-maroon-900 text-gold-100 hover:bg-maroon-800 transition border border-gold-400/40"
                     >
                       Retry Connection
                     </button>
@@ -564,12 +631,12 @@ export default function HomePage() {
                   ))}
                 </div>
               ) : (
-                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-dashed border-gold-300 bg-white/70 p-12 text-center shadow-xs">
+                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-dashed border-gold-500/30 bg-[#16070B]/50 p-12 text-center shadow-lg">
                   <div>
-                    <p className="font-brand text-2xl font-normal text-maroon-800">
+                    <p className="font-brand text-2xl font-normal text-gold-200">
                       {products.length === 0 ? 'No products available.' : 'No pieces match your search.'}
                     </p>
-                    <p className="mt-2 text-xs text-maroon-400 font-light">
+                    <p className="mt-2 text-xs text-neutral-400 font-light">
                       {products.length === 0
                         ? 'New heritage weaves will be listed shortly. Please check back soon or enquire on WhatsApp!'
                         : 'Try selecting a different category filter or clear your search term.'}
@@ -581,116 +648,77 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 3. Custom Query Callout Banner */}
-        <section className="rounded-3xl border border-gold-400/30 warm-gradient p-10 sm:p-14 lg:p-16 text-center text-white shadow-xl relative overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23c59a58\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
-          <div className="relative z-10 max-w-3xl mx-auto space-y-5">
-            <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-300 border border-gold-500/30 px-4 py-1.5 rounded-full bg-maroon-800/60 backdrop-blur-xs">
-              Personalized Styling &amp; Custom Sourcing
-            </span>
-            <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-gold-100 leading-tight">
-              Looking for something else? Enquire with us on WhatsApp!
-            </h2>
-            <p className="mx-auto max-w-2xl text-xs sm:text-sm text-gold-300/80 leading-relaxed font-light">
-              Whether you are curating a bridal trousseau, matching specific family wedding colors, or seeking a rare heritage weave, our master stylists are ready to share video walkthroughs and tailored collections.
-            </p>
-            <div className="pt-2 flex justify-center">
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I am looking for a customized saree/jewelry order. Could you please assist me?')}`}
-                target="_blank"
-                rel="noreferrer"
-                className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gold-300 via-gold-400 to-gold-300 text-maroon-950 hover:brightness-105 px-8 py-3.5 text-xs font-bold uppercase tracking-[0.16em] shadow-lg transition-all active:scale-[0.98]"
-              >
-                <span className="h-4 w-4 shrink-0 text-[#25d366]"><WhatsAppIcon /></span>
-                Enquire with us on WhatsApp
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* 4. Customer Testimonials & Reviews Section (Sutisancha Style) */}
-        <section id="reviews" className="scroll-mt-28 rounded-3xl border border-gold-200/90 bg-[#FAF8F5] p-8 sm:p-12 lg:p-14 shadow-xs relative">
+        {/* 4. Client Diaries & Stories */}
+        <section id="reviews" className="scroll-mt-28 rounded-3xl border border-gold-500/30 bg-gradient-to-br from-[#16070B] via-black to-[#16070B] p-8 sm:p-12 lg:p-14 shadow-2xl relative">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-600 mb-2 block">
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-400 mb-2 block">
               Client Diaries &amp; Stories
             </span>
-            <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-maroon-950">
+            <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-white">
               Loved by Brides &amp; Connoisseurs Worldwide
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-neutral-600 font-light">
+            <p className="mt-2 text-xs sm:text-sm text-neutral-300 font-light">
               Over 1,200+ heirloom sarees and handcrafted jewelry sets delivered globally with personalized WhatsApp consultations.
             </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {/* Review 1 */}
-            <div className="flex flex-col justify-between rounded-2xl border border-gold-200/80 bg-white p-6 shadow-2xs hover:shadow-md transition-shadow">
+            <div className="flex flex-col justify-between rounded-2xl border border-gold-500/30 bg-[#1B0A10]/80 p-6 shadow-lg hover:border-gold-400/60 transition-all">
               <div>
-                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">
-                  ★★★★★
-                </div>
-                <p className="font-serif italic text-sm text-maroon-950 leading-relaxed">
+                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">★★★★★</div>
+                <p className="font-serif italic text-sm text-neutral-200 leading-relaxed">
                   “The drape of the Royal Kanjivaram was breathtaking for my sister’s wedding. The zari work is pure and authentic, and ordering over WhatsApp with video previews made all the difference!”
                 </p>
               </div>
-              <div className="pt-4 border-t border-gold-100 mt-4">
-                <p className="font-semibold text-xs text-maroon-900">Sravani Rao</p>
-                <p className="text-[10px] text-gold-600 font-medium">Hyderabad • Verified Bridal Order</p>
+              <div className="pt-4 border-t border-gold-500/20 mt-4">
+                <p className="font-semibold text-xs text-gold-200">Sravani Rao</p>
+                <p className="text-[10px] text-neutral-400 font-medium">Hyderabad • Verified Bridal Order</p>
               </div>
             </div>
 
-            {/* Review 2 */}
-            <div className="flex flex-col justify-between rounded-2xl border border-gold-200/80 bg-white p-6 shadow-2xs hover:shadow-md transition-shadow">
+            <div className="flex flex-col justify-between rounded-2xl border border-gold-500/30 bg-[#1B0A10]/80 p-6 shadow-lg hover:border-gold-400/60 transition-all">
               <div>
-                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">
-                  ★★★★★
-                </div>
-                <p className="font-serif italic text-sm text-maroon-950 leading-relaxed">
+                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">★★★★★</div>
+                <p className="font-serif italic text-sm text-neutral-200 leading-relaxed">
                   “I was skeptical buying handlooms online, but Shreivara’s Mangalagiri weave is featherlight and pure cotton elegance. Fast shipping and beautiful packaging.”
                 </p>
               </div>
-              <div className="pt-4 border-t border-gold-100 mt-4">
-                <p className="font-semibold text-xs text-maroon-900">Ananya Verma</p>
-                <p className="text-[10px] text-gold-600 font-medium">Bangalore • Verified Buyer</p>
+              <div className="pt-4 border-t border-gold-500/20 mt-4">
+                <p className="font-semibold text-xs text-gold-200">Ananya Verma</p>
+                <p className="text-[10px] text-neutral-400 font-medium">Bangalore • Verified Buyer</p>
               </div>
             </div>
 
-            {/* Review 3 */}
-            <div className="flex flex-col justify-between rounded-2xl border border-gold-200/80 bg-white p-6 shadow-2xs hover:shadow-md transition-shadow">
+            <div className="flex flex-col justify-between rounded-2xl border border-gold-500/30 bg-[#1B0A10]/80 p-6 shadow-lg hover:border-gold-400/60 transition-all">
               <div>
-                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">
-                  ★★★★★
-                </div>
-                <p className="font-serif italic text-sm text-maroon-950 leading-relaxed">
+                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">★★★★★</div>
+                <p className="font-serif italic text-sm text-neutral-200 leading-relaxed">
                   “The temple choker set matches my silk saree flawlessly. The antique gold finish is heirloom quality. Highly recommend their personalized WhatsApp assistance.”
                 </p>
               </div>
-              <div className="pt-4 border-t border-gold-100 mt-4">
-                <p className="font-semibold text-xs text-maroon-900">Dr. Pooja Reddy</p>
-                <p className="text-[10px] text-gold-600 font-medium">Chennai • Fine Jewelry Order</p>
+              <div className="pt-4 border-t border-gold-500/20 mt-4">
+                <p className="font-semibold text-xs text-gold-200">Dr. Pooja Reddy</p>
+                <p className="text-[10px] text-neutral-400 font-medium">Chennai • Fine Jewelry Order</p>
               </div>
             </div>
 
-            {/* Review 4 */}
-            <div className="flex flex-col justify-between rounded-2xl border border-gold-200/80 bg-white p-6 shadow-2xs hover:shadow-md transition-shadow">
+            <div className="flex flex-col justify-between rounded-2xl border border-gold-500/30 bg-[#1B0A10]/80 p-6 shadow-lg hover:border-gold-400/60 transition-all">
               <div>
-                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">
-                  ★★★★★
-                </div>
-                <p className="font-serif italic text-sm text-maroon-950 leading-relaxed">
+                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">★★★★★</div>
+                <p className="font-serif italic text-sm text-neutral-200 leading-relaxed">
                   “Authentic craft at transparent prices. They even showed me the drape on a WhatsApp video call before dispatching. Simply outstanding customer care!”
                 </p>
               </div>
-              <div className="pt-4 border-t border-gold-100 mt-4">
-                <p className="font-semibold text-xs text-maroon-900">Meenakshi Sundaram</p>
-                <p className="text-[10px] text-gold-600 font-medium">Mumbai • Verified Order</p>
+              <div className="pt-4 border-t border-gold-500/20 mt-4">
+                <p className="font-semibold text-xs text-gold-200">Meenakshi Sundaram</p>
+                <p className="text-[10px] text-neutral-400 font-medium">Mumbai • Verified Order</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 5. Dedicated Inline About Us Section */}
-        <section id="about-us" className="scroll-mt-28 rounded-3xl border border-gold-200/90 bg-cream-50 p-8 sm:p-12 lg:p-16 shadow-sm relative">
+        {/* 5. Dedicated Inline About Us Section & Atelier Details */}
+        <section id="about-us" className="scroll-mt-28 rounded-3xl border border-gold-500/30 bg-gradient-to-br from-[#1C0A10] via-neutral-950 to-[#17080D] p-8 sm:p-12 lg:p-16 shadow-2xl relative">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div>
               <div className="flex items-center gap-4 mb-4">
@@ -702,32 +730,32 @@ export default function HomePage() {
                   />
                 </div>
                 <div>
-                  <span className="inline-block text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-600">
+                  <span className="inline-block text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-400">
                     The Shreivara Heritage
                   </span>
-                  <p className="font-brand text-2xl sm:text-3xl font-bold text-maroon-950 uppercase tracking-wider">
+                  <p className="font-brand text-2xl sm:text-3xl font-bold text-gold-100 uppercase tracking-wider">
                     Shreivara Handlooms
                   </p>
                 </div>
               </div>
-              <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-maroon-900 leading-tight">
+              <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-white leading-tight">
                 Sarees and fine jewelry for life's treasured moments.
               </h2>
-              <p className="mt-4 text-xs sm:text-sm leading-relaxed text-maroon-700/80 font-light">
+              <p className="mt-4 text-xs sm:text-sm leading-relaxed text-neutral-300 font-light">
                 Founded with a devotion to authentic Indian textiles, Shreivara Handlooms bridges generational artisan weaving with modern elegance. From the pure zari temple borders of Kanchipuram to the featherlight cottons of Mangalagiri and handcrafted South Indian bridal jewelry, every piece in our studio is personally curated for longevity, beauty, and festive warmth.
               </p>
 
               {/* Callout Box */}
-              <div className="mt-8 rounded-2xl border border-gold-300/80 bg-gold-50/80 p-6 sm:p-7 shadow-2xs">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-maroon-900">Customized Bridal &amp; Festive Orders</p>
-                <p className="mt-2 text-xs sm:text-sm text-maroon-700/80 leading-relaxed font-light">
+              <div className="mt-8 rounded-2xl border border-gold-500/40 bg-maroon-950/70 p-6 sm:p-7 shadow-lg">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold-300">Customized Bridal &amp; Festive Orders</p>
+                <p className="mt-2 text-xs sm:text-sm text-neutral-300 leading-relaxed font-light">
                   Reach us on WhatsApp for inquiries and customized orders. We provide real-time previews, blouse fabric suggestions, and worldwide delivery support.
                 </p>
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your custom saree & jewelry orders.')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="cursor-pointer mt-5 inline-flex items-center gap-2 rounded-full bg-maroon-900 hover:bg-maroon-800 px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-gold-100 transition shadow-xs border border-gold-400/30"
+                  className="cursor-pointer mt-5 inline-flex items-center gap-2 rounded-full bg-maroon-900 hover:bg-maroon-800 px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-gold-100 transition shadow-md border border-gold-400/40"
                 >
                   <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
                   Order / Inquire on WhatsApp (+91 90005 10329)
@@ -736,47 +764,47 @@ export default function HomePage() {
             </div>
 
             {/* Shop Location & Address Details */}
-            <div className="rounded-2xl border border-gold-200 bg-white p-8 space-y-6 shadow-sm">
-              <div className="border-b border-gold-200 pb-4">
-                <p className="text-[10.5px] font-semibold uppercase tracking-[0.25em] text-gold-600">Atelier Visit</p>
-                <h3 className="font-brand text-2xl font-normal text-maroon-900 mt-1">Shop Location &amp; Visit Details</h3>
+            <div className="rounded-2xl border border-gold-500/30 bg-[#16070B]/90 p-8 space-y-6 shadow-xl">
+              <div className="border-b border-gold-500/30 pb-4">
+                <p className="text-[10.5px] font-semibold uppercase tracking-[0.25em] text-gold-400">Atelier Visit</p>
+                <h3 className="font-brand text-2xl font-normal text-white mt-1">Shop Location &amp; Visit Details</h3>
               </div>
-              <div className="space-y-4 text-xs sm:text-sm text-maroon-700">
+              <div className="space-y-4 text-xs sm:text-sm text-neutral-300">
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-50 border border-gold-200 text-sm shadow-2xs">📍</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">📍</span>
                   <div>
-                    <p className="font-semibold text-maroon-900">Studio Address</p>
-                    <p className="text-maroon-700/80 mt-0.5">Shreivara Handlooms &amp; Fine Jewelry</p>
-                    <p className="text-maroon-700/80">Plot No. 42, Heritage Weavers Lane, Jubilee Hills</p>
-                    <p className="text-maroon-700/80">Hyderabad, Telangana — 500033, India</p>
+                    <p className="font-semibold text-gold-200">Studio Address</p>
+                    <p className="text-neutral-300 mt-0.5">Shreivara Handlooms &amp; Fine Jewelry</p>
+                    <p className="text-neutral-300">Plot No. 42, Heritage Weavers Lane, Jubilee Hills</p>
+                    <p className="text-neutral-300">Hyderabad, Telangana — 500033, India</p>
                   </div>
                 </div>
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-50 border border-gold-200 text-sm shadow-2xs">🕒</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">🕒</span>
                   <div>
-                    <p className="font-semibold text-maroon-900">Studio Hours</p>
-                    <p className="text-maroon-700/80 mt-0.5">Monday – Saturday: 10:30 AM – 7:30 PM IST</p>
+                    <p className="font-semibold text-gold-200">Studio Hours</p>
+                    <p className="text-neutral-300 mt-0.5">Monday – Saturday: 10:30 AM – 7:30 PM IST</p>
                   </div>
                 </div>
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-50 border border-gold-200 text-sm shadow-2xs">📞</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">📞</span>
                   <div>
-                    <p className="font-semibold text-maroon-900">Phone &amp; WhatsApp</p>
-                    <a href="tel:+919000510329" className="text-maroon-900 font-medium hover:underline mt-0.5 block">+91 90005 10329</a>
+                    <p className="font-semibold text-gold-200">Phone &amp; WhatsApp</p>
+                    <a href="tel:+919000510329" className="text-gold-300 font-medium hover:underline mt-0.5 block">+91 90005 10329</a>
                   </div>
                 </div>
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-50 border border-gold-200 text-sm shadow-2xs">✉️</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">✉️</span>
                   <div>
-                    <p className="font-semibold text-maroon-900">Email Inquiries</p>
-                    <a href="mailto:shreivara@gmail.com" className="text-maroon-900 font-medium hover:underline mt-0.5 block">shreivara@gmail.com</a>
+                    <p className="font-semibold text-gold-200">Email Inquiries</p>
+                    <a href="mailto:shreivara@gmail.com" className="text-gold-300 font-medium hover:underline mt-0.5 block">shreivara@gmail.com</a>
                   </div>
                 </div>
                 <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold-50 border border-gold-200 text-sm shadow-2xs">✈️</span>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">✈️</span>
                   <div>
-                    <p className="font-semibold text-maroon-900">Worldwide Shipping</p>
-                    <p className="text-maroon-700/80 mt-0.5">Express doorstep delivery across India and reliable worldwide shipping via DHL / FedEx.</p>
+                    <p className="font-semibold text-gold-200">Worldwide Shipping</p>
+                    <p className="text-neutral-300 mt-0.5">Express doorstep delivery across India and reliable worldwide shipping via DHL / FedEx.</p>
                   </div>
                 </div>
               </div>
