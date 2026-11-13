@@ -95,7 +95,7 @@ export default function AboutPage() {
         </div>
         {WHATSAPP_NUMBER && (
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to see your jewellery collection.')}`}
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to see your jewellery collection on https://shreivara-handlooms.vercel.app.')}`}
             target="_blank"
             rel="noreferrer"
             className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-neutral-950 hover:bg-black px-6 py-3 text-xs font-semibold uppercase tracking-wider text-white shadow-xs transition"

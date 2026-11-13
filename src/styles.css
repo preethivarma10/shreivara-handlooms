@@ -1,47 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  /* Rich deep maroon palette */
-  --color-maroon-950: #140407;
-  --color-maroon-900: #4A0E17;
-  --color-maroon-850: #58121E;
-  --color-maroon-800: #6E1A2A;
-  --color-maroon-700: #8B2438;
-  --color-maroon-600: #A83048;
-  --color-maroon-500: #C44060;
-  --color-maroon-400: #D4687E;
-  --color-maroon-100: #FAE8EC;
-  --color-maroon-50: #FDF2F4;
-
-  /* Muted metallic gold palette */
-  --color-gold-50: #FDF9F0;
-  --color-gold-100: #F9F0DA;
-  --color-gold-200: #F2E3BC;
-  --color-gold-300: #E6CE8A;
-  --color-gold-400: #D4AF37;
-  --color-gold-500: #B8952B;
-  --color-gold-600: #93751E;
-  --color-gold-700: #705814;
-  --color-gold-800: #4E3C0B;
-
-  /* Emerald accents for success states */
-  --color-emerald-800: #0d3b2c;
-  --color-emerald-900: #08281e;
-
-  /* Editorial cream & warm ivory backgrounds */
-  --color-cream: #FAF7F2;
-  --color-cream-50: #FAF7F2;
-  --color-cream-100: #F4EFE7;
-  --color-cream-200: #EAE2D5;
-  --color-ivory-50: #FAF7F2;
-  --color-ivory-100: #F5EFE6;
-  --color-ivory-200: #EEE5D7;
-  --color-ivory-300: #E4D9C7;
-
-  /* Brand Fonts */
-  --font-brand: 'Cormorant Garamond', Georgia, serif;
-  --font-display: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --color-maroon-900: #3d2b1c;
+  --color-maroon-800: #58412c;
+  --color-maroon-700: #725638;
+  --color-gold-500: #b68a55;
+  --color-gold-600: #927044;
+  --color-emerald-800: #064e3b;
+  --color-emerald-900: #022c22;
+  --font-brand: 'Cormorant Garamond', serif;
+  --font-sans: 'DM Sans', sans-serif;
 }
 
 *,
@@ -76,12 +45,10 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background-color: #FAF7F2;
-  color: #2C1810;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background: #f6f2e9;
+  color: #332c23;
+  font-family: 'DM Sans', sans-serif;
   cursor: default;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 button,
@@ -90,63 +57,20 @@ select {
   font: inherit;
 }
 
-/* Luxury Editorial Typography */
 .font-brand {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Cormorant Garamond', serif;
 }
 
-.font-display {
-  font-family: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+.soft-card {
+  box-shadow: 0 10px 30px rgba(58, 43, 25, 0.08);
 }
 
-/* Slick modern card hover lift */
-.fashion-card {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+.editorial-hero {
+  box-shadow: 0 20px 55px rgba(58, 43, 25, 0.08);
 }
 
-.fashion-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -10px rgba(74, 14, 23, 0.15), 0 4px 16px rgba(212, 175, 55, 0.1);
-}
-
-/* Glassmorphism Navigation */
-.glass-nav {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-/* Warm Luxury Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #FAF8F5;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #D4AF37;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #B8952B;
-}
-
-/* Subtle shimmer animation for accent elements */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.shimmer-accent {
-  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.18) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-/* Warm gradient overlay for hero-like sections */
-.warm-gradient {
-  background: linear-gradient(135deg, #4A0E17 0%, #58121E 45%, #38080F 100%);
+@media (max-width: 639px) {
+  .editorial-hero {
+    box-shadow: 0 12px 35px rgba(58, 43, 25, 0.07);
+  }
 }

@@ -166,17 +166,17 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
     <form onSubmit={submitProduct} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {error && <p className="text-sm font-medium text-red-800 md:col-span-2 xl:col-span-3 bg-red-50 p-3 rounded-xl border border-red-200" role="alert">{error}</p>}
       {notice && <p className="text-sm font-medium text-emerald-800 md:col-span-2 xl:col-span-3 bg-emerald-50 p-3 rounded-xl border border-emerald-200" role="status">{notice}</p>}
-      
+
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         SKU
         <input name="sku" required maxLength="64" readOnly={Boolean(product)} defaultValue={product?.sku ?? ''} placeholder="SHR-101" className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none read-only:text-neutral-500" />
       </label>
-      
+
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Product name
         <input name="name" required maxLength="120" defaultValue={product?.name ?? ''} placeholder="Royal Gold Temple Saree" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
-      
+
       <div className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         <div className="flex items-center justify-between">
           <span>Category *</span>
@@ -231,32 +231,32 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
           </select>
         )}
       </div>
-      
+
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Original price (INR)
         <input name="originalPrice" type="number" min="1" step="1" required defaultValue={product?.originalPrice ?? ''} placeholder="8999" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
-      
+
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Offer / Selling price (INR)
         <input name="sellingPrice" type="number" min="1" step="1" required defaultValue={product?.sellingPrice ?? ''} placeholder="6999" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
-      
+
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Stock quantity
         <input name="stock" type="number" min="0" step="1" required defaultValue={product?.stock ?? 5} placeholder="5" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
-      
+
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Sizes (comma-separated)
         <input name="sizes" maxLength="120" defaultValue={product?.sizes ?? ''} placeholder="Free size or S, M, L" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
-      
+
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2">
         Offer details
         <textarea name="offerDetails" rows="2" maxLength="300" defaultValue={product?.offerDetails ?? ''} placeholder="Optional promotional callout (e.g., Grand Launch Offer)" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
-      
+
       <div className="grid gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2">
         <div className="flex items-center justify-between">
           <span>Product Image *</span>
@@ -307,7 +307,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
           </div>
         </div>
       </div>
-      
+
       <label className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2 xl:col-span-3 py-1 bg-amber-50/60 p-3.5 rounded-xl border border-gold-200">
         <input
           name="available"
@@ -317,7 +317,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         />
         <span>In Stock &amp; Available for Purchase (Storefront Visibility)</span>
       </label>
-      
+
       <div className="flex justify-end gap-3 md:col-span-2 xl:col-span-3 pt-2">
         {onCancel && (
           <button type="button" onClick={onCancel} className="cursor-pointer rounded-xl border border-neutral-300 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 hover:bg-neutral-50 transition">
@@ -453,9 +453,8 @@ function DispatchedOrdersManager() {
               key={tab}
               type="button"
               onClick={() => setFilter(tab)}
-              className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-                filter === tab ? 'bg-maroon-900 text-white shadow-xs' : 'border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-              }`}
+              className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${filter === tab ? 'bg-maroon-900 text-white shadow-xs' : 'border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
+                }`}
             >
               {tab}
             </button>
@@ -601,11 +600,10 @@ function DispatchedOrdersManager() {
                 <td className="py-3 px-4 font-semibold text-neutral-900">{formatCurrency(order.total)}</td>
                 <td className="py-3 px-4">
                   <span
-                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                      order.status === 'Dispatched'
+                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${order.status === 'Dispatched'
                         ? 'bg-emerald-100 text-emerald-800'
                         : 'bg-amber-100 text-amber-800'
-                    }`}
+                      }`}
                   >
                     {order.status}
                   </span>
@@ -766,7 +764,7 @@ export default function AdminPage() {
             setProducts(apiData);
             try {
               localStorage.setItem('shreivara-products', JSON.stringify(apiData));
-            } catch (_) {}
+            } catch (_) { }
           }
         }
       } catch (err) {
@@ -781,7 +779,7 @@ export default function AdminPage() {
             setProducts(remote);
             try {
               localStorage.setItem('shreivara-products', JSON.stringify(remote));
-            } catch (_) {}
+            } catch (_) { }
           }
         } catch (err) {
           console.warn('Error loading from Supabase in Admin:', err);
@@ -855,7 +853,7 @@ export default function AdminPage() {
       const bc = new BroadcastChannel('shreivara_products_channel');
       bc.postMessage({ type: 'PRODUCTS_UPDATED', products: next });
       bc.close();
-    } catch (_) {}
+    } catch (_) { }
 
     // 2. StorageEvent for cross-tab listeners
     try {
@@ -864,12 +862,12 @@ export default function AdminPage() {
         newValue: JSON.stringify(next),
         storageArea: window.localStorage,
       }));
-    } catch (_) {}
+    } catch (_) { }
 
     // 3. CustomEvent for same-window listeners
     try {
       window.dispatchEvent(new CustomEvent('shreivara-products-updated', { detail: next }));
-    } catch (_) {}
+    } catch (_) { }
   }
 
   async function resolveProductImage(formData) {
@@ -971,7 +969,7 @@ export default function AdminPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updated),
         });
-      } catch (_) {}
+      } catch (_) { }
 
       if (isSupabaseConfigured) {
         updateProductInSupabase(sku, updated).catch((err) => console.warn('Supabase update error:', err));
@@ -997,7 +995,7 @@ export default function AdminPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updated),
         });
-      } catch (_) {}
+      } catch (_) { }
 
       if (isSupabaseConfigured) {
         toggleProductAvailabilityInSupabase(sku, updated.available).catch((err) => console.warn('Supabase toggle error:', err));
@@ -1014,7 +1012,7 @@ export default function AdminPage() {
         await fetch(`/api/products?sku=${encodeURIComponent(product.sku)}`, {
           method: 'DELETE',
         });
-      } catch (_) {}
+      } catch (_) { }
 
       // 2. Call Supabase to delete if configured
       if (isSupabaseConfigured) {
@@ -1142,11 +1140,10 @@ export default function AdminPage() {
             <button
               type="button"
               onClick={() => setShowDbModal(true)}
-              className={`cursor-pointer inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition border ${
-                isSupabaseConfigured
+              className={`cursor-pointer inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition border ${isSupabaseConfigured
                   ? 'border-emerald-500/80 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 shadow-2xs'
                   : 'border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-2xs'
-              }`}
+                }`}
               title="Configure Supabase Cloud Database"
             >
               <span className={`h-2 w-2 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
@@ -1210,22 +1207,20 @@ export default function AdminPage() {
             <button
               type="button"
               onClick={() => setActiveTab('catalogue')}
-              className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
-                activeTab === 'catalogue'
+              className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${activeTab === 'catalogue'
                   ? 'bg-maroon-900 text-white shadow-xs'
                   : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
-              }`}
+                }`}
             >
               Inventory Manager
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('orders')}
-              className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
-                activeTab === 'orders'
+              className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${activeTab === 'orders'
                   ? 'bg-maroon-900 text-white shadow-xs'
                   : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
-              }`}
+                }`}
             >
               Dispatched Orders
             </button>
@@ -1306,11 +1301,10 @@ export default function AdminPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-semibold text-maroon-950 font-brand text-xl">{product.name}</p>
                           <span
-                            className={`inline-block rounded-full px-2.5 py-0.5 text-[9.5px] font-bold ${
-                              product.available !== false
+                            className={`inline-block rounded-full px-2.5 py-0.5 text-[9.5px] font-bold ${product.available !== false
                                 ? 'bg-emerald-100 text-emerald-800'
                                 : 'bg-red-100 text-red-800'
-                            }`}
+                              }`}
                           >
                             {product.available !== false ? '● In Stock' : '○ Sold Out'}
                           </span>
@@ -1333,11 +1327,10 @@ export default function AdminPage() {
                         <button
                           type="button"
                           onClick={() => toggleAvailability(product.sku)}
-                          className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
-                            product.available !== false
+                          className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${product.available !== false
                               ? 'border-emerald-600 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
                               : 'border-neutral-400 bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                          }`}
+                            }`}
                         >
                           {product.available !== false ? 'Mark Sold Out' : 'Mark In Stock'}
                         </button>
@@ -1390,11 +1383,10 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div className={`p-3.5 rounded-2xl border text-xs font-medium ${
-              isSupabaseConfigured
+            <div className={`p-3.5 rounded-2xl border text-xs font-medium ${isSupabaseConfigured
                 ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                 : 'bg-amber-50 border-amber-300 text-amber-900'
-            }`}>
+              }`}>
               {isSupabaseConfigured
                 ? '✓ Supabase is connected! Products added and edited in this dashboard sync directly to your cloud database.'
                 : '○ Supabase is not yet configured. The store is currently running on browser local storage. Enter your credentials below to connect your cloud database.'}
@@ -1461,7 +1453,7 @@ export default function AdminPage() {
                 In your Supabase project dashboard, go to the <strong>SQL Editor</strong> and run:
               </p>
               <pre className="p-3 bg-neutral-900 text-emerald-400 rounded-xl text-[10.5px] font-mono overflow-x-auto leading-relaxed">
-{`create table if not exists products (
+                {`create table if not exists products (
   sku text primary key,
   name text not null,
   category text not null,

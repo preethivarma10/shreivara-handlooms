@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage.jsx';
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 
 export default function App() {
-  // Check if current hostname contains 'admin' (e.g. shreivara-admin.vercel.app or admin.shreivara.com)
+  // Check if current hostname contains 'admin'
   const isAdminHost = typeof window !== 'undefined' && window.location.hostname.toLowerCase().includes('admin');
 
   // Dedicated Admin Host: render Admin Dashboard exclusively

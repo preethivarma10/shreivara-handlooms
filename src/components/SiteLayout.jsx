@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
-import { fetchProductsFromSupabase } from '../lib/supabase.js';
 
 export const DEFAULT_PRODUCTS = [
   {
@@ -84,7 +83,7 @@ export function useStore() {
 
 function SearchIcon() {
   return (
-    <svg className="absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
   );
@@ -92,17 +91,9 @@ function SearchIcon() {
 
 function BagIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-    </svg>
-  );
-}
-
-function WhatsAppIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.558 4.121 1.535 5.847L.057 23.667a.5.5 0 0 0 .612.612l5.82-1.478A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.012-1.373l-.36-.214-3.727.947.963-3.617-.234-.373A9.818 9.818 0 0 1 2.182 12C2.182 6.573 6.573 2.182 12 2.182S21.818 6.573 21.818 12 17.427 21.818 12 21.818z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5.5 8.5h13l1 12h-15l1-12Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V6a3 3 0 0 1 6 0v3" />
     </svg>
   );
 }
@@ -135,16 +126,20 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
   const visibleCart = cartItems
     .map((item) => ({ ...item, product: products.find((product) => product.sku === item.sku) }))
     .filter((item) => item.product);
-  const total = visibleCart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
+  const total = visibleCart.reduce((sum, item) => {
+    const price = Number(item.product.sellingPrice ?? item.product.selling_price ?? item.product.price ?? 0);
+    return sum + price * item.quantity;
+  }, 0);
   const isFreeDelivery = total >= 3000;
 
   function startWhatsAppOrder() {
     const itemLines = visibleCart.map(({ product, quantity }) => {
-      const lineTotal = product.sellingPrice * quantity;
+      const price = Number(product.sellingPrice ?? product.selling_price ?? product.price ?? 0);
+      const lineTotal = price * quantity;
       return `• ${product.name} [${product.sku}] × ${quantity} = ${formatCurrency(lineTotal)}`;
     });
     const message = [
-      '🛍️ *New Order — Shreivara*',
+      '🛍️ *New Order from https://shreivara-handlooms.vercel.app:*',
       '',
       '*Items ordered:*',
       ...itemLines,
@@ -160,129 +155,94 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
       'Name:',
       'Address:',
       'City & Pincode:',
-      'Phone:',
-      '',
-      'Thank you for ordering with Shreivara! We will get back to you at the earliest.'
+      'Phone:'
     ].filter(Boolean).join('\n');
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      <button
-        type="button"
-        aria-label="Close panel"
-        onClick={onClose}
-        className="cursor-pointer absolute inset-0 bg-maroon-950/50 backdrop-blur-xs transition-opacity"
-      />
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="store-panel-title"
-        className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-cream shadow-2xl border-l border-gold-200"
-      >
-        <div className="flex items-center justify-between border-b border-gold-200 px-6 py-5 bg-cream">
+    <div className="fixed inset-0 z-50">
+      <button type="button" aria-label="Close panel" onClick={onClose} className="cursor-pointer absolute inset-0 bg-[#21180f]/35 backdrop-blur-[2px]" />
+      <section role="dialog" aria-modal="true" aria-labelledby="store-panel-title" className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-[#f8f5ed] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#e4dccd] px-6 py-5">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">Your Selection</p>
-            <h2 id="store-panel-title" className="mt-0.5 font-brand text-2xl font-normal text-maroon-900">
-              Shopping Bag
-            </h2>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-600">Your selection</p>
+            <h2 id="store-panel-title" className="mt-1 font-brand text-2xl font-medium text-maroon-900">Shopping bag</h2>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-full text-maroon-400 hover:text-maroon-900 hover:bg-maroon-50 transition"
-          >
-            ✕
-          </button>
+          <button type="button" onClick={onClose} aria-label="Close" className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-600 transition hover:bg-[#e9e1d3]">×</button>
         </div>
-
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-          {visibleCart.length ? (
-            visibleCart.map(({ product, quantity }) => {
-              const maxStock = product.stock ?? 5;
-              const isMax = quantity >= maxStock;
-              return (
-                <article key={product.sku} className="flex gap-4 border-b border-gold-100 pb-4 last:border-b-0">
-                  <img src={product.image} alt={product.name} className="h-24 w-20 rounded-xl object-cover border border-gold-200" />
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-brand text-lg font-normal text-maroon-900 leading-snug">{product.name}</h3>
-                    <p className="mt-0.5 text-xs text-maroon-400 font-light">{product.sku} · {formatCurrency(product.sellingPrice)}</p>
-                    <div className="mt-3 flex items-center gap-3">
-                      <button
-                        type="button"
-                        aria-label={`Remove one ${product.name}`}
-                        onClick={() => setCartItems((current) => current.flatMap((item) => item.sku !== product.sku ? [item] : item.quantity > 1 ? [{ ...item, quantity: item.quantity - 1 }] : []))}
-                        className="cursor-pointer h-7 w-7 rounded-full border border-gold-300 text-sm flex items-center justify-center hover:border-maroon-700 hover:bg-maroon-50 transition"
-                      >
-                        −
-                      </button>
-                      <span className="text-xs font-semibold">{quantity}</span>
-                      <button
-                        type="button"
-                        disabled={isMax}
-                        aria-label={`Add one ${product.name}`}
-                        onClick={() => setCartItems((current) => current.map((item) => item.sku === product.sku ? { ...item, quantity: Math.min(maxStock, item.quantity + 1) } : item))}
-                        className={`h-7 w-7 rounded-full border text-sm flex items-center justify-center transition ${isMax
-                            ? 'cursor-not-allowed border-gold-200 text-gold-300'
-                            : 'cursor-pointer border-gold-300 hover:border-maroon-700 hover:bg-maroon-50'
-                          }`}
-                      >
-                        +
-                      </button>
-                      {isMax && <span className="text-[10px] uppercase tracking-wider text-amber-700 font-medium">Max</span>}
-                      <button
-                        type="button"
-                        onClick={() => setCartItems((current) => current.filter((item) => item.sku !== product.sku))}
-                        className="cursor-pointer ml-auto text-[11px] text-maroon-400 hover:text-maroon-900 underline underline-offset-2 transition"
-                      >
-                        Remove
-                      </button>
-                    </div>
+          {visibleCart.length ? visibleCart.map(({ product, quantity }) => {
+            const maxStock = product.stock ?? 5;
+            const isMax = quantity >= maxStock;
+            const price = Number(product.sellingPrice ?? product.selling_price ?? product.price ?? 0);
+            return (
+              <article key={product.sku} className="flex gap-4 border-b border-[#e4dccd] pb-4">
+                <img src={product.image || product.image_url} alt={product.name} className="h-24 w-20 rounded-lg object-cover" />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-brand text-lg font-medium text-maroon-900">{product.name}</h3>
+                  <p className="mt-1 text-sm text-gray-600">{product.sku} · {formatCurrency(price)}</p>
+                  <div className="mt-3 flex items-center gap-3">
+                    <button
+                      type="button"
+                      aria-label={`Remove one ${product.name}`}
+                      onClick={() => setCartItems((current) => current.flatMap((item) => item.sku !== product.sku ? [item] : item.quantity > 1 ? [{ ...item, quantity: item.quantity - 1 }] : []))}
+                      className="cursor-pointer h-8 w-8 rounded-full border border-[#d9d0c1] text-lg hover:border-maroon-900"
+                    >−</button>
+                    <span className="text-sm font-medium">{quantity}</span>
+                    <button
+                      type="button"
+                      disabled={isMax}
+                      aria-label={`Add one ${product.name}`}
+                      onClick={() => setCartItems((current) => current.map((item) => item.sku === product.sku ? { ...item, quantity: Math.min(maxStock, item.quantity + 1) } : item))}
+                      className={`h-8 w-8 rounded-full border text-lg transition ${
+                        isMax
+                          ? 'cursor-not-allowed border-gray-200 text-gray-300'
+                          : 'cursor-pointer border-[#d9d0c1] hover:border-maroon-900'
+                      }`}
+                    >+</button>
+                    {isMax && <span className="text-[10px] uppercase tracking-wider text-amber-700">Max stock</span>}
+                    <button
+                      type="button"
+                      onClick={() => setCartItems((current) => current.filter((item) => item.sku !== product.sku))}
+                      className="cursor-pointer ml-auto text-xs text-gray-500 underline underline-offset-2 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
                   </div>
-                </article>
-              );
-            })
-          ) : (
-            <div className="py-20 text-center">
-              <span className="inline-block p-4 rounded-full bg-gold-50 text-gold-500 mb-3">
-                <BagIcon />
-              </span>
-              <p className="font-brand text-2xl text-maroon-800 font-normal">Your bag is currently empty.</p>
-              <p className="text-xs text-maroon-400 mt-1 font-light">Discover handcrafted sarees and jewelry to begin.</p>
-            </div>
-          )}
+                </div>
+              </article>
+            );
+          }) : <p className="py-12 text-center font-brand text-xl text-gray-500">Your bag is waiting for something beautiful.</p>}
         </div>
 
         {visibleCart.length > 0 && (
-          <div className="border-t border-gold-200 px-6 py-5 space-y-4 bg-cream-100">
+          <div className="border-t border-[#e4dccd] px-6 py-4 space-y-3.5 bg-[#f5f0e4]">
             {/* Payment & Shipping Notices */}
-            <div className="rounded-2xl border border-gold-200 bg-white p-3.5 text-xs text-maroon-800 space-y-1.5 shadow-2xs">
+            <div className="rounded-lg border border-amber-300/80 bg-white/80 p-3.5 text-xs text-[#524434] space-y-1.5 shadow-xs">
               <p className="font-semibold text-emerald-800 flex items-center gap-1.5">
-                <span>✦</span> Free shipping above ₹3000!
+                <span>🎉</span> Free Delivery on orders above ₹3,000!
               </p>
-              <p className="text-[11px] leading-relaxed text-maroon-700 font-light">
-                • Exclusive of GST &amp; Delivery charges.
+              <p className="text-[11px] leading-relaxed text-gray-700">
+                • Prices are exclusive of delivery charges and GST.
               </p>
-              <p className="text-[11px] leading-relaxed text-maroon-500 font-light">
-                • Delivery charges vary by destination pincode. Delivery schedule confirmed on chat.
+              <p className="text-[11px] leading-relaxed text-gray-700">
+                • Delivery charges vary based on location. Please connect with us on WhatsApp for exact shipping details.
               </p>
             </div>
 
-            <div className="flex justify-between items-baseline font-medium text-maroon-900 pt-1">
-              <span className="text-xs uppercase tracking-[0.16em] text-gold-600 font-sans font-semibold">Subtotal</span>
-              <span className="text-2xl font-bold font-brand tracking-tight">{formatCurrency(total)}</span>
+            <div className="flex justify-between font-semibold text-maroon-900 text-base">
+              <span>Subtotal</span>
+              <span>{formatCurrency(total)}</span>
             </div>
             <button
               type="button"
               onClick={startWhatsAppOrder}
-              className="cursor-pointer w-full rounded-full bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 hover:from-emerald-600 hover:to-emerald-800 px-5 py-3.5 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+              className="cursor-pointer w-full rounded-lg bg-maroon-900 px-5 py-3 text-sm font-semibold tracking-wide text-[#f8f5ed] transition hover:bg-maroon-800"
             >
-              <span className="h-4 w-4 text-[#25d366]"><WhatsAppIcon /></span>
-              Order Entire Cart on WhatsApp
+              Order on WhatsApp
             </button>
-            <p className="text-center text-[11px] text-gold-600 font-light">Availability and dispatch confirmed directly on WhatsApp.</p>
+            <p className="text-center text-xs text-gray-500">We’ll confirm availability and delivery with you.</p>
           </div>
         )}
       </section>
@@ -290,155 +250,92 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
   );
 }
 
-const SUTISANCHA_NAV_ITEMS = [
-  { label: 'ALL', categoryKey: 'ALL' },
-  { label: 'KANCHI PATTU', categoryKey: 'Kanchi Pattu' },
-  { label: 'MANGALAGIRI', categoryKey: 'Mangalagiri' },
-  { label: 'FANCY SILK', categoryKey: 'Fancy Silk' },
-  { label: 'ORGANZA', categoryKey: 'Organza & Chiffon' },
-  { label: 'JEWELRY', categoryKey: 'Jewellery' }
-];
-
-function SiteHeader({ query, setQuery, category, setCategory, products = [], cartCount, onOpenPanel }) {
+function SiteHeader({ query, setQuery, cartCount, onOpenPanel }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Dynamically include any custom or manually added categories from products
-  const navItems = (function () {
-    const defaultKeys = new Set(SUTISANCHA_NAV_ITEMS.map((item) => item.categoryKey.toLowerCase()));
-    const seen = new Set();
-    const extra = [];
-    (products || []).forEach((p) => {
-      const cat = (p.category || '').trim();
-      if (cat && !defaultKeys.has(cat.toLowerCase()) && !seen.has(cat.toLowerCase())) {
-        seen.add(cat.toLowerCase());
-        extra.push({
-          label: cat.toUpperCase(),
-          categoryKey: cat
-        });
-      }
-    });
-    return [...SUTISANCHA_NAV_ITEMS, ...extra];
-  })();
-
-  // Reset category, clear search, and scroll to top when Brand is clicked to show all collections & products freshly
-  function handleBrandClick() {
-    setCategory('ALL');
-    setQuery('');
+  function navigateToTop() {
     if (location.pathname !== '/') {
-      navigate('/');
+      navigate('/#top');
+      return;
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function handleNavClick(item) {
-    setCategory(item.categoryKey);
+  function navigateToCollections() {
     if (location.pathname !== '/') {
-      navigate('/');
+      navigate('/#collections');
+      return;
     }
-    setTimeout(() => {
-      const elem = document.getElementById('catalog');
-      elem?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    const elem = document.getElementById('collections') || document.getElementById('catalog');
+    elem?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function navigateToAboutUs() {
+    if (location.pathname !== '/') {
+      navigate('/#about-us');
+      return;
+    }
+    const elem = document.getElementById('about-us');
+    elem?.scrollIntoView({ behavior: 'smooth' });
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-gold-300/80 shadow-xs transition-all">
-      {/* 1. Top Red Announcement Bar */}
-      <div className="bg-[#991B1B] text-gold-100 px-4 py-2 text-center text-[10.5px] sm:text-xs font-semibold tracking-[0.2em] uppercase border-b border-gold-400/30">
-        <span className="opacity-95">Celebrate Heritage in Elegance — Up to 40% OFF!</span>
-      </div>
+    <header className="sticky top-0 z-40 border-b border-[#ded5c6] bg-[#f6f2e9]/95 backdrop-blur-sm">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-3 sm:gap-6 px-4 sm:px-6 lg:px-8">
+        {/* Left Side: Brand Logo + Home + About Us + Search Bar */}
+        <div className="flex flex-1 items-center gap-3 sm:gap-6 lg:gap-8">
+          <button
+            type="button"
+            onClick={navigateToTop}
+            className="cursor-pointer flex shrink-0 items-center gap-2 bg-transparent border-0 p-0 text-left"
+            aria-label="Shreivara home"
+          >
+            <span className="font-brand text-2xl font-semibold tracking-tight text-maroon-900 sm:text-3xl">Shreivara</span>
+          </button>
 
-      {/* 2. Secondary Gold Discount Ticker */}
-      <div className="bg-gradient-to-r from-[#D4AF37] via-[#E2C366] to-[#D4AF37] text-maroon-950 px-4 py-1.5 text-center text-[10.5px] sm:text-xs font-bold tracking-[0.08em] uppercase border-b border-gold-500/50 shadow-2xs">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 sm:gap-5">
-          <span className="flex items-center gap-1.5 font-black">
-            <span className="text-emerald-950 text-sm">✓</span> 100% Handloom Authenticity
-          </span>
-          <span className="opacity-40 hidden sm:inline">•</span>
-          <span className="flex items-center gap-1.5">
-            <span>🚚</span> Free Shipping on Orders above ₹3000
-          </span>
-          <span className="opacity-40 hidden md:inline">•</span>
-          <span className="hidden md:flex items-center gap-1.5">
-            <span>✦</span> Extra 10% OFF with Code: UTSAV10
-          </span>
-          <span className="opacity-40 hidden lg:inline">•</span>
-          <span className="hidden lg:flex items-center gap-1.5">
-            <span>💬</span> WhatsApp Orders: +91 90005 10329
-          </span>
-        </div>
-      </div>
+          <nav aria-label="Main navigation" className="flex items-center gap-4 sm:gap-6 text-sm font-medium text-gray-700">
+            <button
+              type="button"
+              onClick={navigateToCollections}
+              className="cursor-pointer transition hover:text-maroon-900 bg-transparent border-0 p-0 whitespace-nowrap"
+            >
+              Home
+            </button>
+            <button
+              type="button"
+              onClick={navigateToAboutUs}
+              className="cursor-pointer transition hover:text-maroon-900 bg-transparent border-0 p-0 whitespace-nowrap"
+            >
+              About Us
+            </button>
+          </nav>
 
-      {/* 3. Centered Sutisancha-Style Main Header */}
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 sm:gap-6 px-4 py-3 sm:py-4 sm:px-6 lg:px-8">
-        
-        {/* Left: Search Box with Rounded Borders */}
-        <div className="flex-1 max-w-[210px] sm:max-w-xs">
-          <label className="relative block w-full">
+          {/* Search Bar placed directly next to About Us */}
+          <label className="relative flex-1 max-w-xs sm:max-w-sm hidden sm:block">
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search sarees, jewelry, SKU..."
-              aria-label="Search catalogue"
-              className="w-full rounded-full border border-gold-300/80 bg-white/90 hover:bg-white focus:bg-white py-2 pl-4 pr-9 text-xs text-maroon-950 shadow-2xs transition focus:border-maroon-800 focus:outline-none placeholder:text-maroon-400 placeholder:font-light"
+              aria-label="Search catalogue by name or SKU"
+              className="w-full rounded-full border border-[#d9d0c1] bg-white/70 py-1.5 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none sm:text-sm"
             />
             <SearchIcon />
           </label>
         </div>
 
-        {/* Center: Brand Logo 'Shreivara' with official profile avatar and subtitle 'HANDLOOMS & FINE JEWELRY' */}
-        <div className="flex flex-col items-center justify-center text-center px-2">
-          <button
-            type="button"
-            onClick={handleBrandClick}
-            className="cursor-pointer bg-transparent border-0 p-0 text-center group flex items-center justify-center gap-2.5 sm:gap-3.5"
-            aria-label="Shreivara - Return to Home"
-          >
-            <div className="relative h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-full overflow-hidden border-2 border-gold-400/90 bg-[#0A1612] shadow-sm group-hover:scale-105 group-hover:border-gold-300 transition-all duration-300">
-              <img
-                src="/shreivara-logo.jpg"
-                alt="Shreivara Official Profile Logo"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="text-left">
-              <span className="font-brand text-2xl sm:text-3xl md:text-4xl font-medium tracking-[0.24em] uppercase text-maroon-950 group-hover:text-maroon-800 transition-colors block leading-tight">
-                Shreivara
-              </span>
-              <span className="text-[8.5px] sm:text-[10px] font-semibold tracking-[0.32em] uppercase text-gold-600 block mt-0.5">
-                HANDLOOMS &amp; FINE JEWELRY
-              </span>
-            </div>
-          </button>
-        </div>
-
-        {/* Right-aligned action buttons (WhatsApp, Cart) */}
-        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
-          {/* WhatsApp Circular Action Button */}
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I have an enquiry about your sarees and fine jewelry.')}`}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Chat on WhatsApp (+91 90005 10329)"
-            title="Chat on WhatsApp (+91 90005 10329)"
-            className="cursor-pointer flex h-10 w-10 sm:h-10.5 sm:w-10.5 items-center justify-center rounded-full border border-gold-400 bg-gold-50 text-maroon-900 hover:bg-[#25D366] hover:text-white hover:border-[#25D366] shadow-2xs transition-all duration-300 hover:scale-105"
-          >
-            <span className="h-4.5 w-4.5 shrink-0"><WhatsAppIcon /></span>
-          </a>
-
-          {/* Cart Circular Action Button */}
+        {/* Right Side: Cart */}
+        <div className="flex items-center justify-end gap-1.5 sm:gap-3">
           <button
             type="button"
             onClick={() => onOpenPanel('cart')}
-            aria-label={`Shopping bag, ${cartCount} items`}
-            title="Shopping Cart"
-            className="cursor-pointer relative flex h-10 w-10 sm:h-10.5 sm:w-10.5 items-center justify-center rounded-full border border-gold-400 bg-white text-maroon-900 hover:bg-gold-50 shadow-2xs transition-all duration-300 hover:scale-105"
+            aria-label={`Shopping bag, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
+            className="cursor-pointer relative inline-flex h-10 w-10 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#e9e1d3]"
           >
             <span className="h-5 w-5"><BagIcon /></span>
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 px-1 text-[9px] font-bold text-gold-100 shadow-xs border border-gold-300">
+              <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-maroon-900 px-1 text-[9px] font-bold text-white">
                 {cartCount}
               </span>
             )}
@@ -446,65 +343,42 @@ function SiteHeader({ query, setQuery, category, setCategory, products = [], car
         </div>
       </div>
 
-      {/* 4. Horizontal Category Navigation Bar (ALL, KANCHI PATTU, MANGALAGIRI, FANCY SILK, ORGANZA, JEWELRY) */}
-      <nav aria-label="Collections category navigation" className="border-t border-gold-200/70 bg-[#FAF7F2]">
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 sm:gap-7 md:gap-9 overflow-x-auto px-4 py-2.5 sm:py-3 scrollbar-none">
-          {navItems.map((item) => {
-            const isSelected =
-              (item.categoryKey === 'ALL' && (category === 'ALL' || category === 'All Collections' || category === 'All Sarees')) ||
-              category === item.categoryKey;
-            return (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => handleNavClick(item)}
-                className={`cursor-pointer whitespace-nowrap text-[11px] sm:text-xs font-semibold tracking-[0.18em] uppercase transition-all duration-200 py-1 border-b-2 ${
-                  isSelected
-                    ? 'border-maroon-900 text-maroon-950 font-bold'
-                    : 'border-transparent text-maroon-800/80 hover:text-maroon-950 hover:border-gold-400'
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+      {/* Mobile search bar on small screens */}
+      <div className="border-t border-[#e6dfd3] px-4 py-2 sm:hidden">
+        <label className="relative block w-full">
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search sarees, jewelry, SKU..."
+            aria-label="Search catalogue"
+            className="w-full rounded-full border border-[#d9d0c1] bg-white/70 py-1.5 pl-4 pr-10 text-xs transition focus:border-maroon-800 focus:bg-white focus:outline-none"
+          />
+          <SearchIcon />
+        </label>
+      </div>
     </header>
   );
 }
 
 function SiteFooter() {
   return (
-    <footer className="border-t border-gold-300 bg-gradient-to-b from-maroon-900 via-maroon-950 to-maroon-950 px-4 py-16 text-center text-sm">
-      <div className="mx-auto max-w-7xl space-y-4 flex flex-col items-center">
-        <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full overflow-hidden border-2 border-gold-400/90 shadow-xl bg-[#0A1612]">
-          <img
-            src="/shreivara-logo.jpg"
-            alt="Shreivara Handlooms Official Profile Logo"
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div>
-          <p className="font-brand text-3xl font-medium tracking-[0.24em] uppercase text-gold-300">Shreivara</p>
-          <p className="text-xs tracking-[0.2em] text-gold-400/70 uppercase mt-1">Direct WhatsApp Orders • Heritage Artistry • Worldwide Delivery</p>
-        </div>
-        <div className="flex flex-col items-center justify-center gap-2 pt-2 text-xs sm:flex-row sm:gap-6 text-gold-200">
-          <a href="mailto:shreivara@gmail.com" className="cursor-pointer hover:text-white transition">
-            shreivara@gmail.com
-          </a>
+    <footer className="mt-auto border-t border-[#ded5c6] bg-[#2d1b11] py-8 text-[#f8f5ed]">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-center text-xs sm:flex-row sm:px-6 sm:text-left lg:px-8">
+        <p className="font-brand text-lg tracking-wider text-gold-500">Shreivara</p>
+        <p className="text-white/60">Direct WhatsApp orders · Secure delivery · Trusted quality</p>
+        <div className="flex items-center gap-6 text-[#ded5c6]">
           {WHATSAPP_NUMBER && (
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to get in touch.')}`}
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to get in touch regarding https://shreivara-handlooms.vercel.app.')}`}
               target="_blank"
               rel="noreferrer"
-              className="cursor-pointer hover:text-white transition"
+              className="cursor-pointer underline decoration-white/40 underline-offset-4 transition hover:text-gold-500"
             >
               WhatsApp: +91 90005 10329
             </a>
           )}
         </div>
-        <p className="text-[11px] text-maroon-400 pt-4">© {new Date().getFullYear()} Shreivara Handlooms &amp; Fine Jewelry. All rights reserved.</p>
       </div>
     </footer>
   );
@@ -512,9 +386,9 @@ function SiteFooter() {
 
 export default function SiteLayout() {
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('ALL');
-  const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(true);
+  const [category, setCategory] = useState('All Collections');
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [productsError, setProductsError] = useState('');
   const [cartItems, setCartItems] = useState(() => readStoredList('shreivara-cart', (item) =>
     typeof item?.sku === 'string' && Number.isSafeInteger(item.quantity) && item.quantity > 0));
@@ -538,7 +412,6 @@ export default function SiteLayout() {
     }, 2000);
   }
 
-  // Restrict Add to Cart by stock quantity; shows 'Added to Cart!' pop-up for 2s on success
   function addToBag(sku) {
     const prod = products.find((p) => p.sku === sku);
     const maxStock = prod?.stock ?? 5;
@@ -549,130 +422,6 @@ export default function SiteLayout() {
     setCartItems((current) => addCartItem(current, sku, maxStock));
     showToast('Added to Cart!');
   }
-
-  useEffect(() => {
-    async function loadProducts() {
-      setProductsLoading(true);
-
-      // 1. Primary: Make an actual HTTP API call to backend /api/products
-      try {
-        const response = await fetch('/api/products');
-        if (response.ok) {
-          const apiProducts = await response.json();
-          if (Array.isArray(apiProducts) && apiProducts.length > 0) {
-            const withStock = apiProducts.map((p) => ({ ...p, stock: p.stock ?? 5 }));
-            setProducts(withStock);
-            setProductsLoading(false);
-            try {
-              window.localStorage.setItem('shreivara-products', JSON.stringify(withStock));
-            } catch (_) {}
-            return;
-          }
-        }
-      } catch (apiErr) {
-        console.warn('API call to /api/products failed:', apiErr);
-      }
-
-      // 2. Secondary: Try fetching from Supabase cloud database if configured
-      try {
-        const remote = await fetchProductsFromSupabase();
-        if (Array.isArray(remote) && remote.length > 0) {
-          let combined = remote;
-          try {
-            const stored = window.localStorage.getItem('shreivara-products');
-            if (stored) {
-              const localList = JSON.parse(stored);
-              if (Array.isArray(localList) && localList.length > 0) {
-                const remoteSkus = new Set(remote.map((r) => r.sku));
-                const localOnly = localList.filter((l) => !remoteSkus.has(l.sku));
-                combined = [...localOnly, ...remote];
-              }
-            }
-          } catch (_) {}
-          const withStock = combined.map((p) => ({ ...p, stock: p.stock ?? 5 }));
-          setProducts(withStock);
-          setProductsLoading(false);
-          try {
-            window.localStorage.setItem('shreivara-products', JSON.stringify(withStock));
-          } catch (_) {}
-          return;
-        }
-      } catch (err) {
-        console.warn('Could not fetch from Supabase:', err);
-      }
-
-      // 3. Fallback: Read from localStorage
-      try {
-        const stored = window.localStorage.getItem('shreivara-products');
-        if (stored !== null) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const withStock = parsed.map((p) => ({ ...p, stock: p.stock ?? 5 }));
-            setProducts(withStock);
-            setProductsLoading(false);
-            return;
-          }
-        }
-      } catch (error) {
-        console.warn('Could not read products from localStorage, using defaults.', error);
-      }
-
-      // 4. Ultimate fallback to default catalog
-      setProducts(DEFAULT_PRODUCTS);
-      try {
-        window.localStorage.setItem('shreivara-products', JSON.stringify(DEFAULT_PRODUCTS));
-      } catch (_) { }
-      setProductsLoading(false);
-    }
-    loadProducts();
-
-    // 1. BroadcastChannel: instant, zero-delay sync across tabs and windows
-    let bc = null;
-    try {
-      bc = new BroadcastChannel('shreivara_products_channel');
-      bc.onmessage = (event) => {
-        if (event.data?.type === 'PRODUCTS_UPDATED' && Array.isArray(event.data.products)) {
-          setProducts(event.data.products);
-          setProductsLoading(false);
-        }
-      };
-    } catch (_) {}
-
-    // 2. Native StorageEvent: fires when another tab modifies localStorage
-    function handleStorageChange(e) {
-      if (!e.key || e.key === 'shreivara-products') {
-        try {
-          const stored = window.localStorage.getItem('shreivara-products');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setProducts(parsed);
-              setProductsLoading(false);
-            }
-          }
-        } catch (_) {}
-      }
-    }
-
-    // 3. CustomEvent: fires for same-window updates
-    function handleCustomUpdate(e) {
-      if (Array.isArray(e.detail) && e.detail.length > 0) {
-        setProducts(e.detail);
-        setProductsLoading(false);
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('shreivara-products-updated', handleCustomUpdate);
-
-    return () => {
-      if (bc) {
-        try { bc.close(); } catch (_) {}
-      }
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('shreivara-products-updated', handleCustomUpdate);
-    };
-  }, []);
 
   const context = {
     query,
@@ -690,7 +439,7 @@ export default function SiteLayout() {
 
   return (
     <StoreContext.Provider value={context}>
-      <div className="flex min-h-screen flex-col bg-cream pb-20 sm:pb-0">
+      <div className="flex min-h-screen flex-col bg-[#f6f2e9]">
         <SiteHeader
           {...context}
           cartCount={cartItems.reduce((count, item) => count + item.quantity, 0)}
@@ -706,44 +455,14 @@ export default function SiteLayout() {
           onClose={() => setActivePanel('')}
         />
 
-        {/* Mobile-First Sticky Quick Action Bar */}
-        <nav aria-label="Mobile quick actions" className="fixed bottom-3 inset-x-3 z-40 sm:hidden">
-          <div className="flex items-center justify-between gap-2.5 rounded-full border border-gold-300/80 bg-cream/95 p-1.5 shadow-2xl backdrop-blur-lg">
-            <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to place an order or enquire about your collections.')}`}
-              target="_blank"
-              rel="noreferrer"
-              className="cursor-pointer flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-white shadow-sm active:scale-95 transition-transform"
-            >
-              <span className="h-4 w-4 shrink-0 text-[#25d366]"><WhatsAppIcon /></span>
-              <span>WhatsApp Order</span>
-            </a>
-
-            <button
-              type="button"
-              onClick={() => setActivePanel('cart')}
-              aria-label="View shopping bag"
-              className="cursor-pointer flex items-center gap-2 rounded-full bg-gradient-to-r from-maroon-900 via-maroon-850 to-maroon-900 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-gold-100 shadow-sm active:scale-95 transition-transform border border-gold-400/40"
-            >
-              <span className="h-4 w-4 shrink-0"><BagIcon /></span>
-              <span>Bag</span>
-              {cartItems.reduce((count, item) => count + item.quantity, 0) > 0 && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-400 px-1 text-[10px] font-bold text-maroon-950">
-                  {cartItems.reduce((count, item) => count + item.quantity, 0)}
-                </span>
-              )}
-            </button>
-          </div>
-        </nav>
-
-        {/* Elegant 2-second 'Added to Cart!' Toast Notification */}
+        {/* 2-second 'Added to Cart!' Toast Notification */}
         {toastMessage && (
           <div
             role="status"
             aria-live="polite"
-            className="pointer-events-none fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-gold-400 bg-maroon-900 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-gold-100 shadow-xl transition-all duration-300"
+            className="pointer-events-none fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full border border-gold-500/50 bg-maroon-900 px-6 py-3 text-xs sm:text-sm font-semibold tracking-wide text-[#f8f5ed] shadow-[0_16px_40px_rgba(40,25,12,0.35)] transition-all duration-300"
           >
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white">✓</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-700 text-[11px] font-bold text-white">✓</span>
             <span>{toastMessage}</span>
           </div>
         )}

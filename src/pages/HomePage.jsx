@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
+import { DEFAULT_PRODUCTS } from '../components/SiteLayout.jsx';
 import { supabase } from '../lib/supabase';
 
 function normalizeProduct(item, idx = 0) {
@@ -52,22 +53,15 @@ function WhatsAppIcon() {
 
 function BagIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5.5 8.5h13l1 12h-15l1-12Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V6a3 3 0 0 1 6 0v3" />
     </svg>
   );
 }
 
-function SearchIcon() {
-  return (
-    <svg className="h-4 w-4 text-gold-400/80 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  );
-}
-
-function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
-  const p = product || item || {};
+function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
+  const p = product;
   const rawSizes = p.sizes || '';
   const sizes = Array.isArray(rawSizes)
     ? rawSizes
@@ -93,112 +87,71 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
   const isSoldOut = p.available === false || maxStock <= 0;
   const isMaxReached = cartQuantity >= maxStock;
 
+  const waMessage = encodeURIComponent([
+    isSoldOut
+      ? 'Hello Shreivara, I noticed this piece is currently sold out and would like to inquire about a custom weave / restock:'
+      : 'Hello Shreivara, I would like to inquire about / order this piece:',
+    `• Product: ${name}`,
+    `• SKU: ${sku}`,
+    `• Category: ${category}`,
+    `• Price: ${formatCurrency(sellingPrice)}`,
+    originalPrice > sellingPrice ? `• Original Price: ${formatCurrency(originalPrice)}` : '',
+    offerDetails ? `• Offer: ${offerDetails}` : '',
+    description ? `• Details: ${description}` : '',
+    '• Storefront: https://shreivara-handlooms.vercel.app',
+    '',
+    'Please confirm availability and delivery details.'
+  ].filter(Boolean).join('\n'));
+
   const discount = originalPrice > sellingPrice ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100) : 0;
-  const displayDiscount = discount > 0 ? `${discount}% OFF` : 'FESTIVE EDIT';
 
   return (
-    <article className="fashion-card group relative flex flex-col overflow-hidden rounded-2xl border border-gold-500/30 bg-[#16070B]/90 backdrop-blur-md shadow-xl hover:border-gold-400 hover:shadow-2xl transition-all duration-300">
-      {/* Full-Bleed Tall Vertical Product Image */}
-      <div className="relative aspect-[2/3] sm:aspect-[3/4] w-full overflow-hidden bg-black/60">
+    <article className="group overflow-hidden rounded-sm border border-[#e1d8c9] bg-[#fbf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(58,43,25,0.12)]">
+      <div className="relative overflow-hidden bg-[#e8dfd0]">
         <img
-          src={p.image_url || p.images || imageUrl}
+          src={imageUrl}
           alt={name}
-          className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${isSoldOut ? 'grayscale-40 opacity-70' : ''
-            }`}
+          className="h-[320px] w-full object-cover transition duration-700 group-hover:scale-[1.035]"
           loading="lazy"
         />
-        {/* Subtle hover gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-        {/* Floating Discount Badge or Sold Out Badge */}
-        <div className="absolute left-3 top-3 z-10 pointer-events-none flex flex-col gap-1">
-          {isSoldOut ? (
-            <span className="rounded-md bg-neutral-900/90 text-white border border-neutral-700 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-md">
-              SOLD OUT
-            </span>
-          ) : (
-            <span className="rounded-md bg-gradient-to-r from-maroon-900 to-[#800F2F] text-gold-200 border border-gold-400/50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-md">
-              {displayDiscount}
-            </span>
-          )}
-        </div>
-
-        {/* Top-Right Star Rating & SKU */}
-        <div className="absolute right-3 top-3 flex flex-col items-end gap-1 z-10 pointer-events-none">
-          <span className="inline-flex items-center gap-1 rounded-md bg-black/80 backdrop-blur-md px-2 py-0.5 text-[9.5px] font-bold text-gold-300 border border-gold-500/40 shadow-md">
-            <span className="text-[#D4AF37]">★</span> 4.9
+        {discount > 0 && (
+          <span className="absolute left-3 top-3 bg-[#f6f2e9]/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-maroon-900">
+            {discount}% off
           </span>
-          <span className="rounded-md bg-maroon-950/80 backdrop-blur-md px-1.5 py-0.5 text-[8.5px] font-mono tracking-wider text-gold-200 uppercase border border-gold-500/30 shadow-md">
-            {sku}
-          </span>
-        </div>
+        )}
       </div>
-
-      {/* Card Body */}
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-400">
-            {category}
-          </p>
-          <span className="text-[9.5px] text-emerald-300 font-semibold bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/40">
-            Handloom Mark
-          </span>
-        </div>
-
-        {/* Title */}
-        <h3 className="mt-1.5 font-brand text-lg sm:text-xl font-normal leading-snug text-white group-hover:text-gold-200 transition-colors line-clamp-1">
-          {p.name}
-        </h3>
-
-        {/* Original vs Discounted Prices */}
-        <div className="mt-2.5 flex items-baseline gap-2">
-          <span className="text-xl sm:text-2xl font-bold text-gold-300 font-brand tracking-tight">
-            ₹{p.price}
-          </span>
+      <div className="p-4 sm:p-5 flex flex-col flex-1">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
+        <h3 className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900">{name}</h3>
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-lg font-semibold text-maroon-900">{formatCurrency(sellingPrice)}</span>
           {originalPrice > sellingPrice && (
-            <span className="text-xs text-neutral-400 line-through font-light">
-              {formatCurrency(originalPrice)}
-            </span>
+            <span className="text-sm text-gray-400 line-through">{formatCurrency(originalPrice)}</span>
           )}
+          <span className="ml-auto text-[10px] uppercase tracking-widest text-gray-500">{sku}</span>
         </div>
-
-        {description && (
-          <p className="mt-2 text-xs text-neutral-300 font-light line-clamp-2 leading-relaxed">
-            {p.description || description}
-          </p>
-        )}
-
-        {offerDetails && offerDetails !== description && (
-          <p className="mt-2 rounded-lg border border-gold-500/40 bg-maroon-950/70 px-2.5 py-1 text-[11px] font-medium text-gold-200 flex items-center gap-1">
-            <span className="text-gold-400">✦</span> {offerDetails}
-          </p>
-        )}
-
-        {sizes.length > 0 && (
-          <p className="mt-1 text-[11px] text-neutral-400 font-light">Sizes: {sizes.join(', ')}</p>
-        )}
-
-        {/* Action Buttons: Order on WhatsApp & Add to Cart */}
-        <div className="mt-auto pt-4 grid grid-cols-2 gap-2">
+        {offerDetails && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-maroon-900">{offerDetails}</p>}
+        {description && !offerDetails && <p className="mt-2 text-xs text-gray-600 line-clamp-2">{description}</p>}
+        {sizes.length > 0 && <p className="mt-2 text-sm text-gray-600">Available sizes: {sizes.join(', ')}</p>}
+        <div className="mt-5 grid grid-cols-2 gap-2 mt-auto">
           <a
-            href="https://wa.me/919000510329"
+            href={`https://wa.me/919000510329?text=${waMessage}`}
             target="_blank"
-            rel="noopener noreferrer"
-            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-900 hover:from-emerald-700 hover:to-emerald-800 px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] text-white shadow-md border border-emerald-600/40 transition-all active:scale-[0.98] text-center"
+            rel="noreferrer"
+            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm bg-[#25d366] px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#1ebe5d]"
           >
-            <span className="h-3.5 w-3.5 shrink-0 text-[#25D366]"><WhatsAppIcon /></span>
+            <span className="h-3.5 w-3.5 shrink-0"><WhatsAppIcon /></span>
             Order on WhatsApp
           </a>
           <button
             type="button"
-            disabled={isSoldOut || isMaxReached}
+            disabled={isMaxReached || isSoldOut}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] transition-all active:scale-[0.98] text-center ${isSoldOut
-              ? 'cursor-not-allowed border border-neutral-800 bg-neutral-900 text-neutral-500'
-              : isMaxReached
-                ? 'cursor-not-allowed border border-neutral-800 bg-neutral-900 text-neutral-500'
-                : 'border border-gold-400/40 bg-gradient-to-r from-maroon-900 via-maroon-850 to-maroon-900 text-gold-100 hover:brightness-110 shadow-md'
-              }`}
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] transition ${
+              isMaxReached || isSoldOut
+                ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60'
+                : 'border-maroon-900 text-maroon-900 hover:bg-maroon-900 hover:text-[#f8f5ed]'
+            }`}
           >
             <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
             {isSoldOut ? 'Sold Out' : isMaxReached ? 'Limit Reached' : 'Add to Cart'}
@@ -210,341 +163,123 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
 }
 
 export default function HomePage() {
-  const outlet = useOutletContext() || {};
-  const [internalQuery, setInternalQuery] = useState('');
-  const [internalCategory, setInternalCategory] = useState('ALL');
+  const {
+    query,
+    category,
+    setCategory,
+    setProducts: setParentProducts,
+    cartItems,
+    addToBag
+  } = useOutletContext();
 
-  const query = outlet.query !== undefined ? outlet.query : internalQuery;
-  const setQuery = outlet.setQuery || setInternalQuery;
-  const category = outlet.category !== undefined ? outlet.category : internalCategory;
-  const setCategory = outlet.setCategory || setInternalCategory;
-  const cartItems = outlet.cartItems || [];
-  const addToBag = outlet.addToBag || (() => { });
-  const setContextProducts = outlet.setProducts;
-
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx)));
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Use useEffect to fetch products directly from Supabase on mount
   useEffect(() => {
+    document.title = 'Shreivara Handlooms | Authentic Sarees & Fine Jewelry';
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
     async function fetchProducts() {
+      setLoading(true);
       try {
-        setLoading(true);
-        const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+        const { data, error: supabaseError } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching products from Supabase:', error);
-          // Graceful fallback to backend API or local storage cache
-          try {
-            const apiRes = await fetch('/api/products');
-            if (apiRes.ok) {
-              const apiData = await apiRes.json();
-              if (Array.isArray(apiData) && apiData.length > 0) {
-                const mapped = apiData.map(normalizeProduct);
-                setProducts(mapped);
-                if (setContextProducts) setContextProducts(mapped);
-                return;
-              }
-            }
-          } catch (_) { }
-
-          try {
-            const stored = window.localStorage.getItem('shreivara-products');
-            if (stored) {
-              const storedList = JSON.parse(stored);
-              if (Array.isArray(storedList) && storedList.length > 0) {
-                const mapped = storedList.map(normalizeProduct);
-                setProducts(mapped);
-                if (setContextProducts) setContextProducts(mapped);
-                return;
-              }
-            }
-          } catch (_) { }
-        } else if (data) {
-          const mapped = data.map(normalizeProduct);
-          setProducts(mapped);
-          if (setContextProducts) setContextProducts(mapped);
-          try {
-            window.localStorage.setItem('shreivara-products', JSON.stringify(mapped));
-          } catch (_) { }
+        if (supabaseError) {
+          console.warn('Supabase fetch error, fallback to local products:', supabaseError.message);
+          if (isMounted) {
+            const fallback = DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx));
+            setProducts(fallback);
+            if (setParentProducts) setParentProducts(fallback);
+            setError(supabaseError.message);
+            setLoading(false);
+          }
+        } else if (data && data.length > 0) {
+          if (isMounted) {
+            const normalized = data.map((item, idx) => normalizeProduct(item, idx));
+            setProducts(normalized);
+            if (setParentProducts) setParentProducts(normalized);
+            setLoading(false);
+          }
+        } else {
+          if (isMounted) {
+            const fallback = DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx));
+            setProducts(fallback);
+            if (setParentProducts) setParentProducts(fallback);
+            setLoading(false);
+          }
         }
       } catch (err) {
-        console.error('Unexpected exception during Supabase products query:', err);
-      } finally {
-        setLoading(false);
+        console.warn('Supabase connection error:', err);
+        if (isMounted) {
+          const fallback = DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx));
+          setProducts(fallback);
+          if (setParentProducts) setParentProducts(fallback);
+          setLoading(false);
+        }
       }
     }
 
     fetchProducts();
-
-    // Cross-tab sync when admin adds or updates products
-    let bc = null;
-    try {
-      bc = new BroadcastChannel('shreivara_products_channel');
-      bc.onmessage = (event) => {
-        if (event.data?.type === 'PRODUCTS_UPDATED') {
-          fetchProducts();
-        }
-      };
-    } catch (_) { }
-
-    return () => {
-      if (bc) bc.close();
-    };
-  }, [setContextProducts]);
+    return () => { isMounted = false; };
+  }, [setParentProducts]);
 
   const filteredProducts = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    const selCat = (category || 'ALL').toUpperCase();
-
+    const normalizedQuery = (query || '').trim().toLowerCase();
     return products.filter((product) => {
-      const pCat = (product.category || '').toUpperCase();
-
-      let matchesCategory = false;
-      if (selCat === 'ALL' || selCat === 'ALL COLLECTIONS' || selCat === 'ALL SAREES') {
-        matchesCategory = true;
-      } else if (selCat === 'KANCHI PATTU') {
-        matchesCategory = pCat.includes('KANCHI');
-      } else if (selCat === 'MANGALAGIRI') {
-        matchesCategory = pCat.includes('MANGALAGIRI');
-      } else if (selCat === 'FANCY SILK') {
-        matchesCategory = pCat.includes('FANCY');
-      } else if (selCat === 'ORGANZA' || selCat === 'ORGANZA & CHIFFON') {
-        matchesCategory = pCat.includes('ORGANZA');
-      } else if (selCat === 'JEWELRY' || selCat === 'JEWELLERY') {
-        matchesCategory = pCat.includes('JEWEL');
-      } else {
-        matchesCategory = pCat === selCat;
-      }
-
+      const matchesCategory =
+        category === 'All Sarees' ||
+        category === 'All Collections' ||
+        category === 'ALL' ||
+        product.category === category;
       const matchesQuery =
         !normalizedQuery ||
-        product.name.toLowerCase().includes(normalizedQuery) ||
-        product.sku.toLowerCase().includes(normalizedQuery) ||
-        pCat.toLowerCase().includes(normalizedQuery);
+        (product.name && product.name.toLowerCase().includes(normalizedQuery)) ||
+        (product.sku && product.sku.toLowerCase().includes(normalizedQuery)) ||
+        (product.category && product.category.toLowerCase().includes(normalizedQuery));
       return matchesCategory && matchesQuery;
     });
   }, [category, products, query]);
 
-  const displayCategories = useMemo(() => {
-    const base = ['ALL', 'KANCHI PATTU', 'MANGALAGIRI', 'FANCY SILK', 'ORGANZA', 'JEWELRY'];
-    const baseKeys = new Set(['ALL', 'KANCHI PATTU', 'MANGALAGIRI', 'FANCY SILK', 'ORGANZA', 'JEWELRY', 'ORGANZA & CHIFFON', 'JEWELLERY']);
-    const custom = [];
-    (products || []).forEach((p) => {
-      const cat = (p.category || '').trim();
-      if (cat) {
-        const upper = cat.toUpperCase();
-        if (!baseKeys.has(upper) && !custom.includes(upper)) {
-          if (!upper.includes('KANCHI') && !upper.includes('MANGALAGIRI') && !upper.includes('FANCY') && !upper.includes('ORGANZA') && !upper.includes('JEWEL')) {
-            custom.push(upper);
-          }
-        }
-      }
-    });
-    return [...base, ...custom];
-  }, [products]);
-
-  useEffect(() => {
-    document.title = 'Shreivara Handlooms | Premium Sarees & Fine Jewelry';
-  }, []);
-
   return (
-    <main id="top" className="w-full flex-1 bg-[#0A0306] text-white">
-      {/* Search & Navigation Bar Header */}
-      <section className="border-b border-gold-500/20 bg-neutral-950/80 backdrop-blur-md px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gold-400">
-              Shreivara Catalog
-            </span>
-            <span className="h-1 w-1 rounded-full bg-gold-400/50" />
-            <span className="text-[11px] text-neutral-400 font-light">Heritage Weaves</span>
-          </div>
+    <main id="top" className="w-full flex-1">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-16">
 
-          <div className="relative w-full max-w-md">
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search sarees, jewelry, SKU..."
-              className="w-full rounded-full border border-gold-500/30 bg-[#16070B] px-4 py-2 pr-10 text-xs text-white placeholder-neutral-400 focus:border-gold-400 focus:outline-none focus:ring-1 focus:ring-gold-400"
-            />
-            <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-              <SearchIcon />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-12 sm:space-y-16 lg:space-y-20">
-
-        {/* 1. WhatsApp Inquiry Banner ("ENQUIRE WITH US ON WHATSAPP") */}
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-gold-500/40 bg-gradient-to-r from-maroon-950 via-[#3B0A12] to-maroon-950 p-6 sm:p-10 text-center shadow-2xl">
-          <div
-            className="absolute inset-0 opacity-[0.07] pointer-events-none"
-            style={{
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23d4af37\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
-            }}
-          />
-          <div className="relative z-10 max-w-3xl mx-auto space-y-3">
-            <span className="inline-block text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-400 border border-gold-500/30 px-3.5 py-1 rounded-full bg-maroon-900/60 backdrop-blur-xs">
-              Personalized Styling &amp; Custom Sourcing
-            </span>
-            <h2 className="font-brand text-2xl sm:text-3xl lg:text-4xl font-normal text-gold-100">
-              Looking for something else? Enquire with us on WhatsApp!
-            </h2>
-            <p className="mx-auto max-w-2xl text-xs sm:text-sm text-gold-200/80 font-light leading-relaxed">
-              Whether you are curating a bridal trousseau, matching specific family wedding colors, or seeking a rare heritage weave, our master stylists are ready to share video walkthroughs and tailored collections.
-            </p>
-            <div className="pt-2 flex justify-center">
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I am looking for a customized saree/jewelry order. Could you please assist me?')}`}
-                target="_blank"
-                rel="noreferrer"
-                className="cursor-pointer inline-flex items-center gap-2.5 rounded-full bg-[#25d366] hover:bg-[#1ebe5d] px-7 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider text-white shadow-xl transition-all active:scale-95"
-              >
-                <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
-                ENQUIRE WITH US ON WHATSAPP
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* 2. Festive Hero & Editorial Highlight Banner */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-black via-[#26060E] to-maroon-950 text-white shadow-2xl border border-gold-500/30">
-          <div
-            className="absolute inset-0 opacity-[0.06] pointer-events-none"
-            style={{
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23d4af37\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'
-            }}
-          />
-
-          <div className="relative z-10 grid gap-8 lg:grid-cols-12 items-center p-6 sm:p-10 lg:p-14">
-            {/* Left Column: Festive Editorial Copy & Offers */}
-            <div className="lg:col-span-7 space-y-5">
-              <div className="inline-flex items-center gap-2 rounded-full border border-gold-400/50 bg-gold-400/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-gold-300 backdrop-blur-xs">
-                <span>✦</span> Festive Utsav Edit • Up to 40% Off <span>✦</span>
-              </div>
-
-              <h1 className="font-brand text-3xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-gold-100 leading-[1.1]">
-                Celebrate in Timeless Elegance
-              </h1>
-
-              {/* Editorial Lifestyle Block */}
-              <div className="border-l-2 border-gold-400/60 pl-4 py-1">
-                <p className="font-serif italic text-base sm:text-xl text-gold-200/95 font-light leading-snug">
-                  “Celebrate in Timeless Elegance — Inspired by India’s rich weaving heritage.”
-                </p>
-              </div>
-
-              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-light max-w-xl">
-                Immerse yourself in authentic Kanchipuram pure silk, airy Mangalagiri weaves, and heirloom South Indian bridal jewelry. Handcrafted by generational master weavers for weddings, pujas, and treasured festivities.
-              </p>
-
-              {/* Festive Promo Code Pill */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <div className="inline-flex items-center gap-2 rounded-xl border border-gold-400/50 bg-black/50 backdrop-blur-md px-4 py-2">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-gold-300 font-semibold">Festive Code:</span>
-                  <span className="font-mono text-sm font-bold tracking-wider text-white bg-maroon-800/90 px-2.5 py-0.5 rounded border border-gold-400/50">
-                    UTSAV10
-                  </span>
-                  <span className="text-[11px] text-emerald-400 font-semibold">Extra 10% OFF</span>
-                </div>
-                <span className="text-[11px] text-gold-300/70 font-light">• Applicable on all prepaid &amp; WhatsApp orders</span>
-              </div>
-
-              {/* Primary Hero Actions */}
-              <div className="flex flex-wrap items-center gap-3 pt-3">
-                <a
-                  href="#catalog"
-                  className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-gold-300 via-gold-400 to-gold-300 text-maroon-950 hover:brightness-105 px-6 sm:px-7 py-3 text-xs font-bold uppercase tracking-[0.14em] shadow-lg transition-all active:scale-[0.98]"
-                >
-                  Explore Collection
-                </a>
-                <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to schedule a personal video walkthrough of your festive saree collection.')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-maroon-900/60 hover:bg-maroon-800 text-gold-100 px-5 sm:px-6 py-3 text-xs font-semibold uppercase tracking-[0.12em] backdrop-blur-xs shadow-xs transition-all active:scale-[0.98]"
-                >
-                  <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
-                  Video Walkthrough
-                </a>
-              </div>
-            </div>
-
-            {/* Right Column: Hero High-Fashion Imagery */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-gold-400/40 shadow-2xl">
-                <img
-                  src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=85"
-                  alt="Festive Royal Kanchipuram Handloom Saree"
-                  className="h-full w-full object-cover object-top"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-gold-100">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gold-300">Handcrafted Legacy</p>
-                    <p className="font-brand text-lg sm:text-xl font-normal text-white">Pure Zari Kanjivaram &amp; Fine Jewelry</p>
-                  </div>
-                  <span className="rounded-full bg-gold-400/20 backdrop-blur-md border border-gold-400/50 px-3 py-1 text-[10px] font-mono text-gold-200">
-                    ★ 4.9 / 5.0
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 3. Top Collections Section */}
-        <section id="collections" className="scroll-mt-28">
-          <div id="catalog" className="scroll-mt-28">
-            <div className="mb-8 sm:mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between border-b border-gold-500/20 pb-6">
+        {/* Top Collections Section */}
+        <section id="collections" className="scroll-mt-24 pt-2">
+          <div id="catalog" className="scroll-mt-24">
+            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <span className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-400 mb-2 block">
-                  Curated Handlooms &amp; Fine Jewelry
-                </span>
-                <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight text-white">
-                  Top Collections
-                </h2>
-                <p className="mt-1 text-xs sm:text-sm text-neutral-300 font-light">
-                  Sarees to Treasures • Handcrafted with Heritage Artistry
-                </p>
+                <h1 className="font-brand text-4xl font-medium text-maroon-900 sm:text-5xl">Top Collections</h1>
+                <p className="mt-1 text-sm text-[#786c5b]">Sarees to Treasures • Handcrafted with Heritage Artistry</p>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to schedule a personal walkthrough on WhatsApp.')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="cursor-pointer inline-flex items-center gap-2 rounded-full border border-gold-400/40 bg-maroon-900 text-gold-100 hover:bg-maroon-800 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] shadow-md transition-all active:scale-[0.98]"
-                >
-                  <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
-                  Video Consultation
-                </a>
-                <span className="rounded-full border border-gold-500/40 bg-[#16070B] px-4 py-2.5 text-xs font-medium text-gold-300 shadow-sm font-mono" aria-live="polite">
-                  {filteredProducts.length} {filteredProducts.length === 1 ? 'Design' : 'Designs'}
-                </span>
-              </div>
+              <p className="text-xs text-gray-500" aria-live="polite">
+                Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
+              </p>
             </div>
 
             {/* Category Filter Chips */}
-            <div className="mb-10 sm:mb-12 flex flex-wrap gap-2.5 sm:gap-3" aria-label="Filter collections by category">
-              {displayCategories.map((item) => {
+            <div className="mb-8 flex flex-wrap gap-2" aria-label="Filter collections by category">
+              {['All Collections', ...categories].map((item) => {
                 const isSelected =
-                  (item === 'ALL' && (category === 'ALL' || category === 'All Collections' || category === 'All Sarees')) ||
-                  category.toUpperCase() === item.toUpperCase() ||
-                  (item === 'ORGANZA' && category === 'Organza & Chiffon') ||
-                  (item === 'JEWELRY' && category === 'Jewellery');
+                  (item === 'All Collections' && (category === 'All Collections' || category === 'All Sarees' || category === 'ALL')) ||
+                  category === item;
                 return (
                   <button
                     key={item}
                     type="button"
                     aria-pressed={isSelected}
-                    onClick={() => setCategory(item)}
-                    className={`cursor-pointer rounded-full px-5 py-2 text-xs font-semibold tracking-wider transition-all uppercase ${isSelected
-                      ? 'bg-gradient-to-r from-gold-400 to-gold-500 text-maroon-950 shadow-md font-bold'
-                      : 'bg-[#180A0E] hover:bg-[#250F16] text-gold-200 border border-gold-500/30'
-                      }`}
+                    onClick={() => setCategory(item === 'All Collections' ? 'All Collections' : item)}
+                    className={`cursor-pointer rounded-full border px-4 py-2 text-xs font-medium transition ${
+                      isSelected
+                        ? 'border-maroon-900 bg-maroon-900 text-[#f8f5ed]'
+                        : 'border-[#d9d0c1] bg-transparent text-gray-700 hover:border-maroon-800 hover:text-maroon-900'
+                    }`}
                   >
                     {item}
                   </button>
@@ -554,17 +289,13 @@ export default function HomePage() {
 
             {/* Products Grid */}
             <div id="catalog-grid" className="scroll-mt-28">
-              {loading ? (
-                <div className="py-24 text-center">
-                  <div className="inline-block h-9 w-9 animate-spin rounded-full border-2 border-solid border-gold-400 border-r-transparent mb-4" />
-                  <p className="font-brand text-xl text-gold-200 font-medium">Curating Handcrafted Collection…</p>
-                  <p className="mt-1 text-xs text-neutral-400 font-light">Loading authentic weaves directly from our Supabase database</p>
-                </div>
+              {loading && products.length === 0 ? (
+                <p className="py-12 text-center text-sm text-gray-600" role="status">Loading the collection…</p>
               ) : filteredProducts.length ? (
-                <div className="grid gap-5 sm:gap-6 lg:gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
                   {filteredProducts.map((product) => (
                     <ProductCard
-                      key={`${product.sku || product.id}-${product.name}`}
+                      key={`${product.sku}-${product.name}-${product.id || ''}`}
                       product={product}
                       cartQuantity={cartItems?.find((item) => item.sku === product.sku)?.quantity || 0}
                       onAddToBag={() => addToBag(product.sku)}
@@ -572,16 +303,10 @@ export default function HomePage() {
                   ))}
                 </div>
               ) : (
-                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-dashed border-gold-500/30 bg-[#16070B]/50 p-12 text-center shadow-lg">
+                <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
                   <div>
-                    <p className="font-brand text-2xl font-normal text-gold-200">
-                      {products.length === 0 ? 'No products available.' : 'No pieces match your search.'}
-                    </p>
-                    <p className="mt-2 text-xs text-neutral-400 font-light">
-                      {products.length === 0
-                        ? 'New heritage weaves will be listed shortly. Please check back soon or enquire on WhatsApp!'
-                        : 'Try selecting a different category filter or clear your search term.'}
-                    </p>
+                    <p className="text-lg font-semibold text-gray-700">No items match your search.</p>
+                    <p className="mt-2 text-sm text-gray-500">Try a different search term or category filter.</p>
                   </div>
                 </div>
               )}
@@ -589,164 +314,85 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 4. Client Diaries & Stories */}
-        <section id="reviews" className="scroll-mt-28 rounded-3xl border border-gold-500/30 bg-gradient-to-br from-[#16070B] via-black to-[#16070B] p-8 sm:p-12 lg:p-14 shadow-2xl relative">
-          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-400 mb-2 block">
-              Client Diaries &amp; Stories
-            </span>
-            <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-white">
-              Loved by Brides &amp; Connoisseurs Worldwide
-            </h2>
-            <p className="mt-2 text-xs sm:text-sm text-neutral-300 font-light">
-              Over 1,200+ heirloom sarees and handcrafted jewelry sets delivered globally with personalized WhatsApp consultations.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div className="flex flex-col justify-between rounded-2xl border border-gold-500/30 bg-[#1B0A10]/80 p-6 shadow-lg hover:border-gold-400/60 transition-all">
-              <div>
-                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">★★★★★</div>
-                <p className="font-serif italic text-sm text-neutral-200 leading-relaxed">
-                  “The drape of the Royal Kanjivaram was breathtaking for my sister’s wedding. The zari work is pure and authentic, and ordering over WhatsApp with video previews made all the difference!”
-                </p>
-              </div>
-              <div className="pt-4 border-t border-gold-500/20 mt-4">
-                <p className="font-semibold text-xs text-gold-200">Sravani Rao</p>
-                <p className="text-[10px] text-neutral-400 font-medium">Hyderabad • Verified Bridal Order</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between rounded-2xl border border-gold-500/30 bg-[#1B0A10]/80 p-6 shadow-lg hover:border-gold-400/60 transition-all">
-              <div>
-                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">★★★★★</div>
-                <p className="font-serif italic text-sm text-neutral-200 leading-relaxed">
-                  “I was skeptical buying handlooms online, but Shreivara’s Mangalagiri weave is featherlight and pure cotton elegance. Fast shipping and beautiful packaging.”
-                </p>
-              </div>
-              <div className="pt-4 border-t border-gold-500/20 mt-4">
-                <p className="font-semibold text-xs text-gold-200">Ananya Verma</p>
-                <p className="text-[10px] text-neutral-400 font-medium">Bangalore • Verified Buyer</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between rounded-2xl border border-gold-500/30 bg-[#1B0A10]/80 p-6 shadow-lg hover:border-gold-400/60 transition-all">
-              <div>
-                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">★★★★★</div>
-                <p className="font-serif italic text-sm text-neutral-200 leading-relaxed">
-                  “The temple choker set matches my silk saree flawlessly. The antique gold finish is heirloom quality. Highly recommend their personalized WhatsApp assistance.”
-                </p>
-              </div>
-              <div className="pt-4 border-t border-gold-500/20 mt-4">
-                <p className="font-semibold text-xs text-gold-200">Dr. Pooja Reddy</p>
-                <p className="text-[10px] text-neutral-400 font-medium">Chennai • Fine Jewelry Order</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col justify-between rounded-2xl border border-gold-500/30 bg-[#1B0A10]/80 p-6 shadow-lg hover:border-gold-400/60 transition-all">
-              <div>
-                <div className="flex items-center gap-1 text-[#D4AF37] text-sm mb-3">★★★★★</div>
-                <p className="font-serif italic text-sm text-neutral-200 leading-relaxed">
-                  “Authentic craft at transparent prices. They even showed me the drape on a WhatsApp video call before dispatching. Simply outstanding customer care!”
-                </p>
-              </div>
-              <div className="pt-4 border-t border-gold-500/20 mt-4">
-                <p className="font-semibold text-xs text-gold-200">Meenakshi Sundaram</p>
-                <p className="text-[10px] text-neutral-400 font-medium">Mumbai • Verified Order</p>
-              </div>
-            </div>
+        {/* Custom Query Callout Banner */}
+        <section className="rounded-2xl border border-gold-500/40 bg-gradient-to-br from-maroon-900 via-[#483321] to-maroon-900 p-8 sm:p-12 text-center text-[#f8f5ed] shadow-md">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-500">Personalized Styling &amp; Custom Sourcing</p>
+          <h2 className="mt-2 font-brand text-3xl sm:text-4xl font-medium tracking-tight text-white">
+            Looking for something else? Enquire with us on WhatsApp!
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-xs sm:text-sm text-[#f8f5ed]/80 leading-relaxed">
+            Whether you are curating a bridal trousseau, matching specific family wedding colors, or seeking a rare heritage weave, our master stylists are ready to share video walkthroughs and tailored collections.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <a
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I am looking for a customized saree/jewelry order from https://shreivara-handlooms.vercel.app. Could you please assist me?')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="cursor-pointer inline-flex items-center gap-2.5 rounded-full bg-[#25d366] px-6 py-3.5 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white shadow-md transition hover:bg-[#1ebe5d]"
+            >
+              <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
+              Enquire with us on WhatsApp
+            </a>
           </div>
         </section>
 
-        {/* 5. Dedicated Inline About Us Section & Atelier Details */}
-        <section id="about-us" className="scroll-mt-28 rounded-3xl border border-gold-500/30 bg-gradient-to-br from-[#1C0A10] via-neutral-950 to-[#17080D] p-8 sm:p-12 lg:p-16 shadow-2xl relative">
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+        {/* Dedicated Inline About Us Section */}
+        <section id="about-us" className="scroll-mt-24 rounded-2xl border border-[#ded5c6] bg-white p-6 sm:p-10 lg:p-12 shadow-xs">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
             <div>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl overflow-hidden border-2 border-gold-400/90 shadow-md bg-[#0A1612]">
-                  <img
-                    src="/shreivara-logo.jpg"
-                    alt="Shreivara Handlooms Official Profile"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div>
-                  <span className="inline-block text-[10.5px] font-semibold uppercase tracking-[0.28em] text-gold-400">
-                    The Shreivara Heritage
-                  </span>
-                  <p className="font-brand text-2xl sm:text-3xl font-bold text-gold-100 uppercase tracking-wider">
-                    Shreivara Handlooms
-                  </p>
-                </div>
-              </div>
-              <h2 className="font-brand text-3xl sm:text-4xl lg:text-5xl font-normal text-white leading-tight">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold-600">The Shreivara Heritage</p>
+              <h2 className="mt-2 font-brand text-3xl sm:text-4xl font-medium text-maroon-900">
                 Sarees and fine jewelry for life's treasured moments.
               </h2>
-              <p className="mt-4 text-xs sm:text-sm leading-relaxed text-neutral-300 font-light">
+              <p className="mt-4 text-sm leading-relaxed text-gray-700">
                 Founded with a devotion to authentic Indian textiles, Shreivara Handlooms bridges generational artisan weaving with modern elegance. From the pure zari temple borders of Kanchipuram to the featherlight cottons of Mangalagiri and handcrafted South Indian bridal jewelry, every piece in our studio is personally curated for longevity, beauty, and festive warmth.
               </p>
 
               {/* Callout Box */}
-              <div className="mt-8 rounded-2xl border border-gold-500/40 bg-maroon-950/70 p-6 sm:p-7 shadow-lg">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-gold-300">Customized Bridal &amp; Festive Orders</p>
-                <p className="mt-2 text-xs sm:text-sm text-neutral-300 leading-relaxed font-light">
-                  Reach us on WhatsApp for inquiries and customized orders. We provide real-time previews, blouse fabric suggestions, and worldwide delivery support.
+              <div className="mt-6 rounded-xl border border-gold-500/50 bg-[#faf6ee] p-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-maroon-900">Customized Bridal &amp; Festive Orders</p>
+                <p className="mt-1 text-xs sm:text-sm text-[#5c4a35] leading-relaxed">
+                  Reach us on WhatsApp for inquiries and customized orders. We provide real-time drape previews, blouse fabric suggestions, and worldwide delivery support.
                 </p>
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your custom saree & jewelry orders.')}`}
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your custom saree & jewelry orders on https://shreivara-handlooms.vercel.app.')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="cursor-pointer mt-5 inline-flex items-center gap-2 rounded-full bg-maroon-900 hover:bg-maroon-800 px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-gold-100 transition shadow-md border border-gold-400/40"
+                  className="cursor-pointer mt-3.5 inline-flex items-center gap-2 rounded-lg bg-maroon-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-maroon-800"
                 >
-                  <span className="h-3.5 w-3.5 text-[#25d366]"><WhatsAppIcon /></span>
+                  <span className="h-3.5 w-3.5"><WhatsAppIcon /></span>
                   Order / Inquire on WhatsApp (+91 90005 10329)
                 </a>
               </div>
             </div>
 
             {/* Shop Location & Address Details */}
-            <div className="rounded-2xl border border-gold-500/30 bg-[#16070B]/90 p-8 space-y-6 shadow-xl">
-              <div className="border-b border-gold-500/30 pb-4">
-                <p className="text-[10.5px] font-semibold uppercase tracking-[0.25em] text-gold-400">Atelier Visit</p>
-                <h3 className="font-brand text-2xl font-normal text-white mt-1">Shop Location &amp; Visit Details</h3>
-              </div>
-              <div className="space-y-4 text-xs sm:text-sm text-neutral-300">
-                <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">📍</span>
+            <div className="rounded-xl border border-[#e4dccd] bg-[#fbf9f4] p-6 space-y-5">
+              <h3 className="font-brand text-xl font-bold text-maroon-900">Shop Location &amp; Visit Details</h3>
+              <div className="space-y-3 text-xs sm:text-sm text-gray-700">
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">📍 Studio Address:</span>
                   <div>
-                    <p className="font-semibold text-gold-200">Studio Address</p>
-                    <p className="text-neutral-300 mt-0.5">Shreivara Handlooms &amp; Fine Jewelry</p>
-                    <p className="text-neutral-300">Plot No. 42, Heritage Weavers Lane, Jubilee Hills</p>
-                    <p className="text-neutral-300">Hyderabad, Telangana — 500033, India</p>
+                    <p className="font-semibold text-maroon-900">Shreivara Handlooms &amp; Fine Jewelry</p>
+                    <p className="text-gray-600">Plot No. 42, Heritage Weavers Lane, Jubilee Hills</p>
+                    <p className="text-gray-600">Hyderabad, Telangana — 500033, India</p>
                   </div>
                 </div>
-                <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">🕒</span>
-                  <div>
-                    <p className="font-semibold text-gold-200">Studio Hours</p>
-                    <p className="text-neutral-300 mt-0.5">Monday – Saturday: 10:30 AM – 7:30 PM IST</p>
-                  </div>
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">🕒 Studio Hours:</span>
+                  <p className="text-gray-600">Monday – Saturday: 10:30 AM – 7:30 PM IST</p>
                 </div>
-                <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">📞</span>
-                  <div>
-                    <p className="font-semibold text-gold-200">Phone &amp; WhatsApp</p>
-                    <a href="tel:+919000510329" className="text-gold-300 font-medium hover:underline mt-0.5 block">+91 90005 10329</a>
-                  </div>
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">📞 Direct Phone &amp; WhatsApp:</span>
+                  <a href="tel:+919000510329" className="font-medium text-maroon-900 hover:underline">+91 90005 10329</a>
                 </div>
-                <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">✉️</span>
-                  <div>
-                    <p className="font-semibold text-gold-200">Email Inquiries</p>
-                    <a href="mailto:shreivara@gmail.com" className="text-gold-300 font-medium hover:underline mt-0.5 block">shreivara@gmail.com</a>
-                  </div>
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">✉️ Email:</span>
+                  <a href="mailto:shreivara@gmail.com" className="text-gray-600 hover:underline">shreivara@gmail.com</a>
                 </div>
-                <div className="flex gap-3.5 items-start">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-maroon-950 border border-gold-500/40 text-sm shadow-2xs">✈️</span>
-                  <div>
-                    <p className="font-semibold text-gold-200">Worldwide Shipping</p>
-                    <p className="text-neutral-300 mt-0.5">Express doorstep delivery across India and reliable worldwide shipping via DHL / FedEx.</p>
-                  </div>
+                <div className="flex gap-3">
+                  <span className="text-gold-600 font-bold shrink-0">✈️ Shipping:</span>
+                  <p className="text-gray-600">Express doorstep delivery across India and worldwide shipping via trusted international couriers.</p>
                 </div>
               </div>
             </div>
