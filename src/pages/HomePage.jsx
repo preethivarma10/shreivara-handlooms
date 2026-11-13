@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
-import { supabase } from '../lib/supabase.js';
+import { supabase } from '../lib/supabase';
 
 function normalizeProduct(item, idx = 0) {
   const sellingPrice = Number(item.selling_price ?? item.sellingPrice ?? item.price ?? 3999);
@@ -17,17 +17,20 @@ function normalizeProduct(item, idx = 0) {
   const description = item.description || item.offer_details || item.offerDetails || '';
 
   return {
+    ...item,
     id: item.id || `prod-${idx}`,
     sku: String(item.sku || item.id || `SHR-${String(idx + 1).padStart(3, '0')}`),
     name: item.name || item.title || 'Handloom Piece',
     category: item.category || 'Kanchi Pattu',
     sellingPrice,
     originalPrice: originalPrice || sellingPrice,
-    price: sellingPrice,
+    price: item.price ?? sellingPrice,
     description,
     offerDetails: item.offer_details || item.offerDetails || '',
     image: rawImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
     imageUrl: rawImage,
+    image_url: item.image_url || rawImage,
+    images: item.images || rawImage,
     stock: Number(item.stock ?? 5),
     sizes: item.sizes ?? '',
     available: item.available !== false,
@@ -90,21 +93,6 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
   const isSoldOut = p.available === false || maxStock <= 0;
   const isMaxReached = cartQuantity >= maxStock;
 
-  const waMessage = encodeURIComponent([
-    isSoldOut ? 'Hello Shreivara, I noticed this piece is currently sold out and would like to enquire about a custom weave / restock:' : 'Hello Shreivara, I would like to place an order:',
-    `Product: ${name}`,
-    `SKU: ${sku}`,
-    `Category: ${category}`,
-    `Price: ${formatCurrency(sellingPrice)}`,
-    sellingPrice < originalPrice ? `Original price: ${formatCurrency(originalPrice)}` : '',
-    description ? `Description: ${description}` : '',
-    offerDetails && offerDetails !== description ? `Offer: ${offerDetails}` : '',
-    sizes.length ? `Available sizes: ${sizes.join(', ')}` : '',
-    `Product image: ${imageUrl}`,
-    '',
-    'Thank you for ordering with Shreivara! We will get back to you at the earliest.'
-  ].filter(Boolean).join('\n'));
-
   const discount = originalPrice > sellingPrice ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100) : 0;
   const displayDiscount = discount > 0 ? `${discount}% OFF` : 'FESTIVE EDIT';
 
@@ -113,7 +101,7 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
       {/* Full-Bleed Tall Vertical Product Image */}
       <div className="relative aspect-[2/3] sm:aspect-[3/4] w-full overflow-hidden bg-black/60">
         <img
-          src={imageUrl}
+          src={p.image_url || p.images || imageUrl}
           alt={name}
           className={`h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${isSoldOut ? 'grayscale-40 opacity-70' : ''
             }`}
@@ -159,13 +147,13 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
 
         {/* Title */}
         <h3 className="mt-1.5 font-brand text-lg sm:text-xl font-normal leading-snug text-white group-hover:text-gold-200 transition-colors line-clamp-1">
-          {name}
+          {p.name}
         </h3>
 
         {/* Original vs Discounted Prices */}
         <div className="mt-2.5 flex items-baseline gap-2">
           <span className="text-xl sm:text-2xl font-bold text-gold-300 font-brand tracking-tight">
-            {formatCurrency(sellingPrice)}
+            ₹{p.price}
           </span>
           {originalPrice > sellingPrice && (
             <span className="text-xs text-neutral-400 line-through font-light">
@@ -176,7 +164,7 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
 
         {description && (
           <p className="mt-2 text-xs text-neutral-300 font-light line-clamp-2 leading-relaxed">
-            {description}
+            {p.description || description}
           </p>
         )}
 
@@ -193,9 +181,9 @@ function ProductCard({ product, item, cartQuantity = 0, onAddToBag }) {
         {/* Action Buttons: Order on WhatsApp & Add to Cart */}
         <div className="mt-auto pt-4 grid grid-cols-2 gap-2">
           <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${waMessage}`}
+            href="https://wa.me/919000510329"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-900 hover:from-emerald-700 hover:to-emerald-800 px-2 py-2.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.04em] text-white shadow-md border border-emerald-600/40 transition-all active:scale-[0.98] text-center"
           >
             <span className="h-3.5 w-3.5 shrink-0 text-[#25D366]"><WhatsAppIcon /></span>
@@ -236,104 +224,71 @@ export default function HomePage() {
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Directly fetch all products from Supabase database on page load
+  // Use useEffect to fetch products directly from Supabase on mount
   useEffect(() => {
-    let isMounted = true;
-
-    async function fetchProductsFromDatabase() {
-      setLoading(true);
-      setError(null);
-
+    async function fetchProducts() {
       try {
-        let { data, error: sbError } = await supabase
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: false });
+        setLoading(true);
+        const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
 
-        if (sbError) {
-          // If ordering by created_at column fails (e.g. column not present), try standard select
-          const retry = await supabase.from('products').select('*');
-          if (!retry.error && retry.data) {
-            data = retry.data;
-            sbError = null;
-          }
-        }
-
-        if (sbError) {
-          console.error('Error fetching from Supabase products table:', sbError.message);
-          // Gracefully try backend API or local cache if Supabase connection fails
-          let fallbackLoaded = false;
+        if (error) {
+          console.error('Error fetching products from Supabase:', error);
+          // Graceful fallback to backend API or local storage cache
           try {
             const apiRes = await fetch('/api/products');
             if (apiRes.ok) {
               const apiData = await apiRes.json();
-              if (Array.isArray(apiData) && apiData.length > 0 && isMounted) {
+              if (Array.isArray(apiData) && apiData.length > 0) {
                 const mapped = apiData.map(normalizeProduct);
                 setProducts(mapped);
                 if (setContextProducts) setContextProducts(mapped);
-                fallbackLoaded = true;
+                return;
               }
             }
           } catch (_) { }
 
-          if (!fallbackLoaded) {
-            try {
-              const stored = window.localStorage.getItem('shreivara-products');
-              if (stored) {
-                const storedList = JSON.parse(stored);
-                if (Array.isArray(storedList) && storedList.length > 0 && isMounted) {
-                  const mapped = storedList.map(normalizeProduct);
-                  setProducts(mapped);
-                  if (setContextProducts) setContextProducts(mapped);
-                  fallbackLoaded = true;
-                }
+          try {
+            const stored = window.localStorage.getItem('shreivara-products');
+            if (stored) {
+              const storedList = JSON.parse(stored);
+              if (Array.isArray(storedList) && storedList.length > 0) {
+                const mapped = storedList.map(normalizeProduct);
+                setProducts(mapped);
+                if (setContextProducts) setContextProducts(mapped);
+                return;
               }
-            } catch (_) { }
-          }
-
-          if (isMounted && !fallbackLoaded) {
-            setError(sbError.message);
-            setProducts([]);
-          }
-        } else if (Array.isArray(data)) {
-          if (isMounted) {
-            const mapped = data.map(normalizeProduct);
-            setProducts(mapped);
-            if (setContextProducts) setContextProducts(mapped);
-            try {
-              window.localStorage.setItem('shreivara-products', JSON.stringify(mapped));
-            } catch (_) { }
-          }
+            }
+          } catch (_) { }
+        } else if (data) {
+          const mapped = data.map(normalizeProduct);
+          setProducts(mapped);
+          if (setContextProducts) setContextProducts(mapped);
+          try {
+            window.localStorage.setItem('shreivara-products', JSON.stringify(mapped));
+          } catch (_) { }
         }
       } catch (err) {
         console.error('Unexpected exception during Supabase products query:', err);
-        if (isMounted) {
-          setError(err.message || 'Failed to fetch products from Supabase');
-        }
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
-    fetchProductsFromDatabase();
+    fetchProducts();
 
-    // Listen for cross-tab updates when admin adds or modifies products
+    // Cross-tab sync when admin adds or updates products
     let bc = null;
     try {
       bc = new BroadcastChannel('shreivara_products_channel');
       bc.onmessage = (event) => {
         if (event.data?.type === 'PRODUCTS_UPDATED') {
-          fetchProductsFromDatabase();
+          fetchProducts();
         }
       };
     } catch (_) { }
 
     return () => {
-      isMounted = false;
       if (bc) bc.close();
     };
   }, [setContextProducts]);
@@ -605,25 +560,11 @@ export default function HomePage() {
                   <p className="font-brand text-xl text-gold-200 font-medium">Curating Handcrafted Collection…</p>
                   <p className="mt-1 text-xs text-neutral-400 font-light">Loading authentic weaves directly from our Supabase database</p>
                 </div>
-              ) : error && products.length === 0 ? (
-                <div className="flex min-h-64 items-center justify-center rounded-3xl border border-red-500/40 bg-red-950/20 p-12 text-center shadow-lg">
-                  <div className="max-w-md mx-auto">
-                    <p className="font-brand text-xl font-normal text-red-200">Unable to load collection</p>
-                    <p className="mt-2 text-xs text-red-400 font-light">{error}</p>
-                    <button
-                      type="button"
-                      onClick={() => window.location.reload()}
-                      className="mt-4 px-5 py-2 text-xs font-semibold rounded-full bg-maroon-900 text-gold-100 hover:bg-maroon-800 transition border border-gold-400/40"
-                    >
-                      Retry Connection
-                    </button>
-                  </div>
-                </div>
               ) : filteredProducts.length ? (
                 <div className="grid gap-5 sm:gap-6 lg:gap-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {filteredProducts.map((product) => (
                     <ProductCard
-                      key={`${product.sku}-${product.name}`}
+                      key={`${product.sku || product.id}-${product.name}`}
                       product={product}
                       cartQuantity={cartItems?.find((item) => item.sku === product.sku)?.quantity || 0}
                       onAddToBag={() => addToBag(product.sku)}
