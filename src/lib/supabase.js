@@ -133,8 +133,25 @@ export async function fetchProductsFromSupabase({ onlyAvailable = false } = {}) 
           item.price ??
           (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999)
         );
-        const unparsedImage = item.image_url || item.images || item.image || item.imageUrl || item.photo || '';
-        const rawImage = Array.isArray(unparsedImage) ? unparsedImage[0] : unparsedImage;
+        // Multi-image parsing: handles both 'images' array and single 'image' string
+        let productImages = [];
+        if (Array.isArray(item.images) && item.images.length > 0) {
+          productImages = item.images.filter(Boolean);
+        } else if (typeof item.images === 'string' && item.images.trim().startsWith('[')) {
+          try {
+            const parsed = JSON.parse(item.images);
+            if (Array.isArray(parsed)) productImages = parsed.filter(Boolean);
+          } catch {}
+        }
+        if (productImages.length === 0) {
+          const single = item.image || item.image_url || item.imageUrl || item.photo || '';
+          if (single) productImages = [single];
+        }
+        if (productImages.length === 0) {
+          productImages = ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'];
+        }
+
+        const rawImage = productImages[0];
         const description = item.description || item.offer_details || item.offerDetails || '';
 
         return {
@@ -148,10 +165,11 @@ export async function fetchProductsFromSupabase({ onlyAvailable = false } = {}) 
           price: item.price ?? sellingPrice,
           description,
           offerDetails: item.offer_details || item.offerDetails || '',
-          image: rawImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+          image: rawImage,
           imageUrl: rawImage,
-          image_url: item.image_url || rawImage,
-          images: item.images || rawImage,
+          image_url: rawImage,
+          images: productImages,
+          imagesList: productImages,
           stock: Number(item.stock ?? 5),
           sizes: item.sizes ?? '',
           available: item.available !== false,
@@ -167,11 +185,23 @@ export async function fetchProductsFromSupabase({ onlyAvailable = false } = {}) 
 
 /**
  * Insert a product directly into Supabase 'products' table:
- * (sku, name, category, original_price, selling_price, stock, sizes, offer_details, image, available)
+ * Sends BOTH 'images' (clean string array) and 'image' (primary image URL)
+ * with automatic fallback if the 'images' column does not exist yet.
  */
 export async function insertProductToSupabase(productData) {
   if (!supabase || !isSupabaseConfigured) return { error: new Error('Supabase is not configured.') };
   try {
+    const rawImages = productData.images || productData.imagesList || [];
+    const cleanImages = (Array.isArray(rawImages)
+      ? rawImages
+      : (typeof rawImages === 'string' && rawImages.trim().startsWith('[')
+          ? (() => { try { const p = JSON.parse(rawImages); return Array.isArray(p) ? p : []; } catch { return []; } })()
+          : [productData.image || rawImages]
+        )
+    ).map(String).map((s) => s.trim()).filter(Boolean);
+
+    const primaryImage = cleanImages[0] || productData.image || productData.image_url || '';
+
     const payload = {
       sku: productData.sku,
       name: productData.name,
@@ -181,10 +211,8 @@ export async function insertProductToSupabase(productData) {
       stock: Number(productData.stock ?? 5),
       sizes: productData.sizes || '',
       offer_details: productData.offerDetails || productData.offer_details || '',
-      image: productData.image || productData.image_url || '',
-      images: Array.isArray(productData.imagesList)
-        ? JSON.stringify(productData.imagesList)
-        : (productData.images || productData.image || ''),
+      image: primaryImage,
+      images: cleanImages,
       available: productData.available !== false,
     };
 
@@ -193,14 +221,31 @@ export async function insertProductToSupabase(productData) {
       .insert([payload])
       .select();
 
-    // Fallback: If 'images' column does not exist yet, strip it and retry
-    if (error && error.message && error.message.includes("'images'")) {
-      const { images: _drop, ...payloadNoImages } = payload;
-      const retry2 = await supabase.from('products').insert([payloadNoImages]).select();
-      if (!retry2.error) { data = retry2.data; error = null; }
+    // Retry 1: If 'images' column is of type text (JSON string) instead of array
+    if (error && (error.message.includes('images') || error.message.includes('array'))) {
+      const retryWithString = await supabase
+        .from('products')
+        .insert([{ ...payload, images: JSON.stringify(cleanImages) }])
+        .select();
+      if (!retryWithString.error) {
+        data = retryWithString.data;
+        error = null;
+      } else {
+        error = retryWithString.error;
+      }
     }
 
-    // Fallback: If table column schema differs (e.g. image_url / description / price)
+    // Retry 2: If 'images' column does not exist in schema cache
+    if (error && error.message && error.message.includes("'images'")) {
+      const { images: _drop, ...payloadNoImages } = payload;
+      const retryNoImages = await supabase.from('products').insert([payloadNoImages]).select();
+      if (!retryNoImages.error) {
+        data = retryNoImages.data;
+        error = null;
+      }
+    }
+
+    // Retry 3: If table schema uses alternate column names (e.g. price / image_url)
     if (error && (error.message.includes('image') || error.message.includes('column'))) {
       const altPayload = {
         sku: productData.sku,
@@ -213,8 +258,8 @@ export async function insertProductToSupabase(productData) {
         sizes: productData.sizes || '',
         description: productData.offerDetails || productData.offer_details || '',
         offer_details: productData.offerDetails || productData.offer_details || '',
-        image_url: productData.image || productData.image_url || '',
-        image: productData.image || productData.image_url || '',
+        image_url: primaryImage,
+        image: primaryImage,
         available: productData.available !== false,
       };
       const altResult = await supabase.from('products').insert([altPayload]).select();
@@ -252,10 +297,23 @@ export async function handleAddProduct(productData) {
 
 /**
  * Update an existing product in Supabase 'products' table.
+ * Sends BOTH 'images' (clean string array) and 'image' (primary image URL)
+ * with automatic fallback if 'images' column is missing or typed differently.
  */
 export async function updateProductInSupabase(sku, productData) {
   if (!supabase || !isSupabaseConfigured) return { error: new Error('Supabase is not configured.') };
   try {
+    const rawImages = productData.images || productData.imagesList || [];
+    const cleanImages = (Array.isArray(rawImages)
+      ? rawImages
+      : (typeof rawImages === 'string' && rawImages.trim().startsWith('[')
+          ? (() => { try { const p = JSON.parse(rawImages); return Array.isArray(p) ? p : []; } catch { return []; } })()
+          : [productData.image || rawImages]
+        )
+    ).map(String).map((s) => s.trim()).filter(Boolean);
+
+    const primaryImage = cleanImages[0] || productData.image || productData.image_url || '';
+
     const payload = {
       name: productData.name,
       category: productData.category,
@@ -265,12 +323,8 @@ export async function updateProductInSupabase(sku, productData) {
       sizes: productData.sizes || '',
       offer_details: productData.offerDetails || productData.offer_details || '',
       available: productData.available !== false,
-      ...(productData.image ? { image: productData.image } : {}),
-      ...(productData.imagesList || productData.images ? {
-        images: Array.isArray(productData.imagesList)
-          ? JSON.stringify(productData.imagesList)
-          : (productData.images || '')
-      } : {}),
+      image: primaryImage,
+      images: cleanImages,
     };
 
     let { data, error } = await supabase
@@ -279,23 +333,33 @@ export async function updateProductInSupabase(sku, productData) {
       .eq('sku', sku)
       .select();
 
-    if (error && (error.message.includes('image') || error.message.includes('column'))) {
-      const altPayload = {
-        name: productData.name,
-        category: productData.category,
-        price: Number(productData.sellingPrice ?? productData.selling_price ?? 0),
-        original_price: Number(productData.originalPrice ?? productData.original_price ?? 0),
-        selling_price: Number(productData.sellingPrice ?? productData.selling_price ?? 0),
-        stock: Number(productData.stock ?? 5),
-        sizes: productData.sizes || '',
-        description: productData.offerDetails || productData.offer_details || '',
-        offer_details: productData.offerDetails || productData.offer_details || '',
-        available: productData.available !== false,
-        ...(productData.image ? { image_url: productData.image, image: productData.image } : {}),
-      };
-      const altResult = await supabase.from('products').update(altPayload).eq('sku', sku).select();
-      if (!altResult.error) {
-        data = altResult.data;
+    // Retry 1: If 'images' is text (JSON string) instead of array
+    if (error && (error.message.includes('images') || error.message.includes('array'))) {
+      const retryStr = await supabase
+        .from('products')
+        .update({ ...payload, images: JSON.stringify(cleanImages) })
+        .eq('sku', sku)
+        .select();
+
+      if (!retryStr.error) {
+        data = retryStr.data;
+        error = null;
+      } else {
+        error = retryStr.error;
+      }
+    }
+
+    // Retry 2: If 'images' column does not exist in schema cache
+    if (error && (error.message.includes("'images'") || error.message.includes('column'))) {
+      const { images: _drop, ...payloadNoImages } = payload;
+      const retryNoImages = await supabase
+        .from('products')
+        .update(payloadNoImages)
+        .eq('sku', sku)
+        .select();
+
+      if (!retryNoImages.error) {
+        data = retryNoImages.data;
         error = null;
       }
     }

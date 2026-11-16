@@ -35,7 +35,15 @@ function normalizeProduct(item, idx = 0) {
     item.price ??
     (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999)
   );
-  const imagesList = parseImages(item);
+
+  // Robust multi-image resolution supporting both array and string
+  const productImages = Array.isArray(item.images) && item.images.length > 0
+    ? item.images.filter(Boolean)
+    : (typeof item.images === 'string' && item.images.trim().startsWith('[')
+        ? (() => { try { const p = JSON.parse(item.images); return Array.isArray(p) ? p.filter(Boolean) : []; } catch { return []; } })()
+        : (item.image ? [item.image] : (item.image_url ? [item.image_url] : [])));
+
+  const imagesList = productImages.length > 0 ? productImages : parseImages(item);
   const rawImage = imagesList[0];
   const description = item.description || item.offer_details || item.offerDetails || '';
 
@@ -52,9 +60,9 @@ function normalizeProduct(item, idx = 0) {
     offerDetails: item.offer_details || item.offerDetails || '',
     image: rawImage,
     imageUrl: rawImage,
-    image_url: item.image_url || rawImage,
-    imagesList,          // ← always a clean string[]
-    images: item.images || rawImage,
+    image_url: rawImage,
+    images: imagesList,
+    imagesList,
     stock: Number(item.stock ?? 5),
     sizes: item.sizes ?? '',
     available: item.available !== false,
@@ -92,10 +100,15 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
       ? rawSizes.split(',').map((size) => size.trim()).filter(Boolean)
       : [];
 
-  // Multi-image support — imagesList is always a string[]
-  const imagesList = Array.isArray(p.imagesList) && p.imagesList.length > 0
-    ? p.imagesList
-    : [p.image_url || p.image || p.imageUrl || p.photo || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'].filter(Boolean);
+  // Multi-image support — robustly handles both product.images (array) and product.image (string)
+  const productImages = Array.isArray(p.images) && p.images.length > 0
+    ? p.images.filter(Boolean)
+    : (Array.isArray(p.imagesList) && p.imagesList.length > 0
+        ? p.imagesList.filter(Boolean)
+        : (p.image ? [p.image] : (p.image_url ? [p.image_url] : [])));
+  const imagesList = productImages.length > 0
+    ? productImages
+    : ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'];
 
   const [activeIdx, setActiveIdx] = useState(0);
   const resolveUrl = (src) => typeof src === 'string' && src.startsWith('/')
@@ -239,9 +252,14 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
 function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0, onAddToBag }) {
   if (!product) return null;
   const p = product;
-  const imagesList = Array.isArray(p.imagesList) && p.imagesList.length > 0
-    ? p.imagesList
-    : [p.image_url || p.image || p.imageUrl || p.photo || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'].filter(Boolean);
+  const productImages = Array.isArray(p.images) && p.images.length > 0
+    ? p.images.filter(Boolean)
+    : (Array.isArray(p.imagesList) && p.imagesList.length > 0
+        ? p.imagesList.filter(Boolean)
+        : (p.image ? [p.image] : (p.image_url ? [p.image_url] : [])));
+  const imagesList = productImages.length > 0
+    ? productImages
+    : ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'];
 
   const [activeIdx, setActiveIdx] = useState(initialIdx || 0);
 

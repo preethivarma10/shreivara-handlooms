@@ -202,18 +202,27 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
     const form = event.currentTarget;
     setError('');
     setNotice('');
+
+    const isUploadingAny = Object.values(uploadingSlots).some(Boolean);
+    if (isUploadingAny) {
+      setError('Please wait for photo upload to cloud storage to complete before saving.');
+      return;
+    }
+
+    const cleanImages = imageUrls.map(String).map((s) => s.trim()).filter(Boolean);
+    if (cleanImages.length === 0) {
+      setError('Please add at least one product image (upload a photo or paste a URL) before publishing.');
+      return;
+    }
+
     setSaving(true);
     try {
-      const activeUrls = imageUrls.filter(Boolean);
-      if (activeUrls.length === 0) {
-        throw new Error('Please add at least one image (Slot 1: Main Image) for this product.');
-      }
-
       const fd = new FormData(form);
-      // Inject current imageUrls into FormData for the parent handler
-      fd.set('imageUrls', JSON.stringify(activeUrls));
-      fd.set('image', activeUrls[0] || '');
-      fd.set('compressedImage', activeUrls[0] || '');
+      // Inject current clean images into FormData
+      fd.set('images', JSON.stringify(cleanImages));
+      fd.set('imageUrls', JSON.stringify(cleanImages));
+      fd.set('image', cleanImages[0] || '');
+      fd.set('compressedImage', cleanImages[0] || '');
 
       const result = await onSave(fd);
       if (!product) {
@@ -223,13 +232,16 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         setIsManualCategory(false);
         setManualCategoryValue('');
       }
-      setNotice(result?.warning || (product ? 'Product updated successfully.' : 'Product added successfully.'));
+      setNotice(result?.warning || (product ? 'Product updated successfully.' : 'Product published to storefront successfully!'));
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'The product could not be saved.');
     } finally {
       setSaving(false);
     }
   }
+
+  const isUploadingAny = Object.values(uploadingSlots).some(Boolean);
+  const cleanImagesCount = imageUrls.map(String).map((s) => s.trim()).filter(Boolean).length;
 
   return (
     <form onSubmit={submitProduct} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -503,15 +515,58 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         <span>In Stock &amp; Available for Purchase (Storefront Visibility)</span>
       </label>
 
-      <div className="flex justify-end gap-3 md:col-span-2 xl:col-span-3 pt-2">
-        {onCancel && (
-          <button type="button" onClick={onCancel} className="cursor-pointer rounded-xl border border-neutral-300 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 hover:bg-neutral-50 transition">
-            Cancel
+      {/* ── Submit / Action Bar ──────────────────────────────────── */}
+      <div className="md:col-span-2 xl:col-span-3 pt-4 border-t border-gold-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="text-xs text-neutral-600">
+          {isUploadingAny ? (
+            <span className="flex items-center gap-1.5 font-semibold text-amber-800">
+              <svg className="h-4 w-4 animate-spin text-amber-800" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Photo uploading in progress… Please wait before saving.
+            </span>
+          ) : cleanImagesCount === 0 ? (
+            <span className="text-amber-800 font-medium flex items-center gap-1">
+              ⚠️ Add at least 1 photo to publish to storefront
+            </span>
+          ) : (
+            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+              ✓ {cleanImagesCount} {cleanImagesCount === 1 ? 'image' : 'images'} ready to publish
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 justify-end">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="cursor-pointer rounded-xl border border-neutral-300 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 hover:bg-neutral-50 transition"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={saving || isUploadingAny}
+            className="cursor-pointer rounded-xl bg-maroon-900 hover:bg-maroon-800 text-white px-7 py-3 text-xs font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-60 shadow-md flex items-center justify-center gap-2"
+          >
+            {saving ? (
+              <>
+                <svg className="h-4 w-4 animate-spin text-white" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <span>Saving to Storefront…</span>
+              </>
+            ) : isUploadingAny ? (
+              <span>Uploading Photos…</span>
+            ) : (
+              <span>{submitLabel}</span>
+            )}
           </button>
-        )}
-        <button type="submit" disabled={saving} className="cursor-pointer rounded-xl bg-maroon-900 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-maroon-800 disabled:cursor-not-allowed disabled:opacity-60 shadow-xs">
-          {saving ? 'Saving…' : submitLabel}
-        </button>
+        </div>
       </div>
     </form>
   );
@@ -1056,31 +1111,27 @@ export default function AdminPage() {
   }
 
   async function resolveProductImages(formData) {
-    // 1. Multi-image URLs from new form (JSON array)
-    const imageUrlsJson = (formData.get('imageUrls') || '').toString().trim();
-    if (imageUrlsJson) {
+    // 1. Multi-image URLs from new form (JSON array in 'images' or 'imageUrls')
+    const rawJson = (formData.get('images') || formData.get('imageUrls') || '').toString().trim();
+    if (rawJson) {
       try {
-        const arr = JSON.parse(imageUrlsJson);
-        if (Array.isArray(arr) && arr.filter(Boolean).length > 0) {
-          return { imagesList: arr.filter(Boolean), image: arr[0] };
+        const arr = JSON.parse(rawJson);
+        if (Array.isArray(arr)) {
+          const clean = arr.map(String).map((s) => s.trim()).filter(Boolean);
+          if (clean.length > 0) {
+            return { imagesList: clean, image: clean[0] };
+          }
         }
       } catch {}
     }
 
     // 2. Legacy: single URL input
-    const urlInput = (formData.get('imageUrl') || '').toString().trim();
+    const urlInput = (formData.get('imageUrl') || formData.get('image') || '').toString().trim();
     if (urlInput) return { imagesList: [urlInput], image: urlInput };
 
     // 3. Legacy: pre-compressed image dataUrl
     const compressed = (formData.get('compressedImage') || '').toString().trim();
     if (compressed) return { imagesList: [compressed], image: compressed };
-
-    // 4. Legacy: uploaded file
-    const imageFile = formData.get('image');
-    if (imageFile instanceof File && imageFile.size > 0) {
-      const result = await readAndCompressImage(imageFile);
-      if (result) return { imagesList: [result], image: result };
-    }
 
     return null;
   }
@@ -1091,8 +1142,9 @@ export default function AdminPage() {
     if (products.some((p) => p.sku === sku)) throw new Error(`A product with SKU "${sku}" already exists.`);
 
     const resolved = await resolveProductImages(formData);
-    if (!resolved) throw new Error('Please add at least one product image URL.');
-    const { imagesList, image: imageUrl } = resolved;
+    const cleanImages = (resolved?.imagesList || []).filter(Boolean);
+    if (cleanImages.length === 0) throw new Error('Please add at least one product image before saving.');
+    const imageUrl = cleanImages[0] || '';
 
     const newProduct = {
       sku,
@@ -1104,21 +1156,19 @@ export default function AdminPage() {
       sizes: (formData.get('sizes') || '').toString().trim(),
       offerDetails: (formData.get('offerDetails') || '').toString().trim(),
       image: imageUrl,
-      imagesList,
-      images: JSON.stringify(imagesList),   // stored as JSON string in Supabase text column
+      imagesList: cleanImages,
+      images: cleanImages,
       available: formData.get('available') !== null,
     };
 
-    // 1. Post to backend /api/products API
+    // 1. Post to backend /api/products API (if running in full-stack mode)
     try {
       await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProduct),
       });
-    } catch (apiErr) {
-      console.warn('Backend API post error:', apiErr);
-    }
+    } catch (_) {}
 
     // 2. Sync to Supabase Cloud Database if configured
     let supabaseNotice = '';
@@ -1126,27 +1176,34 @@ export default function AdminPage() {
       const { error: sbError } = await insertProductToSupabase(newProduct);
       if (sbError) {
         console.warn('Supabase insert notice:', sbError.message);
-        supabaseNotice = `\n(Saved locally. Supabase note: ${sbError.message})`;
+        supabaseNotice = ` (Supabase notice: ${sbError.message})`;
       } else {
-        supabaseNotice = '\n(Synced to Supabase Cloud Database!)';
+        supabaseNotice = ' (Synced to Supabase Cloud!)';
       }
     }
 
     const next = [newProduct, ...products];
     persistProducts(next);
 
-    // Alert confirmation
-    window.alert(`Product "${newProduct.name}" (SKU: ${sku}) added successfully!\nIt is now live on your Storefront.` + supabaseNotice);
-    return newProduct;
+    return {
+      product: newProduct,
+      warning: `Product "${newProduct.name}" (SKU: ${sku}) published successfully!${supabaseNotice}`,
+    };
   }
 
   async function updateProduct(sku, formData) {
     const resolved = await resolveProductImages(formData);
+    const cleanImages = resolved?.imagesList ? resolved.imagesList.filter(Boolean) : null;
 
+    let updatedProduct = null;
     const next = products.map((p) => {
       if (p.sku !== sku) return p;
-      const updatedImages = resolved ? resolved.imagesList : (Array.isArray(p.imagesList) ? p.imagesList : [p.image]);
-      return {
+      const imagesList = cleanImages && cleanImages.length > 0
+        ? cleanImages
+        : (Array.isArray(p.images) && p.images.length > 0 ? p.images.filter(Boolean) : [p.image].filter(Boolean));
+      const image = imagesList[0] || p.image || '';
+
+      updatedProduct = {
         ...p,
         name: (formData.get('name') || '').toString().trim() || p.name,
         category: (formData.get('category') || '').toString().trim() || p.category,
@@ -1156,31 +1213,40 @@ export default function AdminPage() {
         sizes: (formData.get('sizes') || '').toString().trim(),
         offerDetails: (formData.get('offerDetails') || '').toString().trim(),
         available: formData.get('available') !== null,
-        ...(resolved ? {
-          image: resolved.image,
-          imagesList: resolved.imagesList,
-          images: JSON.stringify(resolved.imagesList),
-        } : {}),
+        image,
+        images: imagesList,
+        imagesList,
       };
+      return updatedProduct;
     });
+
     persistProducts(next);
 
-    const updated = next.find((p) => p.sku === sku);
-    if (updated) {
+    let supabaseNotice = '';
+    if (updatedProduct) {
       try {
         await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updated),
+          body: JSON.stringify(updatedProduct),
         });
-      } catch (_) { }
+      } catch (_) {}
 
       if (isSupabaseConfigured) {
-        updateProductInSupabase(sku, updated).catch((err) => console.warn('Supabase update error:', err));
+        const { error: sbError } = await updateProductInSupabase(sku, updatedProduct);
+        if (sbError) {
+          console.warn('Supabase update notice:', sbError.message);
+          supabaseNotice = ` (Supabase notice: ${sbError.message})`;
+        } else {
+          supabaseNotice = ' (Synced to Supabase Cloud!)';
+        }
       }
     }
 
-    return { product: updated };
+    return {
+      product: updatedProduct,
+      warning: `Changes for "${updatedProduct?.name || sku}" saved successfully!${supabaseNotice}`,
+    };
   }
 
   async function toggleAvailability(sku) {
@@ -1499,9 +1565,10 @@ export default function AdminPage() {
                         product={product}
                         submitLabel="Save Changes"
                         availableCategories={availableCategories}
-                        onSave={(formData) => {
-                          updateProduct(product.sku, formData);
+                        onSave={async (formData) => {
+                          const result = await updateProduct(product.sku, formData);
                           setEditingSku('');
+                          return result;
                         }}
                         onCancel={() => setEditingSku('')}
                       />
