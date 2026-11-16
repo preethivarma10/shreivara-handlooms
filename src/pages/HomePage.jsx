@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 import { DEFAULT_PRODUCTS } from '../components/SiteLayout.jsx';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, fetchProductsFromSupabase } from '../lib/supabase';
 
 function normalizeProduct(item, idx = 0) {
   const sellingPrice = Number(item.selling_price ?? item.sellingPrice ?? item.price ?? 3999);
@@ -147,11 +147,10 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
             type="button"
             disabled={isMaxReached || isSoldOut}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] transition ${
-              isMaxReached || isSoldOut
-                ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60'
-                : 'border-maroon-900 text-maroon-900 hover:bg-maroon-900 hover:text-[#f8f5ed]'
-            }`}
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] transition ${isMaxReached || isSoldOut
+              ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60'
+              : 'border-maroon-900 text-maroon-900 hover:bg-maroon-900 hover:text-[#f8f5ed]'
+              }`}
           >
             <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
             {isSoldOut ? 'Sold Out' : isMaxReached ? 'Limit Reached' : 'Add to Cart'}
@@ -185,10 +184,30 @@ export default function HomePage() {
     async function fetchProducts() {
       setLoading(true);
       try {
-        const { data, error: supabaseError } = await supabase
+        let { data, error: supabaseError } = await supabase
           .from('products')
           .select('*')
+          .eq('available', true)
           .order('created_at', { ascending: false });
+
+        if (supabaseError) {
+          console.warn('Supabase fetch error, retrying without order/filter:', supabaseError.message);
+          // Fallback: If table has no created_at column or available column, retry gracefully
+          const retry = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (!retry.error && retry.data) {
+            data = retry.data.filter((item) => item.available !== false);
+            supabaseError = null;
+          } else {
+            const retryBasic = await supabase.from('products').select('*');
+            if (!retryBasic.error && retryBasic.data) {
+              data = retryBasic.data.filter((item) => item.available !== false);
+              supabaseError = null;
+            }
+          }
+        }
 
         if (supabaseError) {
           console.warn('Supabase fetch error, fallback to local products:', supabaseError.message);
@@ -227,6 +246,45 @@ export default function HomePage() {
 
     fetchProducts();
     return () => { isMounted = false; };
+  }, [setParentProducts]);
+
+  // Real-time synchronization for changes made in Admin Panel across tabs
+  useEffect(() => {
+    function handleUpdate(updatedProducts) {
+      if (Array.isArray(updatedProducts) && updatedProducts.length > 0) {
+        const availableOnly = updatedProducts.filter((p) => p.available !== false);
+        const normalized = availableOnly.map((p, idx) => normalizeProduct(p, idx));
+        setProducts(normalized);
+        if (setParentProducts) setParentProducts(normalized);
+      }
+    }
+
+    let bc;
+    try {
+      bc = new BroadcastChannel('shreivara_products_channel');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'PRODUCTS_UPDATED') {
+          handleUpdate(event.data.products);
+        }
+      };
+    } catch (_) { }
+
+    function onStorage(e) {
+      if (e.key === 'shreivara-products' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          handleUpdate(parsed);
+        } catch (_) { }
+      }
+    }
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      if (bc) {
+        try { bc.close(); } catch (_) { }
+      }
+      window.removeEventListener('storage', onStorage);
+    };
   }, [setParentProducts]);
 
   const filteredProducts = useMemo(() => {
@@ -275,11 +333,10 @@ export default function HomePage() {
                     type="button"
                     aria-pressed={isSelected}
                     onClick={() => setCategory(item === 'All Collections' ? 'All Collections' : item)}
-                    className={`cursor-pointer rounded-full border px-4 py-2 text-xs font-medium transition ${
-                      isSelected
-                        ? 'border-maroon-900 bg-maroon-900 text-[#f8f5ed]'
-                        : 'border-[#d9d0c1] bg-transparent text-gray-700 hover:border-maroon-800 hover:text-maroon-900'
-                    }`}
+                    className={`cursor-pointer rounded-full border px-4 py-2 text-xs font-medium transition ${isSelected
+                      ? 'border-maroon-900 bg-maroon-900 text-[#f8f5ed]'
+                      : 'border-[#d9d0c1] bg-transparent text-gray-700 hover:border-maroon-800 hover:text-maroon-900'
+                      }`}
                   >
                     {item}
                   </button>

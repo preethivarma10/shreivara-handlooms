@@ -8,7 +8,9 @@ import {
   deleteProductFromSupabase,
   toggleProductAvailabilityInSupabase,
   fetchProductsFromSupabase,
+  cleanSupabaseUrl,
   isSupabaseConfigured,
+  hasManualSupabaseOverride,
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 } from '../lib/supabase.js';
@@ -1029,14 +1031,37 @@ export default function AdminPage() {
   function handleSaveSupabaseCredentials(e) {
     e.preventDefault();
     try {
-      localStorage.setItem('shreivara_supabase_url', supabaseUrlInput.trim());
-      localStorage.setItem('shreivara_supabase_anon_key', supabaseKeyInput.trim());
+      const cleanedUrl = cleanSupabaseUrl(supabaseUrlInput);
+      if (cleanedUrl) {
+        localStorage.setItem('shreivara_supabase_url', cleanedUrl);
+      } else {
+        localStorage.removeItem('shreivara_supabase_url');
+      }
+      const cleanedKey = supabaseKeyInput.trim();
+      if (cleanedKey) {
+        localStorage.setItem('shreivara_supabase_anon_key', cleanedKey);
+      } else {
+        localStorage.removeItem('shreivara_supabase_anon_key');
+      }
       setDbModalNotice('Credentials saved! Reloading to connect with Supabase…');
       setTimeout(() => {
         window.location.reload();
       }, 800);
     } catch (err) {
       setDbModalNotice('Error saving credentials to browser storage.');
+    }
+  }
+
+  function handleResetSupabaseCredentials() {
+    try {
+      localStorage.removeItem('shreivara_supabase_url');
+      localStorage.removeItem('shreivara_supabase_anon_key');
+      setDbModalNotice('Cleared custom browser override. Reverting to default environment credentials…');
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    } catch (err) {
+      setDbModalNotice('Error resetting credentials.');
     }
   }
 
@@ -1388,8 +1413,10 @@ export default function AdminPage() {
                 : 'bg-amber-50 border-amber-300 text-amber-900'
               }`}>
               {isSupabaseConfigured
-                ? '✓ Supabase is connected! Products added and edited in this dashboard sync directly to your cloud database.'
-                : '○ Supabase is not yet configured. The store is currently running on browser local storage. Enter your credentials below to connect your cloud database.'}
+                ? hasManualSupabaseOverride
+                  ? '✓ Connected to Supabase Cloud via custom browser override in this device. Products sync directly to your database.'
+                  : '✓ Connected to Supabase Cloud out of the box via default environment variables (import.meta.env).'
+                : '○ Supabase is not yet configured. The store is running on local fallback. Enter your credentials below or configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your hosting environment.'}
             </div>
 
             {dbModalNotice && (
@@ -1406,11 +1433,15 @@ export default function AdminPage() {
                 <input
                   type="url"
                   required
-                  placeholder="https://xyzcompany.supabase.co"
+                  placeholder="https://galouvizafkfuhjhfhsb.supabase.co"
                   value={supabaseUrlInput}
                   onChange={(e) => setSupabaseUrlInput(e.target.value)}
+                  onBlur={() => setSupabaseUrlInput((prev) => cleanSupabaseUrl(prev))}
                   className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-xs font-mono focus:border-maroon-900 focus:outline-none"
                 />
+                <p className="mt-1 text-[10px] text-neutral-500">
+                  Trailing slashes and /rest/v1 are automatically stripped. Default: {SUPABASE_URL || 'https://galouvizafkfuhjhfhsb.supabase.co'}
+                </p>
               </div>
 
               <div>
@@ -1427,20 +1458,31 @@ export default function AdminPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowDbModal(false)}
-                  className="cursor-pointer rounded-xl border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="cursor-pointer rounded-xl bg-maroon-900 hover:bg-maroon-800 text-white font-bold uppercase tracking-wider text-xs px-5 py-2 shadow-xs"
-                >
-                  Save &amp; Connect
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                {hasManualSupabaseOverride && (
+                  <button
+                    type="button"
+                    onClick={handleResetSupabaseCredentials}
+                    className="cursor-pointer text-xs text-red-700 hover:text-red-900 underline font-medium"
+                  >
+                    Clear Override (Use Env Defaults)
+                  </button>
+                )}
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => setShowDbModal(false)}
+                    className="cursor-pointer rounded-xl border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="cursor-pointer rounded-xl bg-maroon-900 hover:bg-maroon-800 text-white font-bold uppercase tracking-wider text-xs px-5 py-2 shadow-xs"
+                  >
+                    Save &amp; Connect
+                  </button>
+                </div>
               </div>
             </form>
 
