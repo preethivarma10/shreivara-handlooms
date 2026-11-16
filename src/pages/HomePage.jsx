@@ -30,8 +30,22 @@ export function extractProductImages(item) {
 
     // 1. Array of images
     if (Array.isArray(val) && val.length > 0) {
-      const clean = val.map(String).map((s) => s.trim()).filter(Boolean);
-      if (clean.length > 0) return clean;
+      const flattened = [];
+      for (const el of val) {
+        if (!el) continue;
+        const s = String(el).trim();
+        if (s.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(s);
+            if (Array.isArray(parsed)) {
+              flattened.push(...parsed.map(String).map((x) => x.trim()).filter(Boolean));
+              continue;
+            }
+          } catch (_) {}
+        }
+        if (s) flattened.push(s);
+      }
+      if (flattened.length > 0) return flattened;
     }
 
     // 2. String representation

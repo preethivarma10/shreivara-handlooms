@@ -133,20 +133,45 @@ export async function fetchProductsFromSupabase({ onlyAvailable = false } = {}) 
           item.price ??
           (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999)
         );
-        // Multi-image parsing: handles both 'images' array and single 'image' string
-        let productImages = [];
-        if (Array.isArray(item.images) && item.images.length > 0) {
-          productImages = item.images.filter(Boolean);
-        } else if (typeof item.images === 'string' && item.images.trim().startsWith('[')) {
-          try {
-            const parsed = JSON.parse(item.images);
-            if (Array.isArray(parsed)) productImages = parsed.filter(Boolean);
-          } catch {}
-        }
-        if (productImages.length === 0) {
-          const single = item.image || item.image_url || item.imageUrl || item.photo || '';
-          if (single) productImages = [single];
-        }
+        // Multi-image parsing: handles both 'images' array and 'image' (single string or JSON array string)
+        const parseImagesValue = (val) => {
+          if (!val) return [];
+          if (Array.isArray(val)) {
+            const out = [];
+            for (const el of val) {
+              if (!el) continue;
+              const s = String(el).trim();
+              if (s.startsWith('[')) {
+                try {
+                  const parsed = JSON.parse(s);
+                  if (Array.isArray(parsed)) {
+                    out.push(...parsed.map(String).map((x) => x.trim()).filter(Boolean));
+                    continue;
+                  }
+                } catch (_) {}
+              }
+              if (s) out.push(s);
+            }
+            return out;
+          }
+          if (typeof val === 'string' && val.trim()) {
+            const trimmed = val.trim();
+            if (trimmed.startsWith('[')) {
+              try {
+                const parsed = JSON.parse(trimmed);
+                if (Array.isArray(parsed)) return parsed.map(String).map((x) => x.trim()).filter(Boolean);
+              } catch (_) {}
+            }
+            return [trimmed];
+          }
+          return [];
+        };
+
+        let productImages = parseImagesValue(item.images);
+        if (productImages.length === 0) productImages = parseImagesValue(item.imagesList);
+        if (productImages.length === 0) productImages = parseImagesValue(item.image);
+        if (productImages.length === 0) productImages = parseImagesValue(item.image_url);
+        if (productImages.length === 0) productImages = parseImagesValue(item.imageUrl);
         if (productImages.length === 0) {
           productImages = ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'];
         }
@@ -236,9 +261,13 @@ export async function insertProductToSupabase(productData) {
     }
 
     // Retry 2: If 'images' column does not exist in schema cache
-    if (error && error.message && error.message.includes("'images'")) {
+    if (error && error.message && (error.message.includes("'images'") || error.message.includes('images'))) {
+      const fallbackImage = cleanImages.length > 1 ? JSON.stringify(cleanImages) : primaryImage;
       const { images: _drop, ...payloadNoImages } = payload;
-      const retryNoImages = await supabase.from('products').insert([payloadNoImages]).select();
+      const retryNoImages = await supabase
+        .from('products')
+        .insert([{ ...payloadNoImages, image: fallbackImage }])
+        .select();
       if (!retryNoImages.error) {
         data = retryNoImages.data;
         error = null;
@@ -350,11 +379,12 @@ export async function updateProductInSupabase(sku, productData) {
     }
 
     // Retry 2: If 'images' column does not exist in schema cache
-    if (error && (error.message.includes("'images'") || error.message.includes('column'))) {
+    if (error && (error.message.includes("'images'") || error.message.includes('images') || error.message.includes('column'))) {
+      const fallbackImage = cleanImages.length > 1 ? JSON.stringify(cleanImages) : primaryImage;
       const { images: _drop, ...payloadNoImages } = payload;
       const retryNoImages = await supabase
         .from('products')
-        .update(payloadNoImages)
+        .update({ ...payloadNoImages, image: fallbackImage })
         .eq('sku', sku)
         .select();
 
