@@ -4,26 +4,72 @@ import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 import { DEFAULT_PRODUCTS } from '../components/SiteLayout.jsx';
 import { supabase, isSupabaseConfigured, fetchProductsFromSupabase } from '../lib/supabase';
 
-function parseImages(item) {
-  // Priority: images array > image_url > image > imageUrl > photo
-  const raw = item.images ?? item.image_url ?? item.image ?? item.imageUrl ?? item.photo ?? '';
-  const FALLBACK = 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80';
+/**
+ * Robust multi-image extractor supporting:
+ * - Array of image URLs (product.images or product.imagesList)
+ * - JSON string array (e.g. '["url1", "url2"]')
+ * - PostgreSQL array string (e.g. '{"url1", "url2"}')
+ * - Comma-separated string of URLs
+ * - Single image URL (product.image or product.image_url)
+ * Automatically filters out any empty strings or null values.
+ */
+export function extractProductImages(item) {
+  if (!item) return ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'];
 
-  let arr = [];
-  if (Array.isArray(raw)) {
-    arr = raw.map(String).filter(Boolean);
-  } else if (typeof raw === 'string' && raw.trim()) {
-    // Could be JSON array or single URL
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) arr = parsed.map(String).filter(Boolean);
-      else arr = [raw.trim()];
-    } catch {
-      arr = [raw.trim()];
+  const candidates = [
+    item.images,
+    item.imagesList,
+    item.image_url,
+    item.image,
+    item.imageUrl,
+    item.photo,
+  ];
+
+  for (const val of candidates) {
+    if (!val) continue;
+
+    // 1. Array of images
+    if (Array.isArray(val) && val.length > 0) {
+      const clean = val.map(String).map((s) => s.trim()).filter(Boolean);
+      if (clean.length > 0) return clean;
+    }
+
+    // 2. String representation
+    if (typeof val === 'string' && val.trim()) {
+      const trimmed = val.trim();
+
+      // JSON string array like '["url1", "url2"]'
+      if (trimmed.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            const clean = parsed.map(String).map((s) => s.trim()).filter(Boolean);
+            if (clean.length > 0) return clean;
+          }
+        } catch (_) {}
+      }
+
+      // PostgreSQL array string like '{"url1", "url2"}'
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        const inner = trimmed.slice(1, -1);
+        const parts = inner.split(',').map((s) => s.replace(/^"|"$/g, '').trim()).filter(Boolean);
+        if (parts.length > 0) return parts;
+      }
+
+      // Comma-separated URLs
+      if (trimmed.includes(',') && (trimmed.startsWith('http') || trimmed.includes('http'))) {
+        const parts = trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+        if (parts.length > 1 && parts.every((p) => p.startsWith('http') || p.startsWith('data:'))) {
+          return parts;
+        }
+      }
+
+      // Single URL string
+      return [trimmed];
     }
   }
-  if (arr.length === 0) arr = [FALLBACK];
-  return arr;
+
+  return ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'];
 }
 
 function normalizeProduct(item, idx = 0) {
@@ -36,14 +82,7 @@ function normalizeProduct(item, idx = 0) {
     (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999)
   );
 
-  // Robust multi-image resolution supporting both array and string
-  const productImages = Array.isArray(item.images) && item.images.length > 0
-    ? item.images.filter(Boolean)
-    : (typeof item.images === 'string' && item.images.trim().startsWith('[')
-        ? (() => { try { const p = JSON.parse(item.images); return Array.isArray(p) ? p.filter(Boolean) : []; } catch { return []; } })()
-        : (item.image ? [item.image] : (item.image_url ? [item.image_url] : [])));
-
-  const imagesList = productImages.length > 0 ? productImages : parseImages(item);
+  const imagesList = extractProductImages(item);
   const rawImage = imagesList[0];
   const description = item.description || item.offer_details || item.offerDetails || '';
 
@@ -100,21 +139,15 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
       ? rawSizes.split(',').map((size) => size.trim()).filter(Boolean)
       : [];
 
-  // Multi-image support — robustly handles both product.images (array) and product.image (string)
-  const productImages = Array.isArray(p.images) && p.images.length > 0
-    ? p.images.filter(Boolean)
-    : (Array.isArray(p.imagesList) && p.imagesList.length > 0
-        ? p.imagesList.filter(Boolean)
-        : (p.image ? [p.image] : (p.image_url ? [p.image_url] : [])));
-  const imagesList = productImages.length > 0
-    ? productImages
-    : ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'];
-
+  // Dynamic image array resolution — reads array, string, or JSON, filtering empty slots
+  const imagesList = extractProductImages(p);
   const [activeIdx, setActiveIdx] = useState(0);
+
+  const safeIdx = activeIdx >= imagesList.length ? 0 : activeIdx;
   const resolveUrl = (src) => typeof src === 'string' && src.startsWith('/')
     ? `${window.location.origin}${src}`
     : src;
-  const activeImage = resolveUrl(imagesList[activeIdx] || imagesList[0]);
+  const activeImage = resolveUrl(imagesList[safeIdx] || imagesList[0]);
 
   const sellingPrice = Number(p.sellingPrice ?? p.selling_price ?? p.price ?? 3999);
   const originalPrice = Number(p.originalPrice ?? p.original_price ?? p.mrp ?? p.price ?? (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999));
@@ -148,58 +181,81 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
   const discount = originalPrice > sellingPrice ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100) : 0;
 
   return (
-    <article className="group overflow-hidden rounded-sm border border-[#e1d8c9] bg-[#fbf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(58,43,25,0.12)]">
-      {/* Main image with clickable detail / enlarge */}
+    <article className="group overflow-hidden rounded-sm border border-[#e1d8c9] bg-[#fbf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(58,43,25,0.12)] flex flex-col">
+      {/* Featured Main Image Viewer with Luxury Frame & Smooth Crossfade */}
       <div
         className="relative overflow-hidden bg-[#e8dfd0] cursor-pointer"
-        onClick={() => onOpenDetail && onOpenDetail(activeIdx)}
-        title="Click to view details & full photos"
+        onClick={() => onOpenDetail && onOpenDetail(safeIdx)}
+        title="Click to view full photo & details"
       >
         <img
           key={activeImage}
           src={activeImage}
-          alt={name}
-          className="h-[320px] w-full object-cover transition-all duration-500 group-hover:scale-[1.035]"
+          alt={`${name} - View ${safeIdx + 1}`}
+          className="h-[320px] w-full object-cover transition-all duration-500 ease-out group-hover:scale-[1.035]"
           loading="lazy"
         />
         {discount > 0 && (
-          <span className="absolute left-3 top-3 bg-[#f6f2e9]/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-maroon-900">
+          <span className="absolute left-3 top-3 bg-[#f6f2e9]/95 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-maroon-900 border border-gold-300/60 shadow-xs">
             {discount}% off
           </span>
         )}
         {isSoldOut && (
-          <span className="absolute right-3 top-3 rounded-sm bg-neutral-900/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-white">
+          <span className="absolute right-3 top-3 rounded-sm bg-neutral-900/85 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-white shadow-xs">
             Sold Out
           </span>
         )}
-        <span className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-1 text-[9px] font-semibold text-maroon-900 opacity-0 group-hover:opacity-100 transition shadow-xs">
+
+        {/* Dynamic Image Counter Pill */}
+        {imagesList.length > 1 && (
+          <span className="absolute bottom-2.5 left-3 rounded-full bg-black/60 backdrop-blur-xs px-2.5 py-1 text-[9.5px] font-medium tracking-wider text-white flex items-center gap-1.5">
+            <svg className="h-3 w-3 text-gold-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+            </svg>
+            <span>{safeIdx + 1} / {imagesList.length}</span>
+          </span>
+        )}
+
+        <span className="absolute bottom-2.5 right-3 rounded-full bg-white/95 px-2.5 py-1 text-[9.5px] font-semibold text-maroon-900 opacity-0 group-hover:opacity-100 transition shadow-xs">
           Quick View ↗
         </span>
       </div>
 
-      {/* Thumbnail strip — only shown when there are 2+ images */}
+      {/* Interactive Thumbnail Gallery Strip — renders for every populated image */}
       {imagesList.length > 1 && (
-        <div className="flex gap-1.5 px-3 pt-2.5 pb-0">
-          {imagesList.slice(0, 4).map((src, idx) => (
-            <button
-              key={idx}
-              type="button"
-              aria-label={`View image ${idx + 1}`}
-              onClick={() => setActiveIdx(idx)}
-              className={`relative h-[52px] w-[52px] shrink-0 overflow-hidden rounded-sm border-2 transition-all duration-150 cursor-pointer focus:outline-none ${
-                activeIdx === idx
-                  ? 'border-maroon-900 shadow-[0_0_0_1px_rgba(100,30,30,0.3)]'
-                  : 'border-[#e1d8c9] opacity-70 hover:opacity-100 hover:border-maroon-500'
-              }`}
-            >
-              <img
-                src={resolveUrl(src)}
-                alt={`${name} view ${idx + 1}`}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5 px-3 pt-2.5 pb-1 border-b border-[#ece4d6]/60 bg-[#faf7f0]/80">
+          {imagesList.map((src, idx) => {
+            const isSelected = safeIdx === idx;
+            return (
+              <button
+                key={idx}
+                type="button"
+                aria-label={`Switch to image view ${idx + 1} of ${imagesList.length}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveIdx(idx);
+                }}
+                className={`group/thumb cursor-pointer relative h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] shrink-0 overflow-hidden rounded-sm border-2 transition-all duration-200 focus:outline-none ${
+                  isSelected
+                    ? 'border-maroon-900 ring-2 ring-gold-400/60 shadow-md scale-105'
+                    : 'border-[#ded5c6] opacity-70 hover:opacity-100 hover:border-gold-500'
+                }`}
+              >
+                <img
+                  src={resolveUrl(src)}
+                  alt={`${name} thumbnail ${idx + 1}`}
+                  className="h-full w-full object-cover transition duration-200 group-hover/thumb:scale-110"
+                  loading="lazy"
+                />
+                {isSelected && (
+                  <span className="absolute bottom-0 inset-x-0 h-0.5 bg-maroon-900" />
+                )}
+              </button>
+            );
+          })}
+          <span className="ml-auto text-[9px] font-medium uppercase tracking-wider text-neutral-400">
+            {imagesList.length} {imagesList.length === 1 ? 'View' : 'Views'}
+          </span>
         </div>
       )}
 
@@ -207,7 +263,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
         <h3
           className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900 cursor-pointer hover:underline"
-          onClick={() => onOpenDetail && onOpenDetail(activeIdx)}
+          onClick={() => onOpenDetail && onOpenDetail(safeIdx)}
         >
           {name}
         </h3>
@@ -252,21 +308,14 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
 function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0, onAddToBag }) {
   if (!product) return null;
   const p = product;
-  const productImages = Array.isArray(p.images) && p.images.length > 0
-    ? p.images.filter(Boolean)
-    : (Array.isArray(p.imagesList) && p.imagesList.length > 0
-        ? p.imagesList.filter(Boolean)
-        : (p.image ? [p.image] : (p.image_url ? [p.image_url] : [])));
-  const imagesList = productImages.length > 0
-    ? productImages
-    : ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'];
-
+  const imagesList = extractProductImages(p);
   const [activeIdx, setActiveIdx] = useState(initialIdx || 0);
 
+  const safeIdx = activeIdx >= imagesList.length ? 0 : activeIdx;
   const resolveUrl = (src) => typeof src === 'string' && src.startsWith('/')
     ? `${window.location.origin}${src}`
     : src;
-  const activeImage = resolveUrl(imagesList[activeIdx] || imagesList[0]);
+  const activeImage = resolveUrl(imagesList[safeIdx] || imagesList[0]);
 
   const sellingPrice = Number(p.sellingPrice ?? p.selling_price ?? p.price ?? 3999);
   const originalPrice = Number(p.originalPrice ?? p.original_price ?? p.mrp ?? p.price ?? (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999));
@@ -356,27 +405,37 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
               )}
             </div>
 
-            {/* Thumbnails row (up to 4) */}
+            {/* Thumbnails row — renders for every populated image */}
             {imagesList.length > 1 && (
-              <div className="flex gap-2">
-                {imagesList.slice(0, 4).map((src, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setActiveIdx(idx)}
-                    className={`cursor-pointer relative h-16 w-16 overflow-hidden rounded-lg border-2 transition ${
-                      activeIdx === idx
-                        ? 'border-maroon-900 shadow-md ring-1 ring-maroon-900'
-                        : 'border-[#ded5c6] opacity-70 hover:opacity-100 hover:border-maroon-500'
-                    }`}
-                  >
-                    <img
-                      src={resolveUrl(src)}
-                      alt={`View ${idx + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ))}
+              <div className="flex items-center gap-2 pt-1 flex-wrap">
+                {imagesList.map((src, idx) => {
+                  const isSelected = safeIdx === idx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      aria-label={`View photo ${idx + 1}`}
+                      onClick={() => setActiveIdx(idx)}
+                      className={`cursor-pointer relative h-16 w-16 overflow-hidden rounded-lg border-2 transition-all duration-200 ${
+                        isSelected
+                          ? 'border-maroon-900 ring-2 ring-gold-400 shadow-md scale-105'
+                          : 'border-[#ded5c6] opacity-70 hover:opacity-100 hover:border-gold-500'
+                      }`}
+                    >
+                      <img
+                        src={resolveUrl(src)}
+                        alt={`View ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                      {isSelected && (
+                        <span className="absolute bottom-0 inset-x-0 h-1 bg-maroon-900" />
+                      )}
+                    </button>
+                  );
+                })}
+                <span className="text-[11px] text-neutral-400 font-medium pl-1">
+                  {safeIdx + 1} of {imagesList.length} photos
+                </span>
               </div>
             )}
           </div>
