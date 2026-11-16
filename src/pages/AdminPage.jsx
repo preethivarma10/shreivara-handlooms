@@ -137,7 +137,13 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
   const [uploadingSlots, setUploadingSlots] = useState({});
   const [slotNotes, setSlotNotes] = useState({});
 
+  // Controlled form fields for real-time button validation
+  const [name, setName] = useState(product?.name ?? '');
+  const [sellingPrice, setSellingPrice] = useState(product?.sellingPrice ?? '');
+
   useEffect(() => {
+    setName(product?.name ?? '');
+    setSellingPrice(product?.sellingPrice ?? '');
     setImageUrls(parseExistingImages());
   }, [product]);
 
@@ -227,6 +233,8 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
       const result = await onSave(fd);
       if (!product) {
         form.reset();
+        setName('');
+        setSellingPrice('');
         setImageUrls(['', '', '', '']);
         setSlotNotes({});
         setIsManualCategory(false);
@@ -241,7 +249,9 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
   }
 
   const isUploadingAny = Object.values(uploadingSlots).some(Boolean);
-  const cleanImagesCount = imageUrls.map(String).map((s) => s.trim()).filter(Boolean).length;
+  const cleanImages = imageUrls.map(String).map((s) => s.trim()).filter(Boolean);
+  const hasImages = cleanImages.length > 0;
+  const isFormReady = Boolean(name.trim()) && Boolean(sellingPrice && Number(sellingPrice) > 0) && hasImages;
 
   return (
     <form onSubmit={submitProduct} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -255,7 +265,15 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Product name
-        <input name="name" required maxLength="120" defaultValue={product?.name ?? ''} placeholder="Royal Gold Temple Saree" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
+        <input
+          name="name"
+          required
+          maxLength="120"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Royal Gold Temple Saree"
+          className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none"
+        />
       </label>
 
       <div className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
@@ -320,7 +338,17 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Offer / Selling price (INR)
-        <input name="sellingPrice" type="number" min="1" step="1" required defaultValue={product?.sellingPrice ?? ''} placeholder="6999" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
+        <input
+          name="sellingPrice"
+          type="number"
+          min="1"
+          step="1"
+          required
+          value={sellingPrice}
+          onChange={(e) => setSellingPrice(e.target.value)}
+          placeholder="6999"
+          className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none"
+        />
       </label>
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
@@ -501,8 +529,8 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         </div>
 
         {/* Hidden inputs for legacy handler compatibility */}
-        <input type="hidden" name="image" value={imageUrls[0] || ''} />
-        <input type="hidden" name="compressedImage" value={imageUrls[0] || ''} />
+        <input type="hidden" name="image" value={imageUrls.find(Boolean) || ''} />
+        <input type="hidden" name="compressedImage" value={imageUrls.find(Boolean) || ''} />
       </div>
 
       <label className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2 xl:col-span-3 py-1 bg-amber-50/60 p-3.5 rounded-xl border border-gold-200">
@@ -526,31 +554,43 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
               </svg>
               Photo uploading in progress… Please wait before saving.
             </span>
-          ) : cleanImagesCount === 0 ? (
+          ) : !hasImages ? (
             <span className="text-amber-800 font-medium flex items-center gap-1">
-              ⚠️ Add at least 1 photo to publish to storefront
+              ⚠️ Add at least 1 image (Upload photo or paste URL) to enable publish
+            </span>
+          ) : !name.trim() ? (
+            <span className="text-neutral-500 font-medium">
+              Enter Product Name to enable publish
+            </span>
+          ) : !sellingPrice ? (
+            <span className="text-neutral-500 font-medium">
+              Enter Selling Price to enable publish
             </span>
           ) : (
             <span className="text-emerald-700 font-semibold flex items-center gap-1">
-              ✓ {cleanImagesCount} {cleanImagesCount === 1 ? 'image' : 'images'} ready to publish
+              ✓ Ready: {cleanImages.length} {cleanImages.length === 1 ? 'image' : 'images'} attached
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-3 justify-end">
+        <div className="flex items-center gap-3 justify-end w-full sm:w-auto">
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className="cursor-pointer rounded-xl border border-neutral-300 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-700 hover:bg-neutral-50 transition"
+              className="cursor-pointer rounded-xl border border-neutral-300 px-5 py-3 text-xs font-bold uppercase tracking-wider text-neutral-700 hover:bg-neutral-50 transition"
             >
               Cancel
             </button>
           )}
           <button
             type="submit"
-            disabled={saving || isUploadingAny}
-            className="cursor-pointer rounded-xl bg-maroon-900 hover:bg-maroon-800 text-white px-7 py-3 text-xs font-bold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-60 shadow-md flex items-center justify-center gap-2"
+            disabled={saving || isUploadingAny || !isFormReady}
+            className={`w-full sm:w-auto rounded-xl px-8 py-3.5 text-xs font-bold uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 ${
+              isFormReady && !saving && !isUploadingAny
+                ? 'bg-maroon-900 hover:bg-maroon-800 text-white cursor-pointer active:scale-[0.98]'
+                : 'bg-neutral-200 text-neutral-400 border border-neutral-300 cursor-not-allowed opacity-80'
+            }`}
           >
             {saving ? (
               <>
@@ -558,7 +598,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
-                <span>Saving to Storefront…</span>
+                <span>Publishing to Storefront…</span>
               </>
             ) : isUploadingAny ? (
               <span>Uploading Photos…</span>
