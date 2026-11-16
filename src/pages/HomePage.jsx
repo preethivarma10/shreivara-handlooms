@@ -4,6 +4,28 @@ import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 import { DEFAULT_PRODUCTS } from '../components/SiteLayout.jsx';
 import { supabase, isSupabaseConfigured, fetchProductsFromSupabase } from '../lib/supabase';
 
+function parseImages(item) {
+  // Priority: images array > image_url > image > imageUrl > photo
+  const raw = item.images ?? item.image_url ?? item.image ?? item.imageUrl ?? item.photo ?? '';
+  const FALLBACK = 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80';
+
+  let arr = [];
+  if (Array.isArray(raw)) {
+    arr = raw.map(String).filter(Boolean);
+  } else if (typeof raw === 'string' && raw.trim()) {
+    // Could be JSON array or single URL
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) arr = parsed.map(String).filter(Boolean);
+      else arr = [raw.trim()];
+    } catch {
+      arr = [raw.trim()];
+    }
+  }
+  if (arr.length === 0) arr = [FALLBACK];
+  return arr;
+}
+
 function normalizeProduct(item, idx = 0) {
   const sellingPrice = Number(item.selling_price ?? item.sellingPrice ?? item.price ?? 3999);
   const originalPrice = Number(
@@ -13,8 +35,8 @@ function normalizeProduct(item, idx = 0) {
     item.price ??
     (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999)
   );
-  const unparsedImage = item.image_url || item.images || item.image || item.imageUrl || item.photo || '';
-  const rawImage = Array.isArray(unparsedImage) ? unparsedImage[0] : unparsedImage;
+  const imagesList = parseImages(item);
+  const rawImage = imagesList[0];
   const description = item.description || item.offer_details || item.offerDetails || '';
 
   return {
@@ -28,9 +50,10 @@ function normalizeProduct(item, idx = 0) {
     price: item.price ?? sellingPrice,
     description,
     offerDetails: item.offer_details || item.offerDetails || '',
-    image: rawImage || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+    image: rawImage,
     imageUrl: rawImage,
     image_url: item.image_url || rawImage,
+    imagesList,          // ← always a clean string[]
     images: item.images || rawImage,
     stock: Number(item.stock ?? 5),
     sizes: item.sizes ?? '',
@@ -69,11 +92,16 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
       ? rawSizes.split(',').map((size) => size.trim()).filter(Boolean)
       : [];
 
-  const rawImage = p.image_url || p.images || p.image || p.imageUrl || p.photo || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80';
-  const resolvedImage = Array.isArray(rawImage) ? rawImage[0] : rawImage;
-  const imageUrl = typeof resolvedImage === 'string' && resolvedImage.startsWith('/')
-    ? `${window.location.origin}${resolvedImage}`
-    : resolvedImage;
+  // Multi-image support — imagesList is always a string[]
+  const imagesList = Array.isArray(p.imagesList) && p.imagesList.length > 0
+    ? p.imagesList
+    : [p.image_url || p.image || p.imageUrl || p.photo || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'].filter(Boolean);
+
+  const [activeIdx, setActiveIdx] = useState(0);
+  const resolveUrl = (src) => typeof src === 'string' && src.startsWith('/')
+    ? `${window.location.origin}${src}`
+    : src;
+  const activeImage = resolveUrl(imagesList[activeIdx] || imagesList[0]);
 
   const sellingPrice = Number(p.sellingPrice ?? p.selling_price ?? p.price ?? 3999);
   const originalPrice = Number(p.originalPrice ?? p.original_price ?? p.mrp ?? p.price ?? (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999));
@@ -98,6 +126,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
     originalPrice > sellingPrice ? `• Original Price: ${formatCurrency(originalPrice)}` : '',
     offerDetails ? `• Offer: ${offerDetails}` : '',
     description ? `• Details: ${description}` : '',
+    `• View: ${activeImage}`,
     '• Storefront: https://shreivara-handlooms.vercel.app',
     '',
     'Please confirm availability and delivery details.'
@@ -107,11 +136,13 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
 
   return (
     <article className="group overflow-hidden rounded-sm border border-[#e1d8c9] bg-[#fbf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(58,43,25,0.12)]">
+      {/* Main image */}
       <div className="relative overflow-hidden bg-[#e8dfd0]">
         <img
-          src={imageUrl}
+          key={activeImage}
+          src={activeImage}
           alt={name}
-          className="h-[320px] w-full object-cover transition duration-700 group-hover:scale-[1.035]"
+          className="h-[320px] w-full object-cover transition-all duration-500 group-hover:scale-[1.035]"
           loading="lazy"
         />
         {discount > 0 && (
@@ -119,8 +150,40 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
             {discount}% off
           </span>
         )}
+        {isSoldOut && (
+          <span className="absolute right-3 top-3 rounded-sm bg-neutral-900/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-white">
+            Sold Out
+          </span>
+        )}
       </div>
-      <div className="p-4 sm:p-5 flex flex-col flex-1">
+
+      {/* Thumbnail strip — only shown when there are 2+ images */}
+      {imagesList.length > 1 && (
+        <div className="flex gap-1.5 px-3 pt-2.5 pb-0">
+          {imagesList.slice(0, 4).map((src, idx) => (
+            <button
+              key={idx}
+              type="button"
+              aria-label={`View image ${idx + 1}`}
+              onClick={() => setActiveIdx(idx)}
+              className={`relative h-[52px] w-[52px] shrink-0 overflow-hidden rounded-sm border-2 transition-all duration-150 cursor-pointer focus:outline-none ${
+                activeIdx === idx
+                  ? 'border-maroon-900 shadow-[0_0_0_1px_rgba(100,30,30,0.3)]'
+                  : 'border-[#e1d8c9] opacity-70 hover:opacity-100 hover:border-maroon-500'
+              }`}
+            >
+              <img
+                src={resolveUrl(src)}
+                alt={`${name} view ${idx + 1}`}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className={`p-4 sm:p-5 flex flex-col flex-1 ${imagesList.length > 1 ? 'pt-2.5' : ''}`}>
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
         <h3 className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900">{name}</h3>
         <div className="mt-3 flex items-center gap-2">

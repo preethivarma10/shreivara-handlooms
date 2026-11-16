@@ -182,6 +182,9 @@ export async function insertProductToSupabase(productData) {
       sizes: productData.sizes || '',
       offer_details: productData.offerDetails || productData.offer_details || '',
       image: productData.image || productData.image_url || '',
+      images: Array.isArray(productData.imagesList)
+        ? JSON.stringify(productData.imagesList)
+        : (productData.images || productData.image || ''),
       available: productData.available !== false,
     };
 
@@ -189,6 +192,13 @@ export async function insertProductToSupabase(productData) {
       .from('products')
       .insert([payload])
       .select();
+
+    // Fallback: If 'images' column does not exist yet, strip it and retry
+    if (error && error.message && error.message.includes("'images'")) {
+      const { images: _drop, ...payloadNoImages } = payload;
+      const retry2 = await supabase.from('products').insert([payloadNoImages]).select();
+      if (!retry2.error) { data = retry2.data; error = null; }
+    }
 
     // Fallback: If table column schema differs (e.g. image_url / description / price)
     if (error && (error.message.includes('image') || error.message.includes('column'))) {
@@ -256,6 +266,11 @@ export async function updateProductInSupabase(sku, productData) {
       offer_details: productData.offerDetails || productData.offer_details || '',
       available: productData.available !== false,
       ...(productData.image ? { image: productData.image } : {}),
+      ...(productData.imagesList || productData.images ? {
+        images: Array.isArray(productData.imagesList)
+          ? JSON.stringify(productData.imagesList)
+          : (productData.images || '')
+      } : {}),
     };
 
     let { data, error } = await supabase

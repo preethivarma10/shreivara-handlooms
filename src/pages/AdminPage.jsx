@@ -109,9 +109,36 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // ── Multi-image URL state (up to 4) ──────────────────────────────────────
+  const parseExistingImages = () => {
+    const raw = product?.imagesList ?? product?.images ?? product?.image_url ?? product?.image ?? '';
+    if (Array.isArray(raw)) return [...raw.slice(0, 4), '', '', '', ''].slice(0, 4).map(String);
+    if (typeof raw === 'string' && raw.trim()) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return [...parsed.slice(0, 4), '', '', '', ''].slice(0, 4).map(String);
+      } catch {}
+      return [raw.trim(), '', '', ''];
+    }
+    return ['', '', '', ''];
+  };
+  const [imageUrls, setImageUrls] = useState(parseExistingImages);
+
+  const IMAGE_LABELS = [
+    'Image URL 1 (Main View)',
+    'Image URL 2 (Close-up / Weave)',
+    'Image URL 3 (Pallu / Details)',
+    'Image URL 4 (Draped / Model)',
+  ];
+
+  function setImageUrl(idx, val) {
+    setImageUrls((prev) => prev.map((v, i) => (i === idx ? val : v)));
+  }
+
+  // Legacy single-file upload still supported for Image 1
   const [imagePreview, setImagePreview] = useState(product?.image || '');
   const [imageSizeNote, setImageSizeNote] = useState('');
-  const [imageUrlInput, setImageUrlInput] = useState('');
 
   // Manual category support
   const isCustomExisting = Boolean(product?.category && !categories.includes(product.category));
@@ -132,6 +159,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         const compressed = await readAndCompressImage(file);
         if (compressed) {
           setImagePreview(compressed);
+          setImageUrls((prev) => [compressed, ...prev.slice(1)]);
           const kb = Math.round((compressed.length * 3 / 4) / 1024);
           setImageSizeNote(`✓ Compressed & Ready (~${kb} KB)`);
         }
@@ -149,10 +177,14 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
     setNotice('');
     setSaving(true);
     try {
-      const result = await onSave(new FormData(form));
+      const fd = new FormData(form);
+      // Inject current imageUrls into FormData for the parent handler
+      fd.set('imageUrls', JSON.stringify(imageUrls.filter(Boolean)));
+      const result = await onSave(fd);
       if (!product) {
         form.reset();
         setImagePreview('');
+        setImageUrls(['', '', '', '']);
         setIsManualCategory(false);
         setManualCategoryValue('');
       }
@@ -259,55 +291,70 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         <textarea name="offerDetails" rows="2" maxLength="300" defaultValue={product?.offerDetails ?? ''} placeholder="Optional promotional callout (e.g., Grand Launch Offer)" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
 
-      <div className="grid gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2">
-        <div className="flex items-center justify-between">
-          <span>Product Image *</span>
-          <span className="text-[10px] text-neutral-400 font-normal lowercase tracking-normal">Upload photo or paste URL</span>
+      {/* ── Multi-Image URL Inputs ──────────────────────────────────── */}
+      <div className="md:col-span-2 xl:col-span-3 space-y-3">
+        <div className="flex items-center gap-2 pb-1 border-b border-gold-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-neutral-700">Product Images</span>
+          <span className="text-[10px] text-neutral-400 font-normal lowercase tracking-normal">Up to 4 images — first is the main view</span>
         </div>
-        <div className="space-y-3">
-          <input type="hidden" name="compressedImage" value={imagePreview || ''} />
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <input
-              name="image"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              required={!product && !imagePreview && !imageUrlInput}
-              onChange={handleFileChange}
-              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-normal file:mr-3 file:rounded-lg file:border-0 file:bg-maroon-900 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white focus:border-maroon-900 focus:outline-none cursor-pointer"
-            />
-            {imagePreview && (
-              <div className="flex items-center gap-2.5 shrink-0 bg-gold-50/70 p-2 rounded-xl border border-gold-300">
-                <img
-                  src={imagePreview}
-                  alt="Product preview"
-                  className="h-14 w-14 rounded-lg object-cover border border-gold-400 shadow-2xs"
-                />
-                <div className="text-[10px] text-maroon-950">
-                  <span className="block font-bold text-emerald-800">{imageSizeNote || '✓ Ready for Storefront'}</span>
-                  <span className="text-neutral-500 font-normal">Preview loaded</span>
-                </div>
-              </div>
-            )}
-          </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-neutral-500 uppercase tracking-wider shrink-0">Or Image URL:</span>
-            <input
-              name="imageUrl"
-              type="url"
-              placeholder="https://images.unsplash.com/... or direct image link"
-              value={imageUrlInput}
-              onChange={(e) => {
-                setImageUrlInput(e.target.value);
-                if (e.target.value.trim().startsWith('http')) {
-                  setImagePreview(e.target.value.trim());
-                  setImageSizeNote('✓ External URL Linked');
-                }
-              }}
-              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-1.5 text-xs font-normal focus:border-maroon-900 focus:outline-none placeholder:text-neutral-400"
-            />
-          </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {IMAGE_LABELS.map((label, idx) => (
+            <div key={idx} className="space-y-1.5">
+              <label className="text-[10.5px] font-semibold uppercase tracking-wider text-neutral-600 block">
+                {label}
+                {idx === 0 && <span className="ml-1 text-[9px] text-red-500 font-bold">*</span>}
+              </label>
+              <div className="flex items-center gap-2">
+                {/* Thumbnail preview */}
+                {imageUrls[idx] ? (
+                  <div className="relative shrink-0 h-14 w-14 overflow-hidden rounded-lg border-2 border-maroon-900/40 bg-[#f8f5ed]">
+                    <img
+                      src={imageUrls[idx]}
+                      alt={`Preview ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                      onError={(e) => { e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="%23f1e9d9"/></svg>'; }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImageUrl(idx, '')}
+                      className="absolute top-0 right-0 h-4 w-4 flex items-center justify-center rounded-bl bg-maroon-900/80 text-white text-[9px] hover:bg-maroon-900 cursor-pointer"
+                      aria-label="Clear image"
+                    >✕</button>
+                  </div>
+                ) : (
+                  <div className="shrink-0 h-14 w-14 rounded-lg border-2 border-dashed border-[#d9d0c1] bg-[#f8f5ed] flex items-center justify-center text-neutral-300">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  </div>
+                )}
+                <input
+                  type="url"
+                  placeholder={idx === 0 ? 'https://... (main product image)' : `https://... (optional)`}
+                  value={imageUrls[idx]}
+                  onChange={(e) => setImageUrl(idx, e.target.value)}
+                  className="flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-normal focus:border-maroon-900 focus:outline-none placeholder:text-neutral-400"
+                />
+              </div>
+              {/* File upload only for Image 1 */}
+              {idx === 0 && (
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className="text-[9px] text-neutral-400 uppercase tracking-wider shrink-0">or upload:</span>
+                  <input
+                    name="image"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleFileChange}
+                    className="flex-1 rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs font-normal file:mr-2 file:rounded-md file:border-0 file:bg-maroon-900 file:px-2 file:py-1 file:text-[10px] file:font-semibold file:text-white cursor-pointer"
+                  />
+                  {imageSizeNote && <span className="text-[10px] text-emerald-700 font-semibold shrink-0">{imageSizeNote}</span>}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
+
+        {/* Hidden fields for legacy compatibility */}
+        <input type="hidden" name="compressedImage" value={imagePreview || ''} />
       </div>
 
       <label className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2 xl:col-span-3 py-1 bg-amber-50/60 p-3.5 rounded-xl border border-gold-200">
@@ -872,20 +919,31 @@ export default function AdminPage() {
     } catch (_) { }
   }
 
-  async function resolveProductImage(formData) {
-    // 1. Prioritize direct Image URL if entered
+  async function resolveProductImages(formData) {
+    // 1. Multi-image URLs from new form (JSON array)
+    const imageUrlsJson = (formData.get('imageUrls') || '').toString().trim();
+    if (imageUrlsJson) {
+      try {
+        const arr = JSON.parse(imageUrlsJson);
+        if (Array.isArray(arr) && arr.filter(Boolean).length > 0) {
+          return { imagesList: arr.filter(Boolean), image: arr[0] };
+        }
+      } catch {}
+    }
+
+    // 2. Legacy: single URL input
     const urlInput = (formData.get('imageUrl') || '').toString().trim();
-    if (urlInput) return urlInput;
+    if (urlInput) return { imagesList: [urlInput], image: urlInput };
 
-    // 2. Next check pre-compressed image dataUrl from ProductForm
+    // 3. Legacy: pre-compressed image dataUrl
     const compressed = (formData.get('compressedImage') || '').toString().trim();
-    if (compressed) return compressed;
+    if (compressed) return { imagesList: [compressed], image: compressed };
 
-    // 3. Fallback to processing uploaded file
+    // 4. Legacy: uploaded file
     const imageFile = formData.get('image');
     if (imageFile instanceof File && imageFile.size > 0) {
       const result = await readAndCompressImage(imageFile);
-      if (result) return result;
+      if (result) return { imagesList: [result], image: result };
     }
 
     return null;
@@ -896,8 +954,9 @@ export default function AdminPage() {
     if (!sku) throw new Error('SKU is required.');
     if (products.some((p) => p.sku === sku)) throw new Error(`A product with SKU "${sku}" already exists.`);
 
-    const imageUrl = await resolveProductImage(formData);
-    if (!imageUrl) throw new Error('Please select a product image or enter an image URL.');
+    const resolved = await resolveProductImages(formData);
+    if (!resolved) throw new Error('Please add at least one product image URL.');
+    const { imagesList, image: imageUrl } = resolved;
 
     const newProduct = {
       sku,
@@ -909,6 +968,8 @@ export default function AdminPage() {
       sizes: (formData.get('sizes') || '').toString().trim(),
       offerDetails: (formData.get('offerDetails') || '').toString().trim(),
       image: imageUrl,
+      imagesList,
+      images: JSON.stringify(imagesList),   // stored as JSON string in Supabase text column
       available: formData.get('available') !== null,
     };
 
@@ -944,10 +1005,11 @@ export default function AdminPage() {
   }
 
   async function updateProduct(sku, formData) {
-    const newImage = await resolveProductImage(formData);
+    const resolved = await resolveProductImages(formData);
 
     const next = products.map((p) => {
       if (p.sku !== sku) return p;
+      const updatedImages = resolved ? resolved.imagesList : (Array.isArray(p.imagesList) ? p.imagesList : [p.image]);
       return {
         ...p,
         name: (formData.get('name') || '').toString().trim() || p.name,
@@ -958,7 +1020,11 @@ export default function AdminPage() {
         sizes: (formData.get('sizes') || '').toString().trim(),
         offerDetails: (formData.get('offerDetails') || '').toString().trim(),
         available: formData.get('available') !== null,
-        ...(newImage ? { image: newImage } : {}),
+        ...(resolved ? {
+          image: resolved.image,
+          imagesList: resolved.imagesList,
+          images: JSON.stringify(resolved.imagesList),
+        } : {}),
       };
     });
     persistProducts(next);
