@@ -139,15 +139,17 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
       ? rawSizes.split(',').map((size) => size.trim()).filter(Boolean)
       : [];
 
-  // Dynamic image array resolution — reads array, string, or JSON, filtering empty slots
-  const imagesList = extractProductImages(p);
+  // Dynamic image array resolution — maps through product.images, falling back to multi-format parser
+  const productImages = Array.isArray(p.images) && p.images.length > 0
+    ? p.images.filter(Boolean)
+    : extractProductImages(p);
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const safeIdx = activeIdx >= imagesList.length ? 0 : activeIdx;
+  const safeIdx = activeIdx >= productImages.length ? 0 : activeIdx;
   const resolveUrl = (src) => typeof src === 'string' && src.startsWith('/')
     ? `${window.location.origin}${src}`
     : src;
-  const activeImage = resolveUrl(imagesList[safeIdx] || imagesList[0]);
+  const activeImage = resolveUrl(productImages[safeIdx] || productImages[0]);
 
   const sellingPrice = Number(p.sellingPrice ?? p.selling_price ?? p.price ?? 3999);
   const originalPrice = Number(p.originalPrice ?? p.original_price ?? p.mrp ?? p.price ?? (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999));
@@ -207,12 +209,12 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
         )}
 
         {/* Dynamic Image Counter Pill */}
-        {imagesList.length > 1 && (
+        {productImages.length > 1 && (
           <span className="absolute bottom-2.5 left-3 rounded-full bg-black/60 backdrop-blur-xs px-2.5 py-1 text-[9.5px] font-medium tracking-wider text-white flex items-center gap-1.5">
             <svg className="h-3 w-3 text-gold-400" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
             </svg>
-            <span>{safeIdx + 1} / {imagesList.length}</span>
+            <span>{safeIdx + 1} / {productImages.length}</span>
           </span>
         )}
 
@@ -221,45 +223,45 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
         </span>
       </div>
 
-      {/* Interactive Thumbnail Gallery Strip — renders for every populated image */}
-      {imagesList.length > 1 && (
-        <div className="flex items-center gap-1.5 px-3 pt-2.5 pb-1 border-b border-[#ece4d6]/60 bg-[#faf7f0]/80">
-          {imagesList.map((src, idx) => {
-            const isSelected = safeIdx === idx;
+      {/* Interactive Thumbnail Gallery Strip — maps through product.images */}
+      {productImages.length > 1 && (
+        <div className="flex items-center gap-1.5 px-3 pt-2.5 pb-1 border-b border-[#ece4d6]/60 bg-[#faf7f0]/80 overflow-x-auto">
+          {productImages.map((imageUrl, idx) => {
+            const isActive = safeIdx === idx;
             return (
               <button
                 key={idx}
                 type="button"
-                aria-label={`Switch to image view ${idx + 1} of ${imagesList.length}`}
+                aria-label={`Switch to image view ${idx + 1} of ${productImages.length}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   setActiveIdx(idx);
                 }}
                 className={`group/thumb cursor-pointer relative h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] shrink-0 overflow-hidden rounded-sm border-2 transition-all duration-200 focus:outline-none ${
-                  isSelected
+                  isActive
                     ? 'border-maroon-900 ring-2 ring-gold-400/60 shadow-md scale-105'
                     : 'border-[#ded5c6] opacity-70 hover:opacity-100 hover:border-gold-500'
                 }`}
               >
                 <img
-                  src={resolveUrl(src)}
+                  src={resolveUrl(imageUrl)}
                   alt={`${name} thumbnail ${idx + 1}`}
                   className="h-full w-full object-cover transition duration-200 group-hover/thumb:scale-110"
                   loading="lazy"
                 />
-                {isSelected && (
+                {isActive && (
                   <span className="absolute bottom-0 inset-x-0 h-0.5 bg-maroon-900" />
                 )}
               </button>
             );
           })}
-          <span className="ml-auto text-[9px] font-medium uppercase tracking-wider text-neutral-400">
-            {imagesList.length} {imagesList.length === 1 ? 'View' : 'Views'}
+          <span className="ml-auto text-[9px] font-medium uppercase tracking-wider text-neutral-400 whitespace-nowrap pl-1">
+            {productImages.length} {productImages.length === 1 ? 'View' : 'Views'}
           </span>
         </div>
       )}
 
-      <div className={`p-4 sm:p-5 flex flex-col flex-1 ${imagesList.length > 1 ? 'pt-2.5' : ''}`}>
+      <div className={`p-4 sm:p-5 flex flex-col flex-1 ${productImages.length > 1 ? 'pt-2.5' : ''}`}>
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
         <h3
           className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900 cursor-pointer hover:underline"
@@ -308,14 +310,16 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
 function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0, onAddToBag }) {
   if (!product) return null;
   const p = product;
-  const imagesList = extractProductImages(p);
+  const productImages = Array.isArray(p.images) && p.images.length > 0
+    ? p.images.filter(Boolean)
+    : extractProductImages(p);
   const [activeIdx, setActiveIdx] = useState(initialIdx || 0);
 
-  const safeIdx = activeIdx >= imagesList.length ? 0 : activeIdx;
+  const safeIdx = activeIdx >= productImages.length ? 0 : activeIdx;
   const resolveUrl = (src) => typeof src === 'string' && src.startsWith('/')
     ? `${window.location.origin}${src}`
     : src;
-  const activeImage = resolveUrl(imagesList[safeIdx] || imagesList[0]);
+  const activeImage = resolveUrl(productImages[safeIdx] || productImages[0]);
 
   const sellingPrice = Number(p.sellingPrice ?? p.selling_price ?? p.price ?? 3999);
   const originalPrice = Number(p.originalPrice ?? p.original_price ?? p.mrp ?? p.price ?? (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999));
@@ -405,11 +409,11 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
               )}
             </div>
 
-            {/* Thumbnails row — renders for every populated image */}
-            {imagesList.length > 1 && (
+            {/* Thumbnails row — maps through product.images */}
+            {productImages.length > 1 && (
               <div className="flex items-center gap-2 pt-1 flex-wrap">
-                {imagesList.map((src, idx) => {
-                  const isSelected = safeIdx === idx;
+                {productImages.map((imageUrl, idx) => {
+                  const isActive = safeIdx === idx;
                   return (
                     <button
                       key={idx}
@@ -417,24 +421,24 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
                       aria-label={`View photo ${idx + 1}`}
                       onClick={() => setActiveIdx(idx)}
                       className={`cursor-pointer relative h-16 w-16 overflow-hidden rounded-lg border-2 transition-all duration-200 ${
-                        isSelected
+                        isActive
                           ? 'border-maroon-900 ring-2 ring-gold-400 shadow-md scale-105'
                           : 'border-[#ded5c6] opacity-70 hover:opacity-100 hover:border-gold-500'
                       }`}
                     >
                       <img
-                        src={resolveUrl(src)}
+                        src={resolveUrl(imageUrl)}
                         alt={`View ${idx + 1}`}
                         className="h-full w-full object-cover"
                       />
-                      {isSelected && (
+                      {isActive && (
                         <span className="absolute bottom-0 inset-x-0 h-1 bg-maroon-900" />
                       )}
                     </button>
                   );
                 })}
                 <span className="text-[11px] text-neutral-400 font-medium pl-1">
-                  {safeIdx + 1} of {imagesList.length} photos
+                  {safeIdx + 1} of {productImages.length} photos
                 </span>
               </div>
             )}
