@@ -83,7 +83,7 @@ function BagIcon() {
   );
 }
 
-function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
+function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
   const p = product;
   const rawSizes = p.sizes || '';
   const sizes = Array.isArray(rawSizes)
@@ -136,8 +136,12 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
 
   return (
     <article className="group overflow-hidden rounded-sm border border-[#e1d8c9] bg-[#fbf9f4] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(58,43,25,0.12)]">
-      {/* Main image */}
-      <div className="relative overflow-hidden bg-[#e8dfd0]">
+      {/* Main image with clickable detail / enlarge */}
+      <div
+        className="relative overflow-hidden bg-[#e8dfd0] cursor-pointer"
+        onClick={() => onOpenDetail && onOpenDetail(activeIdx)}
+        title="Click to view details & full photos"
+      >
         <img
           key={activeImage}
           src={activeImage}
@@ -155,6 +159,9 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
             Sold Out
           </span>
         )}
+        <span className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-1 text-[9px] font-semibold text-maroon-900 opacity-0 group-hover:opacity-100 transition shadow-xs">
+          Quick View ↗
+        </span>
       </div>
 
       {/* Thumbnail strip — only shown when there are 2+ images */}
@@ -185,7 +192,12 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
 
       <div className={`p-4 sm:p-5 flex flex-col flex-1 ${imagesList.length > 1 ? 'pt-2.5' : ''}`}>
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
-        <h3 className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900">{name}</h3>
+        <h3
+          className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900 cursor-pointer hover:underline"
+          onClick={() => onOpenDetail && onOpenDetail(activeIdx)}
+        >
+          {name}
+        </h3>
         <div className="mt-3 flex items-center gap-2">
           <span className="text-lg font-semibold text-maroon-900">{formatCurrency(sellingPrice)}</span>
           {originalPrice > sellingPrice && (
@@ -224,6 +236,199 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag }) {
   );
 }
 
+function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0, onAddToBag }) {
+  if (!product) return null;
+  const p = product;
+  const imagesList = Array.isArray(p.imagesList) && p.imagesList.length > 0
+    ? p.imagesList
+    : [p.image_url || p.image || p.imageUrl || p.photo || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'].filter(Boolean);
+
+  const [activeIdx, setActiveIdx] = useState(initialIdx || 0);
+
+  const resolveUrl = (src) => typeof src === 'string' && src.startsWith('/')
+    ? `${window.location.origin}${src}`
+    : src;
+  const activeImage = resolveUrl(imagesList[activeIdx] || imagesList[0]);
+
+  const sellingPrice = Number(p.sellingPrice ?? p.selling_price ?? p.price ?? 3999);
+  const originalPrice = Number(p.originalPrice ?? p.original_price ?? p.mrp ?? p.price ?? (sellingPrice > 0 ? Math.round(sellingPrice * 1.25) : 4999));
+  const sku = String(p.sku || p.id || 'SHR-001');
+  const name = p.name || p.title || 'Handloom Saree';
+  const category = p.category || 'Kanchi Pattu';
+  const description = p.description || p.offerDetails || p.offer_details || '';
+  const offerDetails = p.offerDetails || p.offer_details || '';
+
+  const maxStock = Number(p.stock ?? 5);
+  const isSoldOut = p.available === false || maxStock <= 0;
+  const isMaxReached = cartQuantity >= maxStock;
+
+  const rawSizes = p.sizes || '';
+  const sizes = Array.isArray(rawSizes)
+    ? rawSizes
+    : typeof rawSizes === 'string' && rawSizes
+      ? rawSizes.split(',').map((size) => size.trim()).filter(Boolean)
+      : [];
+
+  const waMessage = encodeURIComponent([
+    isSoldOut
+      ? 'Hello Shreivara, I noticed this piece is currently sold out and would like to inquire about a custom weave / restock:'
+      : 'Hello Shreivara, I would like to inquire about / order this piece:',
+    `• Product: ${name}`,
+    `• SKU: ${sku}`,
+    `• Category: ${category}`,
+    `• Price: ${formatCurrency(sellingPrice)}`,
+    originalPrice > sellingPrice ? `• Original Price: ${formatCurrency(originalPrice)}` : '',
+    offerDetails ? `• Offer: ${offerDetails}` : '',
+    description ? `• Details: ${description}` : '',
+    `• View: ${activeImage}`,
+    '• Storefront: https://shreivara-handlooms.vercel.app',
+    '',
+    'Please confirm availability and delivery details.'
+  ].filter(Boolean).join('\n'));
+
+  const discount = originalPrice > sellingPrice ? Math.round(((originalPrice - sellingPrice) / originalPrice) * 100) : 0;
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-xs animate-in fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gold-300 bg-[#fbf9f4] p-5 sm:p-8 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close modal"
+          className="cursor-pointer absolute top-4 right-4 h-8 w-8 rounded-full border border-neutral-300 bg-white flex items-center justify-center text-sm font-bold text-neutral-600 hover:bg-maroon-900 hover:text-white transition shadow-xs z-10"
+        >
+          ✕
+        </button>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Gallery view */}
+          <div className="space-y-3">
+            <div className="relative overflow-hidden rounded-xl border border-[#ded5c6] bg-[#e8dfd0]">
+              <img
+                key={activeImage}
+                src={activeImage}
+                alt={name}
+                className="h-[340px] sm:h-[400px] w-full object-cover transition-all duration-300"
+              />
+              {discount > 0 && (
+                <span className="absolute left-3 top-3 bg-[#f6f2e9]/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-maroon-900 rounded-sm">
+                  {discount}% off
+                </span>
+              )}
+              {isSoldOut && (
+                <span className="absolute right-3 top-3 rounded-sm bg-neutral-900/80 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-white">
+                  Sold Out
+                </span>
+              )}
+            </div>
+
+            {/* Thumbnails row (up to 4) */}
+            {imagesList.length > 1 && (
+              <div className="flex gap-2">
+                {imagesList.slice(0, 4).map((src, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveIdx(idx)}
+                    className={`cursor-pointer relative h-16 w-16 overflow-hidden rounded-lg border-2 transition ${
+                      activeIdx === idx
+                        ? 'border-maroon-900 shadow-md ring-1 ring-maroon-900'
+                        : 'border-[#ded5c6] opacity-70 hover:opacity-100 hover:border-maroon-500'
+                    }`}
+                  >
+                    <img
+                      src={resolveUrl(src)}
+                      alt={`View ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Details & Actions */}
+          <div className="flex flex-col justify-between space-y-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
+              <h2 className="mt-1 font-brand text-2xl sm:text-3xl font-medium text-maroon-900">{name}</h2>
+              <p className="mt-0.5 text-[11px] uppercase tracking-wider text-neutral-400">SKU: {sku}</p>
+
+              <div className="mt-4 flex items-center gap-3">
+                <span className="text-2xl font-bold text-maroon-900">{formatCurrency(sellingPrice)}</span>
+                {originalPrice > sellingPrice && (
+                  <span className="text-base text-gray-400 line-through">{formatCurrency(originalPrice)}</span>
+                )}
+              </div>
+
+              {offerDetails && (
+                <div className="mt-3.5 rounded-xl bg-amber-50 border border-gold-300 p-3 text-xs font-semibold text-maroon-900">
+                  ✨ {offerDetails}
+                </div>
+              )}
+
+              {description && (
+                <p className="mt-3 text-xs sm:text-sm text-neutral-700 leading-relaxed">
+                  {description}
+                </p>
+              )}
+
+              {sizes.length > 0 && (
+                <div className="mt-3 text-xs">
+                  <span className="font-semibold text-neutral-600">Available Sizes: </span>
+                  <span className="text-neutral-800">{sizes.join(', ')}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2 pt-4 border-t border-[#ded5c6]">
+              <a
+                href={`https://wa.me/919000510329?text=${waMessage}`}
+                target="_blank"
+                rel="noreferrer"
+                className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25d366] px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white shadow-xs transition hover:bg-[#1ebe5d]"
+              >
+                <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
+                Inquire / Order on WhatsApp
+              </a>
+
+              <button
+                type="button"
+                disabled={isMaxReached || isSoldOut}
+                onClick={onAddToBag}
+                className={`cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-semibold uppercase tracking-wider transition ${
+                  isMaxReached || isSoldOut
+                    ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400'
+                    : 'border-maroon-900 bg-maroon-900 text-white hover:bg-maroon-800'
+                }`}
+              >
+                <span className="h-4 w-4 shrink-0"><BagIcon /></span>
+                {isSoldOut ? 'Sold Out' : isMaxReached ? 'Limit Reached' : 'Add to Bag'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const {
     query,
@@ -237,6 +442,8 @@ export default function HomePage() {
   const [products, setProducts] = useState(DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx)));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalProduct, setModalProduct] = useState(null);
+  const [modalInitialIdx, setModalInitialIdx] = useState(0);
 
   useEffect(() => {
     document.title = 'Shreivara Handlooms | Authentic Sarees & Fine Jewelry';
@@ -419,6 +626,10 @@ export default function HomePage() {
                       product={product}
                       cartQuantity={cartItems?.find((item) => item.sku === product.sku)?.quantity || 0}
                       onAddToBag={() => addToBag(product.sku)}
+                      onOpenDetail={(idx) => {
+                        setModalProduct(product);
+                        setModalInitialIdx(idx || 0);
+                      }}
                     />
                   ))}
                 </div>
@@ -520,6 +731,17 @@ export default function HomePage() {
         </section>
 
       </div>
+
+      {/* Product Detail & Enlarge Modal */}
+      {modalProduct && (
+        <ProductDetailModal
+          product={modalProduct}
+          initialIdx={modalInitialIdx}
+          onClose={() => setModalProduct(null)}
+          cartQuantity={cartItems?.find((item) => item.sku === modalProduct.sku)?.quantity || 0}
+          onAddToBag={() => addToBag(modalProduct.sku)}
+        />
+      )}
     </main>
   );
 }

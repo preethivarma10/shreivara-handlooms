@@ -307,6 +307,145 @@ export async function updateProductInSupabase(sku, productData) {
 }
 
 /**
+ * Compresses an image file on the client side using HTML5 Canvas.
+ * Returns { blob: Blob, dataUrl: string, originalSize: number, compressedSize: number }
+ */
+export async function compressImageFile(file, maxWidth = 1200, maxHeight = 1600, quality = 0.78) {
+  if (!file || !(file instanceof File)) return null;
+  if (typeof window === 'undefined') return null;
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onerror = () => resolve(null);
+    reader.onload = (e) => {
+      const rawDataUrl = e.target?.result;
+      if (typeof rawDataUrl !== 'string') {
+        resolve(null);
+        return;
+      }
+      if (file.type === 'image/svg+xml') {
+        resolve({ blob: file, dataUrl: rawDataUrl, originalSize: file.size, compressedSize: file.size });
+        return;
+      }
+      const img = new Image();
+      img.onerror = () => resolve({ blob: file, dataUrl: rawDataUrl, originalSize: file.size, compressedSize: file.size });
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve({ blob: file, dataUrl: rawDataUrl, originalSize: file.size, compressedSize: file.size });
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          canvas.toBlob(
+            (blob) => {
+              resolve({
+                blob: blob || file,
+                dataUrl: compressedDataUrl,
+                originalSize: file.size,
+                compressedSize: blob?.size || file.size,
+              });
+            },
+            'image/jpeg',
+            quality
+          );
+        } catch (_) {
+          resolve({ blob: file, dataUrl: rawDataUrl, originalSize: file.size, compressedSize: file.size });
+        }
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Upload an image file to Supabase Storage bucket 'product-images'.
+ * Compresses the image client-side before upload (canvas resize) to stay well within Supabase free storage tier.
+ * Returns { url, publicUrl, error, warning }.
+ * If Supabase Storage bucket is not yet created, falls back gracefully to client-compressed image so product creation is never blocked.
+ *
+ * @param {File} file - The image file to upload
+ * @param {string} [folder='products'] - Sub-folder inside the bucket
+ * @returns {Promise<{ url: string|null, publicUrl: string|null, error: string|null, warning: string|null }>}
+ */
+export async function uploadImageToStorage(file, folder = 'products') {
+  if (!file || !(file instanceof File)) {
+    return { url: null, publicUrl: null, error: 'No valid image file provided.', warning: null };
+  }
+
+  // 1. Client-side compression for mobile speed & storage tier efficiency
+  const compressed = await compressImageFile(file);
+  const uploadBlob = compressed?.blob || file;
+  const fallbackDataUrl = compressed?.dataUrl || null;
+
+  if (!supabase || !isSupabaseConfigured) {
+    return {
+      url: fallbackDataUrl,
+      publicUrl: null,
+      error: null,
+      warning: 'Supabase is not configured; saved image locally as compressed data.',
+    };
+  }
+
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
+    const timestamp = Date.now();
+    const rand = Math.random().toString(36).slice(2, 8);
+    const path = `${folder}/${timestamp}-${rand}.${cleanExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(path, uploadBlob, {
+        cacheControl: '31536000',
+        upsert: false,
+        contentType: 'image/jpeg',
+      });
+
+    if (uploadError) {
+      console.warn('Supabase Storage upload warning:', uploadError.message);
+      return {
+        url: fallbackDataUrl,
+        publicUrl: null,
+        error: null,
+        warning: `Saved as compressed photo. (Supabase Storage: ${uploadError.message}. Run the SQL snippet to activate cloud storage bucket.)`,
+      };
+    }
+
+    const { data } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(path);
+
+    const publicUrl = data?.publicUrl || null;
+    return {
+      url: publicUrl || fallbackDataUrl,
+      publicUrl,
+      error: null,
+      warning: null,
+    };
+  } catch (err) {
+    console.warn('uploadImageToStorage error:', err);
+    return {
+      url: fallbackDataUrl,
+      publicUrl: null,
+      error: null,
+      warning: 'Storage upload failed; saved locally as compressed image.',
+    };
+  }
+}
+
+/**
  * Delete a product from Supabase by SKU.
  */
 export async function deleteProductFromSupabase(sku) {

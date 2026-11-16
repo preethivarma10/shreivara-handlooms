@@ -8,6 +8,7 @@ import {
   deleteProductFromSupabase,
   toggleProductAvailabilityInSupabase,
   fetchProductsFromSupabase,
+  uploadImageToStorage,
   cleanSupabaseUrl,
   isSupabaseConfigured,
   hasManualSupabaseOverride,
@@ -105,12 +106,19 @@ export async function readAndCompressImage(file, maxWidth = 900, maxHeight = 120
   });
 }
 
+const IMAGE_SLOTS = [
+  { id: 0, title: 'Slot 1: Main Image', subtitle: 'Primary card & catalog view', required: true },
+  { id: 1, title: 'Slot 2: Detail / Weave', subtitle: 'Close-up fabric & zari weave', required: false },
+  { id: 2, title: 'Slot 3: Pallu / Back', subtitle: 'Grand border & pallu details', required: false },
+  { id: 3, title: 'Slot 4: Draped / Full View', subtitle: 'Model drape or full expanse', required: false },
+];
+
 function ProductForm({ product, onSave, onCancel, submitLabel, availableCategories = categories }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // ── Multi-image URL state (up to 4) ──────────────────────────────────────
+  // ── Multi-image state (up to 4 slots) ──────────────────────────────────
   const parseExistingImages = () => {
     const raw = product?.imagesList ?? product?.images ?? product?.image_url ?? product?.image ?? '';
     if (Array.isArray(raw)) return [...raw.slice(0, 4), '', '', '', ''].slice(0, 4).map(String);
@@ -123,22 +131,61 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
     }
     return ['', '', '', ''];
   };
-  const [imageUrls, setImageUrls] = useState(parseExistingImages);
 
-  const IMAGE_LABELS = [
-    'Image URL 1 (Main View)',
-    'Image URL 2 (Close-up / Weave)',
-    'Image URL 3 (Pallu / Details)',
-    'Image URL 4 (Draped / Model)',
-  ];
+  const [imageUrls, setImageUrls] = useState(parseExistingImages);
+  const [slotModes, setSlotModes] = useState(['upload', 'upload', 'upload', 'upload']);
+  const [uploadingSlots, setUploadingSlots] = useState({});
+  const [slotNotes, setSlotNotes] = useState({});
+
+  useEffect(() => {
+    setImageUrls(parseExistingImages());
+  }, [product]);
 
   function setImageUrl(idx, val) {
     setImageUrls((prev) => prev.map((v, i) => (i === idx ? val : v)));
   }
 
-  // Legacy single-file upload still supported for Image 1
-  const [imagePreview, setImagePreview] = useState(product?.image || '');
-  const [imageSizeNote, setImageSizeNote] = useState('');
+  function setSlotMode(idx, mode) {
+    setSlotModes((prev) => prev.map((m, i) => (i === idx ? mode : m)));
+  }
+
+  function clearSlot(idx) {
+    setImageUrls((prev) => prev.map((v, i) => (i === idx ? '' : v)));
+    setSlotNotes((prev) => {
+      const next = { ...prev };
+      delete next[idx];
+      return next;
+    });
+  }
+
+  async function handleSlotFile(idx, e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError('');
+    setUploadingSlots((prev) => ({ ...prev, [idx]: true }));
+    setSlotNotes((prev) => ({ ...prev, [idx]: 'Compressing & uploading photo…' }));
+
+    try {
+      const result = await uploadImageToStorage(file, 'products');
+      if (result?.url) {
+        setImageUrls((prev) => prev.map((v, i) => (i === idx ? result.url : v)));
+        const note = result.publicUrl
+          ? '✓ Uploaded to Supabase Cloud'
+          : (result.warning || '✓ Compressed & ready');
+        setSlotNotes((prev) => ({ ...prev, [idx]: note }));
+      } else {
+        setSlotNotes((prev) => ({ ...prev, [idx]: 'Upload failed' }));
+        setError(result?.error || 'Could not upload image. Please try again or paste an image link.');
+      }
+    } catch (err) {
+      setSlotNotes((prev) => ({ ...prev, [idx]: 'Upload failed' }));
+      setError('Could not process photo upload. Please try again.');
+    } finally {
+      setUploadingSlots((prev) => ({ ...prev, [idx]: false }));
+      e.target.value = '';
+    }
+  }
 
   // Manual category support
   const isCustomExisting = Boolean(product?.category && !categories.includes(product.category));
@@ -150,26 +197,6 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
   );
   const [manualCategoryValue, setManualCategoryValue] = useState(isCustomExisting ? product.category : '');
 
-  async function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (file) {
-      setError('');
-      setImageSizeNote('Compressing image…');
-      try {
-        const compressed = await readAndCompressImage(file);
-        if (compressed) {
-          setImagePreview(compressed);
-          setImageUrls((prev) => [compressed, ...prev.slice(1)]);
-          const kb = Math.round((compressed.length * 3 / 4) / 1024);
-          setImageSizeNote(`✓ Compressed & Ready (~${kb} KB)`);
-        }
-      } catch (err) {
-        setError('Could not process image. Please try another file.');
-        setImageSizeNote('');
-      }
-    }
-  }
-
   async function submitProduct(event) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -177,14 +204,22 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
     setNotice('');
     setSaving(true);
     try {
+      const activeUrls = imageUrls.filter(Boolean);
+      if (activeUrls.length === 0) {
+        throw new Error('Please add at least one image (Slot 1: Main Image) for this product.');
+      }
+
       const fd = new FormData(form);
       // Inject current imageUrls into FormData for the parent handler
-      fd.set('imageUrls', JSON.stringify(imageUrls.filter(Boolean)));
+      fd.set('imageUrls', JSON.stringify(activeUrls));
+      fd.set('image', activeUrls[0] || '');
+      fd.set('compressedImage', activeUrls[0] || '');
+
       const result = await onSave(fd);
       if (!product) {
         form.reset();
-        setImagePreview('');
         setImageUrls(['', '', '', '']);
+        setSlotNotes({});
         setIsManualCategory(false);
         setManualCategoryValue('');
       }
@@ -291,70 +326,171 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         <textarea name="offerDetails" rows="2" maxLength="300" defaultValue={product?.offerDetails ?? ''} placeholder="Optional promotional callout (e.g., Grand Launch Offer)" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
       </label>
 
-      {/* ── Multi-Image URL Inputs ──────────────────────────────────── */}
-      <div className="md:col-span-2 xl:col-span-3 space-y-3">
-        <div className="flex items-center gap-2 pb-1 border-b border-gold-200">
-          <span className="text-xs font-bold uppercase tracking-wider text-neutral-700">Product Images</span>
-          <span className="text-[10px] text-neutral-400 font-normal lowercase tracking-normal">Up to 4 images — first is the main view</span>
+      {/* ── 4-Slot Multi-Image Manager (Upload or URL per slot) ─────────── */}
+      <div className="md:col-span-2 xl:col-span-3 space-y-3 pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-gold-200">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">Product Images (Up to 4 Slots)</span>
+            <p className="text-[11px] text-neutral-500 font-normal">Each slot supports direct device photo upload (with client auto-compression) OR pasting an external image URL.</p>
+          </div>
+          <span className="text-[10px] font-semibold text-maroon-900 bg-gold-100/70 border border-gold-300 px-2.5 py-1 rounded-full">
+            Slot 1 is required (Main catalog view)
+          </span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          {IMAGE_LABELS.map((label, idx) => (
-            <div key={idx} className="space-y-1.5">
-              <label className="text-[10.5px] font-semibold uppercase tracking-wider text-neutral-600 block">
-                {label}
-                {idx === 0 && <span className="ml-1 text-[9px] text-red-500 font-bold">*</span>}
-              </label>
-              <div className="flex items-center gap-2">
-                {/* Thumbnail preview */}
-                {imageUrls[idx] ? (
-                  <div className="relative shrink-0 h-14 w-14 overflow-hidden rounded-lg border-2 border-maroon-900/40 bg-[#f8f5ed]">
-                    <img
-                      src={imageUrls[idx]}
-                      alt={`Preview ${idx + 1}`}
-                      className="h-full w-full object-cover"
-                      onError={(e) => { e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="%23f1e9d9"/></svg>'; }}
-                    />
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          {IMAGE_SLOTS.map((slot, idx) => {
+            const hasImage = Boolean(imageUrls[idx]);
+            const isUploading = Boolean(uploadingSlots[idx]);
+            const note = slotNotes[idx];
+            const currentMode = slotModes[idx];
+
+            return (
+              <div
+                key={slot.id}
+                className={`rounded-2xl border transition p-3.5 space-y-2.5 ${
+                  hasImage
+                    ? 'border-gold-300/80 bg-white shadow-xs'
+                    : 'border-[#ded5c6] bg-[#fbf9f4]/60 hover:border-gold-400'
+                }`}
+              >
+                {/* Slot Header: Title & Toggle */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-maroon-900 flex items-center gap-1">
+                      {slot.title}
+                      {slot.required && <span className="text-red-500 font-bold">*</span>}
+                    </span>
+                    <p className="text-[10px] text-neutral-500">{slot.subtitle}</p>
+                  </div>
+
+                  {/* Mode Toggle Pills (Upload vs URL) */}
+                  <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-100 p-0.5 text-[10px] shrink-0">
                     <button
                       type="button"
-                      onClick={() => setImageUrl(idx, '')}
-                      className="absolute top-0 right-0 h-4 w-4 flex items-center justify-center rounded-bl bg-maroon-900/80 text-white text-[9px] hover:bg-maroon-900 cursor-pointer"
-                      aria-label="Clear image"
-                    >✕</button>
+                      onClick={() => setSlotMode(idx, 'upload')}
+                      className={`cursor-pointer rounded-md px-2 py-0.5 font-medium transition ${
+                        currentMode === 'upload'
+                          ? 'bg-maroon-900 text-white shadow-xs'
+                          : 'text-neutral-600 hover:text-neutral-900'
+                      }`}
+                    >
+                      📷 Upload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSlotMode(idx, 'url')}
+                      className={`cursor-pointer rounded-md px-2 py-0.5 font-medium transition ${
+                        currentMode === 'url'
+                          ? 'bg-maroon-900 text-white shadow-xs'
+                          : 'text-neutral-600 hover:text-neutral-900'
+                      }`}
+                    >
+                      🔗 URL
+                    </button>
+                  </div>
+                </div>
+
+                {/* Slot Body: Image Preview OR Input Area */}
+                {hasImage ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#fdfbf7] p-2.5">
+                    {/* Square Thumbnail */}
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gold-300 bg-neutral-100">
+                      <img
+                        src={imageUrls[idx]}
+                        alt={`${slot.title} preview`}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect fill="%23f1e9d9"/></svg>';
+                        }}
+                      />
+                    </div>
+
+                    {/* Metadata & Status */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {imageUrls[idx].includes('supabase.co') ? (
+                          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-800">
+                            ☁️ Cloud Storage
+                          </span>
+                        ) : imageUrls[idx].startsWith('data:image') ? (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-900">
+                            📱 Compressed Photo
+                          </span>
+                        ) : (
+                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-900">
+                            🔗 Web Link
+                          </span>
+                        )}
+                        <span className="text-[10px] text-neutral-400">Ready</span>
+                      </div>
+                      <p className="truncate text-[10.5px] text-neutral-600 font-mono" title={imageUrls[idx]}>
+                        {imageUrls[idx]}
+                      </p>
+                      {note && <p className="text-[10px] font-medium text-emerald-700">{note}</p>}
+                    </div>
+
+                    {/* Clear Button */}
+                    <button
+                      type="button"
+                      onClick={() => clearSlot(idx)}
+                      className="cursor-pointer shrink-0 rounded-lg border border-red-200 bg-red-50 p-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 hover:text-red-900 transition"
+                      title="Remove image from this slot"
+                      aria-label="Remove image"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : isUploading ? (
+                  <div className="flex min-h-[84px] flex-col items-center justify-center rounded-xl border border-dashed border-gold-400 bg-gold-50/50 p-4 text-center">
+                    <svg className="h-5 w-5 animate-spin text-maroon-900" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    <p className="mt-1.5 text-xs font-semibold text-maroon-900">Compressing &amp; Uploading…</p>
+                    <p className="text-[9.5px] text-neutral-500">Auto-optimizing for high-speed mobile loading</p>
+                  </div>
+                ) : currentMode === 'upload' ? (
+                  <div>
+                    <label className="flex min-h-[84px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#d9d0c1] bg-white p-3 text-center transition hover:border-maroon-900 hover:bg-[#faf6ee]">
+                      <svg className="h-6 w-6 text-maroon-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="mt-1 text-xs font-semibold text-maroon-900">
+                        Choose photo from phone / computer
+                      </span>
+                      <span className="text-[9.5px] text-neutral-500">
+                        Auto-compressed client-side for fast mobile viewing
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/*"
+                        className="hidden"
+                        onChange={(e) => handleSlotFile(idx, e)}
+                      />
+                    </label>
                   </div>
                 ) : (
-                  <div className="shrink-0 h-14 w-14 rounded-lg border-2 border-dashed border-[#d9d0c1] bg-[#f8f5ed] flex items-center justify-center text-neutral-300">
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <div className="space-y-1">
+                    <input
+                      type="url"
+                      placeholder={`https://... (${slot.title.toLowerCase()} URL)`}
+                      value={imageUrls[idx]}
+                      onChange={(e) => setImageUrl(idx, e.target.value)}
+                      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-normal focus:border-maroon-900 focus:outline-none placeholder:text-neutral-400"
+                    />
+                    <p className="text-[9.5px] text-neutral-400">Paste any direct image URL (Unsplash, CDN, etc.)</p>
                   </div>
                 )}
-                <input
-                  type="url"
-                  placeholder={idx === 0 ? 'https://... (main product image)' : `https://... (optional)`}
-                  value={imageUrls[idx]}
-                  onChange={(e) => setImageUrl(idx, e.target.value)}
-                  className="flex-1 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-normal focus:border-maroon-900 focus:outline-none placeholder:text-neutral-400"
-                />
               </div>
-              {/* File upload only for Image 1 */}
-              {idx === 0 && (
-                <div className="flex items-center gap-2 pt-0.5">
-                  <span className="text-[9px] text-neutral-400 uppercase tracking-wider shrink-0">or upload:</span>
-                  <input
-                    name="image"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleFileChange}
-                    className="flex-1 rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs font-normal file:mr-2 file:rounded-md file:border-0 file:bg-maroon-900 file:px-2 file:py-1 file:text-[10px] file:font-semibold file:text-white cursor-pointer"
-                  />
-                  {imageSizeNote && <span className="text-[10px] text-emerald-700 font-semibold shrink-0">{imageSizeNote}</span>}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Hidden fields for legacy compatibility */}
-        <input type="hidden" name="compressedImage" value={imagePreview || ''} />
+        {/* Hidden inputs for legacy handler compatibility */}
+        <input type="hidden" name="image" value={imageUrls[0] || ''} />
+        <input type="hidden" name="compressedImage" value={imageUrls[0] || ''} />
       </div>
 
       <label className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2 xl:col-span-3 py-1 bg-amber-50/60 p-3.5 rounded-xl border border-gold-200">
