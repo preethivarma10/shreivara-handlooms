@@ -41,7 +41,7 @@ export function extractProductImages(item) {
               flattened.push(...parsed.map(String).map((x) => x.trim()).filter(Boolean));
               continue;
             }
-          } catch (_) {}
+          } catch (_) { }
         }
         if (s) flattened.push(s);
       }
@@ -60,7 +60,7 @@ export function extractProductImages(item) {
             const clean = parsed.map(String).map((s) => s.trim()).filter(Boolean);
             if (clean.length > 0) return clean;
           }
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // PostgreSQL array string like '{"url1", "url2"}'
@@ -251,11 +251,10 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
                   e.stopPropagation();
                   setActiveIdx(idx);
                 }}
-                className={`group/thumb cursor-pointer relative h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] shrink-0 overflow-hidden rounded-sm border-2 transition-all duration-200 focus:outline-none ${
-                  isActive
+                className={`group/thumb cursor-pointer relative h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] shrink-0 overflow-hidden rounded-sm border-2 transition-all duration-200 focus:outline-none ${isActive
                     ? 'border-maroon-900 ring-2 ring-gold-400/60 shadow-md scale-105'
                     : 'border-[#ded5c6] opacity-70 hover:opacity-100 hover:border-gold-500'
-                }`}
+                  }`}
               >
                 <img
                   src={resolveUrl(imageUrl)}
@@ -298,21 +297,21 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
             href={`https://wa.me/919000510329?text=${waMessage}`}
             target="_blank"
             rel="noreferrer"
-            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm bg-[#25d366] px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#1ebe5d]"
+            className="cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm bg-[#25d366] px-2.5 py-3 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-[#1ebe5d]"
           >
-            <span className="h-3.5 w-3.5 shrink-0"><WhatsAppIcon /></span>
+            <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
             Order on WhatsApp
           </a>
           <button
             type="button"
             disabled={isMaxReached || isSoldOut}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] transition ${isMaxReached || isSoldOut
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-2.5 py-3 text-xs font-semibold uppercase tracking-wide transition ${isMaxReached || isSoldOut
               ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60'
               : 'border-maroon-900 text-maroon-900 hover:bg-maroon-900 hover:text-[#f8f5ed]'
               }`}
           >
-            <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
+            <span className="h-4 w-4 shrink-0"><BagIcon /></span>
             {isSoldOut ? 'Sold Out' : isMaxReached ? 'Limit Reached' : 'Add to Cart'}
           </button>
         </div>
@@ -434,11 +433,10 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
                       type="button"
                       aria-label={`View photo ${idx + 1}`}
                       onClick={() => setActiveIdx(idx)}
-                      className={`cursor-pointer relative h-16 w-16 overflow-hidden rounded-lg border-2 transition-all duration-200 ${
-                        isActive
+                      className={`cursor-pointer relative h-16 w-16 overflow-hidden rounded-lg border-2 transition-all duration-200 ${isActive
                           ? 'border-maroon-900 ring-2 ring-gold-400 shadow-md scale-105'
                           : 'border-[#ded5c6] opacity-70 hover:opacity-100 hover:border-gold-500'
-                      }`}
+                        }`}
                     >
                       <img
                         src={resolveUrl(imageUrl)}
@@ -497,9 +495,9 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
                 href={`https://wa.me/919000510329?text=${waMessage}`}
                 target="_blank"
                 rel="noreferrer"
-                className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25d366] px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white shadow-xs transition hover:bg-[#1ebe5d]"
+                className="cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25d366] px-4 py-3.5 text-sm font-semibold uppercase tracking-wider text-white shadow-xs transition hover:bg-[#1ebe5d]"
               >
-                <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
+                <span className="h-5 w-5 shrink-0"><WhatsAppIcon /></span>
                 Inquire / Order on WhatsApp
               </a>
 
@@ -507,13 +505,12 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
                 type="button"
                 disabled={isMaxReached || isSoldOut}
                 onClick={onAddToBag}
-                className={`cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-xs font-semibold uppercase tracking-wider transition ${
-                  isMaxReached || isSoldOut
+                className={`cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold uppercase tracking-wider transition ${isMaxReached || isSoldOut
                     ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400'
                     : 'border-maroon-900 bg-maroon-900 text-white hover:bg-maroon-800'
-                }`}
+                  }`}
               >
-                <span className="h-4 w-4 shrink-0"><BagIcon /></span>
+                <span className="h-5 w-5 shrink-0"><BagIcon /></span>
                 {isSoldOut ? 'Sold Out' : isMaxReached ? 'Limit Reached' : 'Add to Bag'}
               </button>
             </div>
@@ -544,7 +541,7 @@ export default function HomePage() {
             return parsed.map((p, idx) => normalizeProduct(p, idx));
           }
         }
-      } catch (_) {}
+      } catch (_) { }
     }
     return [];
   });
@@ -594,7 +591,7 @@ export default function HomePage() {
             if (setParentProducts) setParentProducts(normalized);
             try {
               localStorage.setItem('shreivara-products', JSON.stringify(normalized));
-            } catch (_) {}
+            } catch (_) { }
             setLoading(false);
           }
         } else if (supabaseError) {
