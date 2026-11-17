@@ -136,6 +136,8 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
   const [slotModes, setSlotModes] = useState(['upload', 'upload', 'upload', 'upload']);
   const [uploadingSlots, setUploadingSlots] = useState({});
   const [slotNotes, setSlotNotes] = useState({});
+  const [batchUploading, setBatchUploading] = useState(false);
+  const [batchProgress, setBatchProgress] = useState('');
 
   // Controlled form fields for real-time button validation
   const [name, setName] = useState(product?.name ?? '');
@@ -162,6 +164,54 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
       delete next[idx];
       return next;
     });
+  }
+
+  function clearAllSlots() {
+    setImageUrls(['', '', '', '']);
+    setSlotNotes({});
+  }
+
+  async function handleBatchFiles(e) {
+    const fileList = Array.from(e.target.files || []);
+    if (fileList.length === 0) return;
+
+    setError('');
+    const filesToProcess = fileList.slice(0, 4);
+    setBatchUploading(true);
+    setBatchProgress(`Compressing & preparing ${filesToProcess.length} photos…`);
+
+    try {
+      const newUrls = [...imageUrls];
+      for (let i = 0; i < filesToProcess.length; i++) {
+        const file = filesToProcess[i];
+        setBatchProgress(`Uploading photo ${i + 1} of ${filesToProcess.length}…`);
+        setUploadingSlots((prev) => ({ ...prev, [i]: true }));
+        setSlotNotes((prev) => ({ ...prev, [i]: 'Compressing & uploading…' }));
+
+        try {
+          const result = await uploadImageToStorage(file, 'products');
+          if (result?.url) {
+            newUrls[i] = result.url;
+            const note = result.publicUrl
+              ? '✓ Uploaded to Supabase Cloud'
+              : (result.warning || '✓ Compressed & ready');
+            setSlotNotes((prev) => ({ ...prev, [i]: note }));
+          }
+        } catch (err) {
+          console.error('Batch upload error for slot', i, err);
+        } finally {
+          setUploadingSlots((prev) => ({ ...prev, [i]: false }));
+        }
+      }
+      setImageUrls(newUrls);
+      setBatchProgress(`✓ Successfully loaded ${filesToProcess.length} photos into slots!`);
+      setTimeout(() => setBatchProgress(''), 3500);
+    } catch (err) {
+      setError('Could not complete multi-photo upload. Please try individual slots.');
+    } finally {
+      setBatchUploading(false);
+      e.target.value = '';
+    }
   }
 
   async function handleSlotFile(idx, e) {
@@ -209,9 +259,9 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
     setError('');
     setNotice('');
 
-    const isUploadingAny = Object.values(uploadingSlots).some(Boolean);
+    const isUploadingAny = Object.values(uploadingSlots).some(Boolean) || batchUploading;
     if (isUploadingAny) {
-      setError('Please wait for photo upload to cloud storage to complete before saving.');
+      setError('Please wait for photo upload to complete before saving.');
       return;
     }
 
@@ -248,7 +298,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
     }
   }
 
-  const isUploadingAny = Object.values(uploadingSlots).some(Boolean);
+  const isUploadingAny = Object.values(uploadingSlots).some(Boolean) || batchUploading;
   const cleanImages = imageUrls.map(String).map((s) => s.trim()).filter(Boolean);
   const hasImages = cleanImages.length > 0;
   const isFormReady = Boolean(name.trim()) && Boolean(sellingPrice && Number(sellingPrice) > 0) && hasImages;
@@ -376,6 +426,55 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
           <span className="text-[10px] font-semibold text-maroon-900 bg-gold-100/70 border border-gold-300 px-2.5 py-1 rounded-full">
             Slot 1 is required (Main catalog view)
           </span>
+        </div>
+
+        {/* ── Bulk Multi-Photo Quick Select (1 to 4 photos in one tap) ── */}
+        <div className="rounded-2xl border-2 border-dashed border-gold-400/90 bg-gold-50/40 p-4 transition hover:bg-gold-50/70">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <span className="text-xs font-bold text-maroon-950 flex items-center gap-1.5">
+                <span className="text-base">📸</span> Select Multiple Photos at Once (Up to 4)
+              </span>
+              <p className="text-[11.5px] text-neutral-600">
+                Choose up to 4 photos from your phone gallery or computer in a single tap — they will auto-fill Slots 1 to 4!
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {cleanImages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearAllSlots}
+                  className="cursor-pointer rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700 hover:bg-red-100 transition"
+                  title="Clear all photo slots"
+                >
+                  Clear All ({cleanImages.length})
+                </button>
+              )}
+
+              <label className={`cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-maroon-900 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-maroon-800 transition ${batchUploading ? 'opacity-70 pointer-events-none' : ''}`}>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{batchUploading ? 'Processing Photos…' : 'Select Up to 4 Photos'}</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleBatchFiles}
+                  disabled={batchUploading}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+          </div>
+
+          {batchProgress && (
+            <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-maroon-900 bg-white/90 p-2.5 rounded-xl border border-gold-300 shadow-2xs">
+              {batchUploading && <span className="inline-block animate-spin">⏳</span>}
+              <span>{batchProgress}</span>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-3.5 sm:grid-cols-2">
