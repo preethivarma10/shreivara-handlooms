@@ -412,7 +412,18 @@ function SiteFooter() {
 export default function SiteLayout() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All Collections');
-  const [products, setProducts] = useState(DEFAULT_PRODUCTS);
+  const [products, setProducts] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('shreivara-products');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [productsLoading, setProductsLoading] = useState(false);
   const [productsError, setProductsError] = useState('');
   const [cartItems, setCartItems] = useState(() => readStoredList('shreivara-cart', (item) =>

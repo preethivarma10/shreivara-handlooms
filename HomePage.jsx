@@ -534,7 +534,20 @@ export default function HomePage() {
     addToBag
   } = useOutletContext();
 
-  const [products, setProducts] = useState(DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx)));
+  const [products, setProducts] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('shreivara-products');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map((p, idx) => normalizeProduct(p, idx));
+          }
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalProduct, setModalProduct] = useState(null);
@@ -574,36 +587,30 @@ export default function HomePage() {
           }
         }
 
-        if (supabaseError) {
-          console.warn('Supabase fetch error, fallback to local products:', supabaseError.message);
-          if (isMounted) {
-            const fallback = DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx));
-            setProducts(fallback);
-            if (setParentProducts) setParentProducts(fallback);
-            setError(supabaseError.message);
-            setLoading(false);
-          }
-        } else if (data && data.length > 0) {
+        if (data && data.length > 0) {
           if (isMounted) {
             const normalized = data.map((item, idx) => normalizeProduct(item, idx));
             setProducts(normalized);
             if (setParentProducts) setParentProducts(normalized);
+            try {
+              localStorage.setItem('shreivara-products', JSON.stringify(normalized));
+            } catch (_) {}
+            setLoading(false);
+          }
+        } else if (supabaseError) {
+          console.warn('Supabase fetch error:', supabaseError.message);
+          if (isMounted) {
+            setError(supabaseError.message);
             setLoading(false);
           }
         } else {
           if (isMounted) {
-            const fallback = DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx));
-            setProducts(fallback);
-            if (setParentProducts) setParentProducts(fallback);
             setLoading(false);
           }
         }
       } catch (err) {
         console.warn('Supabase connection error:', err);
         if (isMounted) {
-          const fallback = DEFAULT_PRODUCTS.map((p, idx) => normalizeProduct(p, idx));
-          setProducts(fallback);
-          if (setParentProducts) setParentProducts(fallback);
           setLoading(false);
         }
       }
