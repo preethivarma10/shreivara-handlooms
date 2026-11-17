@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const DEFAULT_SUPABASE_URL = 'https://galouvizafkfuhjhfhsb.supabase.co';
+export const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhbG91dml6YWZrZnVoamhmaHNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1NTM4NjYsImV4cCI6MjExMDEyOTg2Nn0.BkAsiHvXVZN6cAeFMk0Q5T3mbn0CbZHQo5WImFEJFeo';
 
 /**
  * Strips trailing slashes and any trailing /rest/v1/ or /rest/v1
@@ -60,7 +61,7 @@ const localKey = typeof window !== 'undefined' && window.localStorage
 export const SUPABASE_ANON_KEY = (
   (envKey && !envKey.includes('your-supabase-anon-key') && !envKey.includes('YOUR_SUPABASE') ? envKey : '') ||
   (localKey && !localKey.includes('your-supabase-anon-key') && !localKey.includes('YOUR_SUPABASE') ? localKey : '') ||
-  ''
+  DEFAULT_SUPABASE_ANON_KEY
 );
 
 export const hasManualSupabaseOverride = Boolean(localUrl || localKey);
