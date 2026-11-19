@@ -194,7 +194,19 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-600">Your selection</p>
             <h2 id="store-panel-title" className="mt-1 font-brand text-2xl font-medium text-maroon-900">Shopping bag</h2>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-600 transition hover:bg-[#e9e1d3]">×</button>
+          <div className="flex items-center gap-2">
+            {visibleCart.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setCartItems([])}
+                className="cursor-pointer text-[11px] font-medium text-red-700 hover:text-red-900 underline underline-offset-2 px-2 py-1"
+                title="Remove all items from shopping bag"
+              >
+                Clear Bag
+              </button>
+            )}
+            <button type="button" onClick={onClose} aria-label="Close" className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-600 transition hover:bg-[#e9e1d3]">×</button>
+          </div>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
           {visibleCart.length ? visibleCart.map(({ product, quantity }) => {
@@ -238,7 +250,13 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
                 </div>
               </article>
             );
-          }) : <p className="py-12 text-center font-brand text-xl text-gray-500">Your bag is waiting for something beautiful.</p>}
+          }) : (
+            <div className="py-16 text-center space-y-3">
+              <span className="text-4xl block">🛍️</span>
+              <p className="font-brand text-xl text-gray-600">Your bag is empty.</p>
+              <p className="text-xs text-neutral-500">Explore our handcrafted sarees & jewelry and add your favorites!</p>
+            </div>
+          )}
         </div>
 
         {visibleCart.length > 0 && (
@@ -432,6 +450,19 @@ export default function SiteLayout() {
   const [toastMessage, setToastMessage] = useState('');
   const toastTimeoutRef = useRef(null);
 
+  // Auto-prune orphaned cart items that no longer exist in the store catalog
+  useEffect(() => {
+    if (products && products.length > 0 && cartItems.length > 0) {
+      const valid = cartItems.filter((item) => products.some((p) => p.sku === item.sku));
+      if (valid.length !== cartItems.length) {
+        setCartItems(valid);
+        try {
+          window.localStorage.setItem('shreivara-cart', JSON.stringify(valid));
+        } catch (_) {}
+      }
+    }
+  }, [products]);
+
   useEffect(() => {
     try {
       window.localStorage.setItem('shreivara-cart', JSON.stringify(cartItems));
@@ -453,11 +484,19 @@ export default function SiteLayout() {
     const maxStock = prod?.stock ?? 5;
     const existing = cartItems.find((item) => item.sku === sku);
     if (existing && existing.quantity >= maxStock) {
+      showToast(`Limit reached for ${prod?.name || sku} (${maxStock} max)`);
       return;
     }
+    const nextQty = (existing?.quantity || 0) + 1;
     setCartItems((current) => addCartItem(current, sku, maxStock));
-    showToast('Added to Cart!');
+    showToast(`✓ Added to Cart (${nextQty} in bag)`);
   }
+
+  // Calculate cartCount only for valid catalog products
+  const validCartItems = products.length > 0
+    ? cartItems.filter((item) => products.some((p) => p.sku === item.sku))
+    : cartItems;
+  const cartCount = validCartItems.reduce((count, item) => count + item.quantity, 0);
 
   const context = {
     query,
@@ -466,7 +505,7 @@ export default function SiteLayout() {
     setCategory,
     products,
     setProducts,
-    cartItems,
+    cartItems: validCartItems,
     setCartItems,
     addToBag,
     productsLoading,
@@ -478,7 +517,7 @@ export default function SiteLayout() {
       <div className="flex min-h-screen flex-col bg-[#f6f2e9]">
         <SiteHeader
           {...context}
-          cartCount={cartItems.reduce((count, item) => count + item.quantity, 0)}
+          cartCount={cartCount}
           onOpenPanel={setActivePanel}
         />
         <Outlet context={context} />

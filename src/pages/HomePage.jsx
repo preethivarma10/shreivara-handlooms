@@ -216,11 +216,15 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
             {discount}% off
           </span>
         )}
-        {isSoldOut && (
+        {isSoldOut ? (
           <span className="absolute right-3 top-3 rounded-sm bg-neutral-900/85 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-white shadow-xs">
             Sold Out
           </span>
-        )}
+        ) : cartQuantity > 0 ? (
+          <span className="absolute right-3 top-3 rounded-full bg-maroon-900 text-white px-2.5 py-1 text-[10px] font-bold shadow-md flex items-center gap-1 border border-gold-300/70">
+            <span>🛍️</span> {cartQuantity} in Bag
+          </span>
+        ) : null}
 
         {/* Dynamic Image Counter Pill */}
         {productImages.length > 1 && (
@@ -306,13 +310,25 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
             type="button"
             disabled={isMaxReached || isSoldOut}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-2.5 py-3 text-xs font-semibold uppercase tracking-wide transition ${isMaxReached || isSoldOut
-              ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60'
-              : 'border-maroon-900 text-maroon-900 hover:bg-maroon-900 hover:text-[#f8f5ed]'
-              }`}
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-2.5 py-3 text-xs font-semibold uppercase tracking-wide transition ${
+              isSoldOut
+                ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60'
+                : isMaxReached
+                ? 'cursor-not-allowed border-amber-800 bg-amber-50 text-amber-900'
+                : cartQuantity > 0
+                ? 'border-maroon-900 bg-maroon-900 text-[#f8f5ed] hover:bg-maroon-800 shadow-xs'
+                : 'border-maroon-900 text-maroon-900 hover:bg-maroon-900 hover:text-[#f8f5ed]'
+            }`}
+            title={cartQuantity > 0 ? `${cartQuantity} currently in shopping bag. Click to add another.` : 'Add to Cart'}
           >
             <span className="h-4 w-4 shrink-0"><BagIcon /></span>
-            {isSoldOut ? 'Sold Out' : isMaxReached ? 'Limit Reached' : 'Add to Cart'}
+            {isSoldOut
+              ? 'Sold Out'
+              : isMaxReached
+              ? `In Cart (${cartQuantity})`
+              : cartQuantity > 0
+              ? `In Cart (${cartQuantity}) +`
+              : 'Add to Cart'}
           </button>
         </div>
       </div>
@@ -505,13 +521,22 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
                 type="button"
                 disabled={isMaxReached || isSoldOut}
                 onClick={onAddToBag}
-                className={`cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold uppercase tracking-wider transition ${isMaxReached || isSoldOut
+                className={`cursor-pointer inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3.5 text-sm font-semibold uppercase tracking-wider transition ${
+                  isSoldOut
                     ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400'
-                    : 'border-maroon-900 bg-maroon-900 text-white hover:bg-maroon-800'
-                  }`}
+                    : isMaxReached
+                    ? 'cursor-not-allowed border-amber-800 bg-amber-50 text-amber-900'
+                    : 'border-maroon-900 bg-maroon-900 text-white hover:bg-maroon-800 shadow-xs'
+                }`}
               >
                 <span className="h-5 w-5 shrink-0"><BagIcon /></span>
-                {isSoldOut ? 'Sold Out' : isMaxReached ? 'Limit Reached' : 'Add to Bag'}
+                {isSoldOut
+                  ? 'Sold Out'
+                  : isMaxReached
+                  ? `In Bag (${cartQuantity}) • Max Stock Reached`
+                  : cartQuantity > 0
+                  ? `✓ In Bag (${cartQuantity}) • Add Another`
+                  : 'Add to Bag'}
               </button>
             </div>
           </div>
