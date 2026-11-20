@@ -9,11 +9,7 @@ import {
   toggleProductAvailabilityInSupabase,
   fetchProductsFromSupabase,
   uploadImageToStorage,
-  cleanSupabaseUrl,
-  isSupabaseConfigured,
-  hasManualSupabaseOverride,
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
+  isSupabaseConfigured
 } from '../lib/supabase.js';
 
 function formatCurrency(value) {
@@ -193,7 +189,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
           if (result?.url) {
             newUrls[i] = result.url;
             const note = result.publicUrl
-              ? '✓ Uploaded to Supabase Cloud'
+              ? '✓ Photo uploaded'
               : (result.warning || '✓ Compressed & ready');
             setSlotNotes((prev) => ({ ...prev, [i]: note }));
           }
@@ -227,7 +223,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
       if (result?.url) {
         setImageUrls((prev) => prev.map((v, i) => (i === idx ? result.url : v)));
         const note = result.publicUrl
-          ? '✓ Uploaded to Supabase Cloud'
+          ? '✓ Photo uploaded'
           : (result.warning || '✓ Compressed & ready');
         setSlotNotes((prev) => ({ ...prev, [idx]: note }));
       } else {
@@ -306,7 +302,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
   return (
     <form onSubmit={submitProduct} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {error && <p className="text-sm font-medium text-red-800 md:col-span-2 xl:col-span-3 bg-red-50 p-3 rounded-xl border border-red-200" role="alert">{error}</p>}
-      {notice && <p className="text-sm font-medium text-emerald-800 md:col-span-2 xl:col-span-3 bg-emerald-50 p-3 rounded-xl border border-emerald-200" role="status">{notice}</p>}
+      {notice && <p className="text-xs font-semibold text-maroon-900 md:col-span-2 xl:col-span-3 bg-gold-50/90 p-3.5 rounded-xl border border-gold-300" role="status">{notice}</p>}
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         SKU
@@ -548,25 +544,14 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                     {/* Metadata & Status */}
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {imageUrls[idx].includes('supabase.co') ? (
-                          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-800">
-                            ☁️ Cloud Storage
-                          </span>
-                        ) : imageUrls[idx].startsWith('data:image') ? (
-                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-900">
-                            📱 Compressed Photo
-                          </span>
-                        ) : (
-                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-900">
-                            🔗 Web Link
-                          </span>
-                        )}
-                        <span className="text-[10px] text-neutral-400">Ready</span>
+                        <span className="rounded-full bg-gold-100/80 border border-gold-300 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider text-maroon-950">
+                          ✓ Photo Added
+                        </span>
                       </div>
                       <p className="truncate text-[10.5px] text-neutral-600 font-mono" title={imageUrls[idx]}>
                         {imageUrls[idx]}
                       </p>
-                      {note && <p className="text-[10px] font-medium text-emerald-700">{note}</p>}
+                      {note && <p className="text-[10px] font-medium text-gold-700">{note}</p>}
                     </div>
 
                     {/* Clear Button */}
@@ -632,7 +617,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         <input type="hidden" name="compressedImage" value={imageUrls.find(Boolean) || ''} />
       </div>
 
-      <label className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2 xl:col-span-3 py-1 bg-amber-50/60 p-3.5 rounded-xl border border-gold-200">
+      <label className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2 xl:col-span-3 py-1 bg-gold-50/50 p-3.5 rounded-xl border border-gold-300">
         <input
           name="available"
           type="checkbox"
@@ -646,15 +631,15 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
       <div className="md:col-span-2 xl:col-span-3 pt-4 border-t border-gold-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="text-xs text-neutral-600">
           {isUploadingAny ? (
-            <span className="flex items-center gap-1.5 font-semibold text-amber-800">
-              <svg className="h-4 w-4 animate-spin text-amber-800" viewBox="0 0 24 24" fill="none">
+            <span className="flex items-center gap-1.5 font-semibold text-gold-800">
+              <svg className="h-4 w-4 animate-spin text-maroon-900" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
               Photo uploading in progress… Please wait before saving.
             </span>
           ) : !hasImages ? (
-            <span className="text-amber-800 font-medium flex items-center gap-1">
+            <span className="text-maroon-900 font-medium flex items-center gap-1">
               ⚠️ Add at least 1 image (Upload photo or paste URL) to enable publish
             </span>
           ) : !name.trim() ? (
@@ -666,7 +651,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
               Enter Selling Price to enable publish
             </span>
           ) : (
-            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+            <span className="text-gold-700 font-semibold flex items-center gap-1">
               ✓ Ready: {cleanImages.length} {cleanImages.length === 1 ? 'image' : 'images'} attached
             </span>
           )}
@@ -722,8 +707,13 @@ function DispatchedOrdersManager() {
 
   const [filter, setFilter] = useState('All');
   const [editingId, setEditingId] = useState(null);
-  const [courierInput, setCourierInput] = useState('');
-  const [trackingInput, setTrackingInput] = useState('');
+  const [editForm, setEditForm] = useState({
+    courier: '',
+    trackingNumber: '',
+    trackingUrl: '',
+    total: '',
+    status: 'Pending'
+  });
   const [isAddingOrder, setIsAddingOrder] = useState(false);
   const [newOrder, setNewOrder] = useState({
     customerName: '',
@@ -732,7 +722,8 @@ function DispatchedOrdersManager() {
     total: '',
     status: 'Pending',
     courier: '',
-    trackingNumber: ''
+    trackingNumber: '',
+    trackingUrl: ''
   });
 
   function persist(newOrders) {
@@ -758,16 +749,32 @@ function DispatchedOrdersManager() {
     persist(updated);
   }
 
-  function saveTracking(id) {
+  function startEditing(order) {
+    setEditingId(order.id);
+    setEditForm({
+      courier: order.courier || '',
+      trackingNumber: order.trackingNumber || '',
+      trackingUrl: order.trackingUrl || '',
+      total: order.total ?? '',
+      status: order.status || 'Pending'
+    });
+  }
+
+  function saveOrderDetails(id) {
     const today = new Date().toISOString().split('T')[0];
     const updated = orders.map((o) => {
       if (o.id === id) {
+        const nextStatus = editForm.status || o.status;
+        const isDispatched = nextStatus === 'Dispatched';
         return {
           ...o,
-          courier: courierInput || o.courier,
-          trackingNumber: trackingInput || o.trackingNumber,
-          status: 'Dispatched',
-          dispatchDate: o.dispatchDate || today
+          courier: editForm.courier.trim(),
+          trackingNumber: editForm.trackingNumber.trim(),
+          trackingUrl: editForm.trackingUrl.trim(),
+          total: editForm.total !== '' ? Number(editForm.total) : o.total,
+          status: nextStatus,
+          // Do not force mark as Dispatched if admin only updated tracking details or kept status
+          dispatchDate: isDispatched ? (o.dispatchDate || today) : o.dispatchDate
         };
       }
       return o;
@@ -790,6 +797,7 @@ function DispatchedOrdersManager() {
       status: newOrder.status,
       courier: newOrder.courier.trim(),
       trackingNumber: newOrder.trackingNumber.trim(),
+      trackingUrl: newOrder.trackingUrl.trim(),
       dispatchDate: newOrder.status === 'Dispatched' ? today : ''
     };
     persist([created, ...orders]);
@@ -801,19 +809,37 @@ function DispatchedOrdersManager() {
       total: '',
       status: 'Pending',
       courier: '',
-      trackingNumber: ''
+      trackingNumber: '',
+      trackingUrl: ''
     });
   }
 
   function deleteOrder(id) {
-    if (window.confirm('Are you sure you want to delete this order record?')) {
+    if (window.confirm('Are you sure you want to delete this order record? This cannot be undone.')) {
       persist(orders.filter((o) => o.id !== id));
     }
   }
 
+  function getDirectTrackingUrl(order) {
+    if (order.trackingUrl && order.trackingUrl.startsWith('http')) return order.trackingUrl;
+    if (order.trackingNumber && order.trackingNumber.startsWith('http')) return order.trackingNumber;
+    const num = (order.trackingNumber || '').trim();
+    const courier = (order.courier || '').toLowerCase();
+    if (!num) return null;
+    if (courier.includes('dtdc')) return `https://www.dtdc.in/tracking/shipment-tracking.asp`;
+    if (courier.includes('blue dart') || courier.includes('bluedart')) return `https://www.bluedart.com/tracking`;
+    if (courier.includes('delhivery')) return `https://www.delhivery.com/track/package/${num}`;
+    if (courier.includes('speed post') || courier.includes('india post')) return `https://www.indiapost.gov.in`;
+    return null;
+  }
+
   function generateWhatsAppTrackingUrl(order) {
     const cleanPhone = (order.phone || '').replace(/[^0-9]/g, '');
-    const message = `Namaste ${order.customerName}! 🌸\n\nYour order *${order.id}* from *Shreivara Handlooms & Fine Jewelry* has been dispatched! 📦✨\n\n📋 *Items:* ${order.items}\n🚚 *Courier:* ${order.courier || 'Express Courier'}\n🔖 *Tracking/AWB:* ${order.trackingNumber || 'Tracking assigned'}\n\nThank you for choosing Shreivara! Feel free to reach out if you have any questions.`;
+    const trackingLink = getDirectTrackingUrl(order);
+    const trackingInfo = trackingLink
+      ? `${order.trackingNumber || 'Tracking Link'}: ${trackingLink}`
+      : (order.trackingNumber || 'Tracking assigned');
+    const message = `Namaste ${order.customerName}! 🌸\n\nYour order *${order.id}* from *Shreivara Handlooms & Fine Jewelry* has been dispatched! 📦✨\n\n📋 *Items:* ${order.items}\n🚚 *Courier:* ${order.courier || 'Express Courier'}\n🔖 *Tracking/AWB:* ${trackingInfo}\n\nThank you for choosing Shreivara! Feel free to reach out if you have any questions.`;
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   }
 
@@ -821,9 +847,9 @@ function DispatchedOrdersManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold-300 pb-4">
         <div>
-          <h2 className="font-brand text-2xl font-bold text-maroon-900">Dispatched Orders Management</h2>
+          <h2 className="font-brand text-2xl font-bold text-maroon-950">Dispatched Orders Management</h2>
           <p className="text-xs text-neutral-500">Track shipments, update courier partners, and notify customers on WhatsApp.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -832,8 +858,11 @@ function DispatchedOrdersManager() {
               key={tab}
               type="button"
               onClick={() => setFilter(tab)}
-              className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${filter === tab ? 'bg-maroon-900 text-white shadow-xs' : 'border border-neutral-300 text-neutral-700 hover:bg-neutral-100'
-                }`}
+              className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
+                filter === tab
+                  ? 'bg-maroon-900 text-gold-100 shadow-xs'
+                  : 'border border-gold-300 bg-white text-maroon-950 hover:bg-gold-50'
+              }`}
             >
               {tab}
             </button>
@@ -841,7 +870,7 @@ function DispatchedOrdersManager() {
           <button
             type="button"
             onClick={() => setIsAddingOrder((v) => !v)}
-            className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-gold-600 hover:bg-gold-700 text-maroon-950 font-bold px-3.5 py-1.5 text-xs uppercase tracking-wider shadow-xs transition"
+            className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-gold-600 hover:bg-gold-700 text-maroon-950 font-bold px-4 py-1.5 text-xs uppercase tracking-wider shadow-xs transition"
           >
             <span>+</span>
             <span>{isAddingOrder ? 'Close' : 'Record Order'}</span>
@@ -850,7 +879,7 @@ function DispatchedOrdersManager() {
       </div>
 
       {isAddingOrder && (
-        <form onSubmit={handleCreateOrder} className="rounded-2xl border-2 border-gold-400 bg-gold-50/40 p-5 space-y-4">
+        <form onSubmit={handleCreateOrder} className="rounded-2xl border-2 border-gold-400 bg-gold-50/40 p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-brand text-lg font-bold text-maroon-950">Record New WhatsApp / Store Order</h3>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Manual Entry</span>
@@ -884,7 +913,8 @@ function DispatchedOrdersManager() {
                 required
                 type="number"
                 min="0"
-                placeholder="8999"
+                step="any"
+                placeholder="e.g. 14999 (No upper limit)"
                 value={newOrder.total}
                 onChange={(e) => setNewOrder({ ...newOrder, total: e.target.value })}
                 className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
@@ -916,7 +946,7 @@ function DispatchedOrdersManager() {
               Courier Partner
               <input
                 type="text"
-                placeholder="DTDC, Blue Dart, etc."
+                placeholder="DTDC, Blue Dart, Delhivery, etc."
                 value={newOrder.courier}
                 onChange={(e) => setNewOrder({ ...newOrder, courier: e.target.value })}
                 className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
@@ -926,9 +956,19 @@ function DispatchedOrdersManager() {
               Tracking / AWB Number
               <input
                 type="text"
-                placeholder="DTDC8829104"
+                placeholder="e.g. DTDC8829104"
                 value={newOrder.trackingNumber}
                 onChange={(e) => setNewOrder({ ...newOrder, trackingNumber: e.target.value })}
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+              />
+            </label>
+            <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700 sm:col-span-2 md:col-span-3">
+              Direct Tracking Link (Optional URL)
+              <input
+                type="url"
+                placeholder="https://www.dtdc.in/tracking/... (Clickable tracking page)"
+                value={newOrder.trackingUrl}
+                onChange={(e) => setNewOrder({ ...newOrder, trackingUrl: e.target.value })}
                 className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
               />
             </label>
@@ -943,7 +983,7 @@ function DispatchedOrdersManager() {
             </button>
             <button
               type="submit"
-              className="cursor-pointer rounded-xl bg-maroon-900 px-5 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-maroon-800"
+              className="cursor-pointer rounded-xl bg-maroon-900 px-5 py-2 text-xs font-bold uppercase tracking-wider text-gold-100 hover:bg-maroon-800"
             >
               Save Order Record
             </button>
@@ -951,134 +991,190 @@ function DispatchedOrdersManager() {
         </form>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-2xl border border-gold-300/80 bg-white shadow-2xs">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-neutral-200 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-              <th className="py-2.5 pr-4">Order ID &amp; Date</th>
-              <th className="py-2.5 px-4">Customer</th>
-              <th className="py-2.5 px-4">Item Details</th>
-              <th className="py-2.5 px-4">Total</th>
-              <th className="py-2.5 px-4">Status</th>
-              <th className="py-2.5 px-4">Courier &amp; Tracking</th>
-              <th className="py-2.5 pl-4 text-right">Actions</th>
+            <tr className="border-b border-gold-200 bg-[#FAF7F2] text-[11px] font-semibold uppercase tracking-wider text-maroon-950">
+              <th className="py-3 px-4">Order ID &amp; Date</th>
+              <th className="py-3 px-4">Customer</th>
+              <th className="py-3 px-4">Item Details</th>
+              <th className="py-3 px-4">Total</th>
+              <th className="py-3 px-4">Status</th>
+              <th className="py-3 px-4">Courier &amp; Tracking</th>
+              <th className="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-200">
-            {filtered.map((order) => (
-              <tr key={order.id} className="hover:bg-amber-50/40">
-                <td className="py-3 pr-4 font-semibold text-maroon-900">
-                  {order.id}
-                  <div className="text-[10px] font-normal text-neutral-400">{order.orderDate}</div>
-                </td>
-                <td className="py-3 px-4">
-                  <p className="font-semibold text-neutral-800">{order.customerName}</p>
-                  <p className="text-[10px] text-neutral-500 font-mono">{order.phone}</p>
-                </td>
-                <td className="py-3 px-4 max-w-xs truncate text-neutral-700">{order.items}</td>
-                <td className="py-3 px-4 font-semibold text-neutral-900">{formatCurrency(order.total)}</td>
-                <td className="py-3 px-4">
-                  <span
-                    className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${order.status === 'Dispatched'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-amber-100 text-amber-800'
-                      }`}
-                  >
-                    {order.status}
-                  </span>
-                  {order.dispatchDate && (
-                    <div className="text-[9px] text-neutral-500 mt-0.5">Disp: {order.dispatchDate}</div>
-                  )}
-                </td>
-                <td className="py-3 px-4">
-                  {editingId === order.id ? (
-                    <div className="flex flex-col gap-1.5">
+          <tbody className="divide-y divide-gold-100">
+            {filtered.map((order) => {
+              const trackingUrl = getDirectTrackingUrl(order);
+              const isEditingThis = editingId === order.id;
+
+              return (
+                <tr key={order.id} className="hover:bg-gold-50/40 transition">
+                  <td className="py-3.5 px-4 font-semibold text-maroon-900">
+                    {order.id}
+                    <div className="text-[10px] font-normal text-neutral-400">{order.orderDate}</div>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <p className="font-semibold text-neutral-900">{order.customerName}</p>
+                    <p className="text-[10px] text-neutral-500 font-mono">{order.phone}</p>
+                  </td>
+                  <td className="py-3.5 px-4 max-w-xs truncate text-neutral-700">{order.items}</td>
+                  <td className="py-3.5 px-4 font-semibold text-neutral-900">
+                    {isEditingThis ? (
                       <input
-                        type="text"
-                        placeholder="Courier (e.g. DTDC, Blue Dart)"
-                        value={courierInput}
-                        onChange={(e) => setCourierInput(e.target.value)}
-                        className="rounded-lg border border-neutral-300 px-2 py-1 text-xs"
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={editForm.total}
+                        onChange={(e) => setEditForm({ ...editForm, total: e.target.value })}
+                        className="w-24 rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                        title="Edit Order Total (No Limit)"
                       />
-                      <input
-                        type="text"
-                        placeholder="Tracking / AWB #"
-                        value={trackingInput}
-                        onChange={(e) => setTrackingInput(e.target.value)}
-                        className="rounded-lg border border-neutral-300 px-2 py-1 text-xs"
-                      />
-                      <div className="flex gap-1.5 mt-1">
-                        <button
-                          type="button"
-                          onClick={() => saveTracking(order.id)}
-                          className="cursor-pointer rounded-lg bg-emerald-800 px-2.5 py-0.5 text-[10px] font-bold text-white hover:bg-emerald-900"
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingId(null)}
-                          className="cursor-pointer rounded-lg border border-neutral-300 px-2 py-0.5 text-[10px] text-neutral-600"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : order.courier || order.trackingNumber ? (
-                    <div>
-                      <p className="font-semibold text-neutral-800">{order.courier || 'Courier'}</p>
-                      <p className="font-mono text-[10px] text-neutral-500">{order.trackingNumber || 'Pending AWB'}</p>
-                    </div>
-                  ) : (
-                    <span className="text-[11px] text-neutral-400 italic">No tracking info</span>
-                  )}
-                </td>
-                <td className="py-3 pl-4 text-right">
-                  <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                    {order.phone && (
-                      <a
-                        href={generateWhatsAppTrackingUrl(order)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="cursor-pointer inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 text-[10px] font-bold text-white shadow-2xs transition"
-                        title="Notify customer with dispatch details on WhatsApp"
-                      >
-                        <span>WhatsApp</span>
-                        <span>↗</span>
-                      </a>
+                    ) : (
+                      formatCurrency(order.total)
                     )}
-                    {order.status !== 'Dispatched' && (
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isEditingThis ? (
+                      <select
+                        value={editForm.status}
+                        onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                        className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Dispatched">Dispatched</option>
+                      </select>
+                    ) : (
+                      <div>
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                            order.status === 'Dispatched'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                              : 'bg-amber-50 text-amber-900 border-amber-300'
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                        {order.dispatchDate && (
+                          <div className="text-[9px] text-neutral-500 mt-0.5">Disp: {order.dispatchDate}</div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isEditingThis ? (
+                      <div className="flex flex-col gap-1.5 min-w-[180px]">
+                        <input
+                          type="text"
+                          placeholder="Courier (e.g. DTDC, Blue Dart)"
+                          value={editForm.courier}
+                          onChange={(e) => setEditForm({ ...editForm, courier: e.target.value })}
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Tracking / AWB #"
+                          value={editForm.trackingNumber}
+                          onChange={(e) => setEditForm({ ...editForm, trackingNumber: e.target.value })}
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                        />
+                        <input
+                          type="url"
+                          placeholder="Direct tracking URL (optional)"
+                          value={editForm.trackingUrl}
+                          onChange={(e) => setEditForm({ ...editForm, trackingUrl: e.target.value })}
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                        />
+                        <div className="flex gap-1.5 mt-1">
+                          <button
+                            type="button"
+                            onClick={() => saveOrderDetails(order.id)}
+                            className="cursor-pointer rounded-lg bg-maroon-900 px-3 py-1 text-[11px] font-bold text-gold-100 hover:bg-maroon-800 transition"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingId(null)}
+                            className="cursor-pointer rounded-lg border border-neutral-300 px-2.5 py-1 text-[11px] text-neutral-600 hover:bg-neutral-100 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : order.courier || order.trackingNumber || order.trackingUrl ? (
+                      <div className="space-y-1">
+                        <p className="font-semibold text-neutral-800">{order.courier || 'Courier'}</p>
+                        <p className="font-mono text-[10px] text-neutral-600">{order.trackingNumber || 'Tracking assigned'}</p>
+                        {trackingUrl && (
+                          <a
+                            href={trackingUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cursor-pointer inline-flex items-center gap-1 text-[10.5px] font-semibold text-maroon-900 underline hover:text-gold-700"
+                            title="Open courier tracking portal"
+                          >
+                            <span>🔗 Track Shipment</span>
+                            <span>↗</span>
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-neutral-400 italic">No tracking info</span>
+                    )}
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                      {order.phone && (
+                        <a
+                          href={generateWhatsAppTrackingUrl(order)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="cursor-pointer inline-flex items-center gap-1 rounded-lg bg-[#25D366] hover:bg-[#20ba5a] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs transition"
+                          title="Notify customer with dispatch details on WhatsApp"
+                        >
+                          <span>WhatsApp</span>
+                          <span>↗</span>
+                        </a>
+                      )}
+                      {order.status !== 'Dispatched' && (
+                        <button
+                          type="button"
+                          onClick={() => markDispatched(order.id)}
+                          className="cursor-pointer rounded-lg border border-maroon-900 bg-maroon-900 hover:bg-maroon-800 px-2.5 py-1 text-[11px] font-semibold text-gold-100 shadow-2xs transition"
+                          title="Mark order as dispatched"
+                        >
+                          Mark Dispatched
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => markDispatched(order.id)}
-                        className="cursor-pointer rounded-lg bg-emerald-800 px-2.5 py-1 text-[10px] font-bold text-white hover:bg-emerald-900"
+                        onClick={() => {
+                          if (isEditingThis) {
+                            setEditingId(null);
+                          } else {
+                            startEditing(order);
+                          }
+                        }}
+                        className="cursor-pointer rounded-lg border border-gold-400 bg-white hover:bg-gold-50 px-2.5 py-1 text-[11px] font-semibold text-maroon-950 shadow-2xs transition"
                       >
-                        Mark Dispatched
+                        {isEditingThis ? 'Close' : 'Edit'}
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingId(order.id);
-                        setCourierInput(order.courier || '');
-                        setTrackingInput(order.trackingNumber || '');
-                      }}
-                      className="cursor-pointer rounded-lg border border-maroon-900 px-2 py-1 text-[10px] font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white"
-                    >
-                      {editingId === order.id ? 'Editing' : 'Tracking'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteOrder(order.id)}
-                      className="cursor-pointer rounded-lg border border-neutral-300 hover:border-red-400 hover:bg-red-50 hover:text-red-700 px-1.5 py-1 text-[10px] text-neutral-500"
-                      title="Delete order record"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      <button
+                        type="button"
+                        onClick={() => deleteOrder(order.id)}
+                        className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 hover:border-red-300 px-2.5 py-1 text-[11px] font-bold text-red-700 shadow-2xs transition"
+                        title="Delete order record permanently"
+                      >
+                        <span aria-hidden="true">🗑️</span>
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {filtered.length === 0 && (
@@ -1091,11 +1187,6 @@ function DispatchedOrdersManager() {
 
 export default function AdminPage() {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('shreivara_admin_unlocked') === 'true';
-  });
-  const [passcodeInput, setPasscodeInput] = useState('');
-  const [authError, setAuthError] = useState('');
 
   // Products state persisted directly in localStorage
   const [products, setProducts] = useState(() => {
@@ -1122,10 +1213,6 @@ export default function AdminPage() {
       ])
     );
   }, [products]);
-  const [showDbModal, setShowDbModal] = useState(false);
-  const [supabaseUrlInput, setSupabaseUrlInput] = useState(SUPABASE_URL || '');
-  const [supabaseKeyInput, setSupabaseKeyInput] = useState(SUPABASE_ANON_KEY || '');
-  const [dbModalNotice, setDbModalNotice] = useState('');
 
   useEffect(() => {
     document.title = 'Admin Panel | Shreivara Handlooms';
@@ -1167,43 +1254,6 @@ export default function AdminPage() {
     }
     loadAdminCatalog();
   }, []);
-
-  // When opened, prompt for the passcode (shreivara2026) if not already unlocked
-  useEffect(() => {
-    if (!isAuthenticated) {
-      const promptTimer = setTimeout(() => {
-        const entered = window.prompt('Enter passcode to access Shreivara Admin Panel (Passcode: shreivara2026):');
-        if (entered !== null) {
-          if (entered.trim() === 'shreivara2026') {
-            sessionStorage.setItem('shreivara_admin_unlocked', 'true');
-            setIsAuthenticated(true);
-            setAuthError('');
-          } else {
-            setAuthError('Access Denied: Incorrect passcode. Please enter the valid admin passcode.');
-          }
-        }
-      }, 100);
-      return () => clearTimeout(promptTimer);
-    }
-  }, [isAuthenticated]);
-
-  function handlePasscodeSubmit(e) {
-    e.preventDefault();
-    if (passcodeInput.trim() === 'shreivara2026') {
-      sessionStorage.setItem('shreivara_admin_unlocked', 'true');
-      setIsAuthenticated(true);
-      setAuthError('');
-    } else {
-      setAuthError('Access Denied: Incorrect passcode. Please try again.');
-    }
-  }
-
-  function handleSignOut() {
-    sessionStorage.removeItem('shreivara_admin_unlocked');
-    setIsAuthenticated(false);
-    setPasscodeInput('');
-    setAuthError('');
-  }
 
   function persistProducts(next) {
     setProducts(next);
@@ -1310,14 +1360,11 @@ export default function AdminPage() {
     } catch (_) {}
 
     // 2. Sync to Supabase Cloud Database if configured
-    let supabaseNotice = '';
     if (isSupabaseConfigured) {
-      const { error: sbError } = await insertProductToSupabase(newProduct);
-      if (sbError) {
-        console.warn('Supabase insert notice:', sbError.message);
-        supabaseNotice = ` (Supabase notice: ${sbError.message})`;
-      } else {
-        supabaseNotice = ' (Synced to Supabase Cloud!)';
+      try {
+        await insertProductToSupabase(newProduct);
+      } catch (err) {
+        console.warn('Supabase insert notice:', err);
       }
     }
 
@@ -1326,7 +1373,7 @@ export default function AdminPage() {
 
     return {
       product: newProduct,
-      warning: `Product "${newProduct.name}" (SKU: ${sku}) published successfully!${supabaseNotice}`,
+      warning: `Product "${newProduct.name}" (SKU: ${sku}) published successfully!`,
     };
   }
 
@@ -1361,7 +1408,6 @@ export default function AdminPage() {
 
     persistProducts(next);
 
-    let supabaseNotice = '';
     if (updatedProduct) {
       try {
         await fetch('/api/products', {
@@ -1372,19 +1418,17 @@ export default function AdminPage() {
       } catch (_) {}
 
       if (isSupabaseConfigured) {
-        const { error: sbError } = await updateProductInSupabase(sku, updatedProduct);
-        if (sbError) {
-          console.warn('Supabase update notice:', sbError.message);
-          supabaseNotice = ` (Supabase notice: ${sbError.message})`;
-        } else {
-          supabaseNotice = ' (Synced to Supabase Cloud!)';
+        try {
+          await updateProductInSupabase(sku, updatedProduct);
+        } catch (err) {
+          console.warn('Supabase update notice:', err);
         }
       }
     }
 
     return {
       product: updatedProduct,
-      warning: `Changes for "${updatedProduct?.name || sku}" saved successfully!${supabaseNotice}`,
+      warning: `Changes for "${updatedProduct?.name || sku}" saved successfully!`,
     };
   }
 
@@ -1472,72 +1516,7 @@ export default function AdminPage() {
     }
   }
 
-  // 1. Unauthenticated Passcode Entry View
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-3xl border border-gold-300/80 shadow-2xl p-8 sm:p-10 space-y-6 text-center">
-          <div className="space-y-2 flex flex-col items-center">
-            <div className="relative h-16 w-16 rounded-full overflow-hidden border-2 border-gold-400/90 shadow-md bg-[#0A1612]">
-              <img
-                src="/shreivara-logo.jpg"
-                alt="Shreivara Handlooms Official Profile"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <p className="font-brand text-3xl font-medium tracking-wide text-maroon-950 uppercase mt-1">Shreivara</p>
-            <p className="text-[10px] font-bold tracking-[0.28em] uppercase text-gold-600">Admin Panel Access</p>
-          </div>
-
-          <p className="text-xs text-neutral-600 leading-relaxed font-light">
-            Enter the authorized administrator passcode to manage inventory, edit prices, update stock levels, and track dispatched shipments.
-          </p>
-
-          {authError && (
-            <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs font-semibold text-red-800" role="alert">
-              {authError}
-            </div>
-          )}
-
-          <form onSubmit={handlePasscodeSubmit} className="space-y-4">
-            <div className="text-left">
-              <label htmlFor="admin-passcode" className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-700 mb-1.5">
-                Passcode
-              </label>
-              <input
-                id="admin-passcode"
-                type="password"
-                required
-                autoFocus
-                placeholder="Enter passcode (shreivara2026)"
-                value={passcodeInput}
-                onChange={(e) => setPasscodeInput(e.target.value)}
-                className="w-full rounded-xl border border-gold-300/90 bg-cream/30 px-4 py-3 text-sm focus:border-maroon-900 focus:outline-none focus:bg-white text-maroon-950 transition"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="cursor-pointer w-full rounded-xl bg-maroon-900 hover:bg-maroon-800 text-gold-100 font-bold uppercase tracking-wider text-xs py-3.5 shadow-md hover:shadow-lg transition-all active:scale-[0.99]"
-            >
-              Unlock Admin Panel
-            </button>
-          </form>
-
-          <div className="pt-2 border-t border-neutral-100">
-            <a
-              href={typeof window !== 'undefined' && window.location.hostname.toLowerCase().includes('admin') ? 'https://shreivara-handlooms.vercel.app' : '/'}
-              className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-maroon-900 font-medium transition"
-            >
-              <span>←</span> Return to Customer Storefront
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 2. Authenticated Full Admin Dashboard View
+  // Authenticated Full Admin Dashboard View
   const totalStock = products.reduce((acc, p) => acc + (p.stock ?? 5), 0);
   const activeProducts = products.filter((p) => p.available !== false).length;
   const soldOutProducts = products.filter((p) => p.available === false).length;
@@ -1563,45 +1542,22 @@ export default function AdminPage() {
                 Shreivara
               </span>
             </a>
-            <span className="rounded-md bg-maroon-900 text-gold-200 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider">
+            <span className="rounded-md bg-maroon-900 text-gold-200 px-2.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider">
               Admin Portal
             </span>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setShowDbModal(true)}
-              className={`cursor-pointer inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition border ${isSupabaseConfigured
-                  ? 'border-emerald-500/80 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 shadow-2xs'
-                  : 'border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-2xs'
-                }`}
-              title="Configure Supabase Cloud Database"
-            >
-              <span className={`h-2 w-2 rounded-full ${isSupabaseConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-              <span className="hidden sm:inline">{isSupabaseConfigured ? 'Supabase Connected' : 'Connect Supabase'}</span>
-              <span className="sm:hidden">{isSupabaseConfigured ? 'Cloud' : 'DB'}</span>
-            </button>
-
             <a
               href={storefrontUrl}
               target={storefrontUrl.startsWith('http') ? '_blank' : undefined}
               rel="noreferrer"
-              className="cursor-pointer inline-flex items-center gap-1 rounded-full border border-gold-400 bg-white hover:bg-gold-50 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-maroon-900 shadow-2xs transition"
+              className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-gold-400 bg-white hover:bg-gold-50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-maroon-950 shadow-2xs transition"
               title="Open Customer Storefront"
             >
               <span>Storefront</span>
               <span className="text-xs">↗</span>
             </a>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-neutral-300 hover:border-red-400 hover:bg-red-50 hover:text-red-800 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 shadow-2xs transition"
-              title="Lock console and sign out"
-            >
-              <span>Lock</span>
-              <span>🔒</span>
-            </button>
           </div>
         </div>
       </header>
@@ -1610,20 +1566,20 @@ export default function AdminPage() {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8 space-y-8">
         {/* Top Metric Cards */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-2xl border border-gold-200/90 bg-white p-5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Total Designs</p>
+          <div className="rounded-2xl border border-gold-300/80 bg-white p-5 shadow-2xs">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gold-700">Total Designs</p>
             <p className="mt-1 font-brand text-3xl font-bold text-maroon-950">{products.length}</p>
           </div>
-          <div className="rounded-2xl border border-gold-200/90 bg-white p-5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Active (In Stock)</p>
-            <p className="mt-1 font-brand text-3xl font-bold text-emerald-800">{activeProducts}</p>
+          <div className="rounded-2xl border border-gold-300/80 bg-white p-5 shadow-2xs">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Active (In Stock)</p>
+            <p className="mt-1 font-brand text-3xl font-bold text-maroon-950">{activeProducts}</p>
           </div>
-          <div className="rounded-2xl border border-gold-200/90 bg-white p-5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-red-600">Sold Out</p>
-            <p className="mt-1 font-brand text-3xl font-bold text-red-700">{soldOutProducts}</p>
+          <div className="rounded-2xl border border-gold-300/80 bg-white p-5 shadow-2xs">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Sold Out</p>
+            <p className="mt-1 font-brand text-3xl font-bold text-neutral-600">{soldOutProducts}</p>
           </div>
-          <div className="rounded-2xl border border-gold-200/90 bg-white p-5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gold-600">Total Inventory Units</p>
+          <div className="rounded-2xl border border-gold-300/80 bg-white p-5 shadow-2xs">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gold-700">Total Inventory Units</p>
             <p className="mt-1 font-brand text-3xl font-bold text-maroon-950">{totalStock}</p>
           </div>
         </div>
@@ -1639,20 +1595,22 @@ export default function AdminPage() {
             <button
               type="button"
               onClick={() => setActiveTab('catalogue')}
-              className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${activeTab === 'catalogue'
-                  ? 'bg-maroon-900 text-white shadow-xs'
-                  : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
-                }`}
+              className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
+                activeTab === 'catalogue'
+                  ? 'bg-maroon-900 text-gold-100 shadow-xs'
+                  : 'border border-gold-300 bg-white text-maroon-950 hover:bg-gold-50'
+              }`}
             >
               Inventory Manager
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('orders')}
-              className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${activeTab === 'orders'
-                  ? 'bg-maroon-900 text-white shadow-xs'
-                  : 'border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50'
-                }`}
+              className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
+                activeTab === 'orders'
+                  ? 'bg-maroon-900 text-gold-100 shadow-xs'
+                  : 'border border-gold-300 bg-white text-maroon-950 hover:bg-gold-50'
+              }`}
             >
               Dispatched Orders
             </button>
@@ -1734,9 +1692,9 @@ export default function AdminPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="font-semibold text-maroon-950 font-brand text-xl">{product.name}</p>
                           <span
-                            className={`inline-block rounded-full px-2.5 py-0.5 text-[9.5px] font-bold ${product.available !== false
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-red-100 text-red-800'
+                            className={`inline-block rounded-full px-2.5 py-0.5 text-[9.5px] font-bold border ${product.available !== false
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                : 'bg-neutral-100 text-neutral-600 border-neutral-300'
                               }`}
                           >
                             {product.available !== false ? '● In Stock' : '○ Sold Out'}
@@ -1752,7 +1710,7 @@ export default function AdminPage() {
                           </span>
                         </p>
                         {product.offerDetails && (
-                          <p className="mt-1 text-xs text-amber-800 font-medium">✦ {product.offerDetails}</p>
+                          <p className="mt-1 text-xs text-gold-800 font-medium">✦ {product.offerDetails}</p>
                         )}
                       </div>
 
@@ -1760,10 +1718,7 @@ export default function AdminPage() {
                         <button
                           type="button"
                           onClick={() => toggleAvailability(product.sku)}
-                          className={`cursor-pointer rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${product.available !== false
-                              ? 'border-emerald-600 bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                              : 'border-neutral-400 bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                            }`}
+                          className="cursor-pointer rounded-xl border border-gold-400 bg-white hover:bg-gold-50 px-3 py-1.5 text-xs font-semibold text-maroon-950 transition text-center shadow-2xs"
                         >
                           {product.available !== false ? 'Mark Sold Out' : 'Mark In Stock'}
                         </button>
@@ -1773,16 +1728,18 @@ export default function AdminPage() {
                             setDeleteError('');
                             setEditingSku(product.sku);
                           }}
-                          className="cursor-pointer rounded-xl border border-maroon-900 px-3 py-1.5 text-xs font-semibold text-maroon-900 hover:bg-maroon-900 hover:text-white transition text-center"
+                          className="cursor-pointer rounded-xl bg-maroon-900 hover:bg-maroon-800 px-3 py-1.5 text-xs font-semibold text-gold-100 transition text-center shadow-2xs"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => deleteProduct(product)}
-                          className="cursor-pointer rounded-xl border border-red-700 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-700 hover:text-white transition text-center"
+                          className="cursor-pointer inline-flex items-center justify-center gap-1 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 text-xs font-bold text-red-700 transition text-center shadow-2xs"
+                          title="Delete product permanently"
                         >
-                          Delete
+                          <span>🗑️</span>
+                          <span>Delete</span>
                         </button>
                       </div>
                     </article>
@@ -1797,130 +1754,6 @@ export default function AdminPage() {
           </div>
         )}
       </main>
-
-      {/* Supabase Cloud Database Configuration Modal */}
-      {showDbModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-xl rounded-3xl bg-white border border-gold-300 p-6 sm:p-8 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between border-b border-neutral-100 pb-3">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gold-600">Database Connection</span>
-                <h3 className="font-brand text-2xl font-bold text-maroon-950">Supabase Cloud Settings</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowDbModal(false)}
-                className="cursor-pointer rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className={`p-3.5 rounded-2xl border text-xs font-medium ${isSupabaseConfigured
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                : 'bg-amber-50 border-amber-300 text-amber-900'
-              }`}>
-              {isSupabaseConfigured
-                ? hasManualSupabaseOverride
-                  ? '✓ Connected to Supabase Cloud via custom browser override in this device. Products sync directly to your database.'
-                  : '✓ Connected to Supabase Cloud out of the box via default environment variables (import.meta.env).'
-                : '○ Supabase is not yet configured. The store is running on local fallback. Enter your credentials below or configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your hosting environment.'}
-            </div>
-
-            {dbModalNotice && (
-              <p className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs font-semibold text-blue-800">
-                {dbModalNotice}
-              </p>
-            )}
-
-            <form onSubmit={handleSaveSupabaseCredentials} className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-700 mb-1">
-                  Supabase Project URL
-                </label>
-                <input
-                  type="url"
-                  required
-                  placeholder="https://galouvizafkfuhjhfhsb.supabase.co"
-                  value={supabaseUrlInput}
-                  onChange={(e) => setSupabaseUrlInput(e.target.value)}
-                  onBlur={() => setSupabaseUrlInput((prev) => cleanSupabaseUrl(prev))}
-                  className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-xs font-mono focus:border-maroon-900 focus:outline-none"
-                />
-                <p className="mt-1 text-[10px] text-neutral-500">
-                  Trailing slashes and /rest/v1 are automatically stripped. Default: {SUPABASE_URL || 'https://galouvizafkfuhjhfhsb.supabase.co'}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-neutral-700 mb-1">
-                  Supabase Anon Public API Key
-                </label>
-                <textarea
-                  rows={2}
-                  required
-                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                  value={supabaseKeyInput}
-                  onChange={(e) => setSupabaseKeyInput(e.target.value)}
-                  className="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-xs font-mono focus:border-maroon-900 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-                {hasManualSupabaseOverride && (
-                  <button
-                    type="button"
-                    onClick={handleResetSupabaseCredentials}
-                    className="cursor-pointer text-xs text-red-700 hover:text-red-900 underline font-medium"
-                  >
-                    Clear Override (Use Env Defaults)
-                  </button>
-                )}
-                <div className="flex items-center gap-2 ml-auto">
-                  <button
-                    type="button"
-                    onClick={() => setShowDbModal(false)}
-                    className="cursor-pointer rounded-xl border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-600 hover:bg-neutral-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="cursor-pointer rounded-xl bg-maroon-900 hover:bg-maroon-800 text-white font-bold uppercase tracking-wider text-xs px-5 py-2 shadow-xs"
-                  >
-                    Save &amp; Connect
-                  </button>
-                </div>
-              </div>
-            </form>
-
-            {/* SQL Table Helper */}
-            <div className="border-t border-neutral-100 pt-4 space-y-2">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-700">
-                Need to create the products table?
-              </p>
-              <p className="text-xs text-neutral-500">
-                In your Supabase project dashboard, go to the <strong>SQL Editor</strong> and run:
-              </p>
-              <pre className="p-3 bg-neutral-900 text-emerald-400 rounded-xl text-[10.5px] font-mono overflow-x-auto leading-relaxed">
-                {`create table if not exists products (
-  sku text primary key,
-  name text not null,
-  category text not null,
-  original_price numeric not null,
-  selling_price numeric not null,
-  stock integer default 5,
-  sizes text default '',
-  offer_details text default '',
-  image text not null,
-  available boolean default true,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);`}
-              </pre>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
