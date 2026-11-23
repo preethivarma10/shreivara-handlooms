@@ -319,7 +319,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
             type="button"
             disabled={isMaxReached || isSoldOut}
             onClick={onAddToBag}
-            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-2.5 py-3 text-xs font-semibold uppercase tracking-wide transition ${
+            className={`cursor-pointer inline-flex items-center justify-center gap-1.5 rounded-sm border px-2 py-3 text-[10px] font-semibold uppercase tracking-wider transition ${
               isSoldOut
                 ? 'cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-60'
                 : isMaxReached
@@ -330,7 +330,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
             }`}
             title={cartQuantity > 0 ? `${cartQuantity} currently in shopping cart. Click to add another.` : 'Add to Cart'}
           >
-            <span className="h-4 w-4 shrink-0"><BagIcon /></span>
+            <span className="h-3.5 w-3.5 shrink-0"><BagIcon /></span>
             {isSoldOut
               ? 'Sold Out'
               : isMaxReached
