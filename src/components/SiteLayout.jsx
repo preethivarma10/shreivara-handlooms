@@ -219,7 +219,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
                 <img src={product.image || product.image_url} alt={product.name} className="h-24 w-20 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1">
                   <h3 className="font-brand text-lg font-medium text-maroon-900">{product.name}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{product.sku} · {formatCurrency(price)}</p>
+                  <p className="mt-1 text-sm text-gray-600">Dress Code: {product.sku} · {formatCurrency(price)}</p>
                   <div className="mt-3 flex items-center gap-3">
                     <button
                       type="button"

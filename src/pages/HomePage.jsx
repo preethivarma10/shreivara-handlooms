@@ -182,7 +182,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
       ? 'Hello Shreivara, I noticed this piece is currently sold out and would like to inquire about a custom weave / restock:'
       : 'Hello Shreivara, I would like to inquire about / order this piece:',
     `• Product: ${name}`,
-    `• SKU: ${sku}`,
+    `• Dress Code: ${sku}`,
     `• Category: ${category}`,
     `• Price: ${formatCurrency(sellingPrice)}`,
     originalPrice > sellingPrice ? `• Original Price: ${formatCurrency(originalPrice)}` : '',
@@ -279,7 +279,12 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
       )}
 
       <div className={`p-4 sm:p-5 flex flex-col flex-1 ${productImages.length > 1 ? 'pt-2.5' : ''}`}>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
+          <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">
+            Dress Code: <span className="font-semibold text-neutral-800">{sku}</span>
+          </span>
+        </div>
         <h3
           className="mt-2 min-h-[52px] font-brand text-2xl font-medium leading-tight text-maroon-900 cursor-pointer hover:underline"
           onClick={() => onOpenDetail && onOpenDetail(safeIdx)}
@@ -378,7 +383,7 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
       ? 'Hello Shreivara, I noticed this piece is currently sold out and would like to inquire about a custom weave / restock:'
       : 'Hello Shreivara, I would like to inquire about / order this piece:',
     `• Product: ${name}`,
-    `• SKU: ${sku}`,
+    `• Dress Code: ${sku}`,
     `• Category: ${category}`,
     `• Price: ${formatCurrency(sellingPrice)}`,
     originalPrice > sellingPrice ? `• Original Price: ${formatCurrency(originalPrice)}` : '',
@@ -481,7 +486,9 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold-600">{category}</p>
               <h2 className="mt-1 font-brand text-2xl sm:text-3xl font-medium text-maroon-900">{name}</h2>
-              <p className="mt-0.5 text-[11px] uppercase tracking-wider text-neutral-400">SKU: {sku}</p>
+              <p className="mt-0.5 text-xs uppercase tracking-wider text-neutral-500">
+                Dress Code: <span className="font-semibold text-neutral-800">{sku}</span>
+              </p>
 
               <div className="mt-4 flex items-center gap-3">
                 <span className="text-2xl font-bold text-maroon-900">{formatCurrency(sellingPrice)}</span>
