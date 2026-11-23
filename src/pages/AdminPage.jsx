@@ -315,11 +315,11 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
   return (
     <form onSubmit={submitProduct} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {error && <p className="text-sm font-medium text-red-800 md:col-span-2 xl:col-span-3 bg-red-50 p-3 rounded-xl border border-red-200" role="alert">{error}</p>}
-      {notice && <p className="text-xs font-semibold text-maroon-900 md:col-span-2 xl:col-span-3 bg-gold-50/90 p-3.5 rounded-xl border border-gold-300" role="status">{notice}</p>}
+      {notice && <p className="text-xs font-semibold text-[#183a24] md:col-span-2 xl:col-span-3 bg-[#eef7f0] p-3.5 rounded-xl border border-[#a9d1b0]" role="status">{notice}</p>}
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         SKU
-        <input name="sku" required maxLength="64" readOnly={Boolean(product)} defaultValue={product?.sku ?? ''} placeholder="SHR-101" className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none read-only:text-neutral-500" />
+        <input name="sku" required maxLength="64" readOnly={Boolean(product)} defaultValue={product?.sku ?? ''} placeholder="SHR-101" className="rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm font-normal focus:border-[#285338] focus:outline-none read-only:text-neutral-500" />
       </label>
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
@@ -331,7 +331,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Royal Gold Temple Saree"
-          className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none"
+          className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-[#285338] focus:outline-none"
         />
       </label>
 
@@ -346,7 +346,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                 setManualCategoryValue('');
               }
             }}
-            className="cursor-pointer text-[10.5px] font-bold text-maroon-900 hover:text-gold-700 underline tracking-normal normal-case transition"
+            className="cursor-pointer text-[10.5px] font-bold text-[#285338] hover:text-[#183a24] underline tracking-normal normal-case transition"
           >
             {isManualCategory ? '← Choose from list' : '+ Enter manually'}
           </button>
@@ -361,7 +361,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
               placeholder="e.g. Banarasi Silk, Linen, Bridal Jewelry"
               value={manualCategoryValue}
               onChange={(e) => setManualCategoryValue(e.target.value)}
-              className="w-full rounded-xl border-2 border-gold-400 bg-gold-50/40 px-3 py-2.5 text-sm font-normal text-maroon-950 focus:border-maroon-900 focus:outline-none placeholder:text-neutral-400"
+              className="w-full rounded-xl border-2 border-[#8db597] bg-[#f4f9f5] px-3 py-2.5 text-sm font-normal text-[#142e1d] focus:border-[#285338] focus:outline-none placeholder:text-neutral-400"
               autoFocus
             />
             <span className="text-[10px] text-neutral-500 font-normal normal-case tracking-normal mt-1 block">
@@ -380,7 +380,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                 setSelectedCategory(e.target.value);
               }
             }}
-            className="cursor-pointer rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none"
+            className="cursor-pointer rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-[#285338] focus:outline-none"
           >
             {availableCategories.map((item) => (
               <option key={item} value={item}>{item}</option>
@@ -392,7 +392,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Original price (INR)
-        <input name="originalPrice" type="number" min="1" step="1" required defaultValue={product?.originalPrice ?? ''} placeholder="8999" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
+        <input name="originalPrice" type="number" min="1" step="1" required defaultValue={product?.originalPrice ?? ''} placeholder="8999" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-[#285338] focus:outline-none" />
       </label>
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
@@ -406,42 +406,42 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
           value={sellingPrice}
           onChange={(e) => setSellingPrice(e.target.value)}
           placeholder="6999"
-          className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none"
+          className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-[#285338] focus:outline-none"
         />
       </label>
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Stock quantity
-        <input name="stock" type="number" min="0" step="1" required defaultValue={product?.stock ?? 5} placeholder="5" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
+        <input name="stock" type="number" min="0" step="1" required defaultValue={product?.stock ?? 5} placeholder="5" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-[#285338] focus:outline-none" />
       </label>
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
         Sizes (comma-separated)
-        <input name="sizes" maxLength="120" defaultValue={product?.sizes ?? ''} placeholder="Free size or S, M, L" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
+        <input name="sizes" maxLength="120" defaultValue={product?.sizes ?? ''} placeholder="Free size or S, M, L" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-[#285338] focus:outline-none" />
       </label>
 
       <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2">
         Offer details
-        <textarea name="offerDetails" rows="2" maxLength="300" defaultValue={product?.offerDetails ?? ''} placeholder="Optional promotional callout (e.g., Grand Launch Offer)" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-maroon-900 focus:outline-none" />
+        <textarea name="offerDetails" rows="2" maxLength="300" defaultValue={product?.offerDetails ?? ''} placeholder="Optional promotional callout (e.g., Grand Launch Offer)" className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm font-normal focus:border-[#285338] focus:outline-none" />
       </label>
 
       {/* ── 4-Slot Multi-Image Manager (Upload or URL per slot) ─────────── */}
       <div className="md:col-span-2 xl:col-span-3 space-y-3 pt-2">
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-gold-200">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#c4dcce]">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">Product Images (Up to 4 Slots)</span>
             <p className="text-[11px] text-neutral-500 font-normal">Each slot supports direct device photo upload (with client auto-compression) OR pasting an external image URL.</p>
           </div>
-          <span className="text-[10px] font-semibold text-maroon-900 bg-gold-100/70 border border-gold-300 px-2.5 py-1 rounded-full">
+          <span className="text-[10px] font-semibold text-[#183a24] bg-[#e2f0e6] border border-[#8db597] px-2.5 py-1 rounded-full">
             Slot 1 is required (Main catalog view)
           </span>
         </div>
 
         {/* ── Bulk Multi-Photo Quick Select (1 to 4 photos in one tap) ── */}
-        <div className="rounded-2xl border-2 border-dashed border-gold-400/90 bg-gold-50/40 p-4 transition hover:bg-gold-50/70">
+        <div className="rounded-2xl border-2 border-dashed border-[#8db597] bg-[#f2f8f3] p-4 transition hover:bg-[#e8f3ea]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-0.5">
-              <span className="text-xs font-bold text-maroon-950 flex items-center gap-1.5">
+              <span className="text-xs font-bold text-[#142e1d] flex items-center gap-1.5">
                 <span className="text-base">📸</span> Select Multiple Photos at Once (Up to 4)
               </span>
               <p className="text-[11.5px] text-neutral-600">
@@ -461,7 +461,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                 </button>
               )}
 
-              <label className={`cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-maroon-900 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-maroon-800 transition ${batchUploading ? 'opacity-70 pointer-events-none' : ''}`}>
+              <label className={`cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[#285338] px-4 py-2.5 text-xs font-semibold text-[#FAF7EE] shadow-xs hover:bg-[#1e402b] transition ${batchUploading ? 'opacity-70 pointer-events-none' : ''}`}>
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -479,7 +479,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
           </div>
 
           {batchProgress && (
-            <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-maroon-900 bg-white/90 p-2.5 rounded-xl border border-gold-300 shadow-2xs">
+            <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#183a24] bg-white/90 p-2.5 rounded-xl border border-[#8db597] shadow-2xs">
               {batchUploading && <span className="inline-block animate-spin">⏳</span>}
               <span>{batchProgress}</span>
             </div>
@@ -498,14 +498,14 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                 key={slot.id}
                 className={`rounded-2xl border transition p-3.5 space-y-2.5 ${
                   hasImage
-                    ? 'border-gold-300/80 bg-white shadow-xs'
-                    : 'border-[#ded5c6] bg-[#fbf9f4]/60 hover:border-gold-400'
+                    ? 'border-[#8db597] bg-white shadow-xs'
+                    : 'border-[#c4dcce] bg-[#fbf9f4]/60 hover:border-[#8db597]'
                 }`}
               >
                 {/* Slot Header: Title & Toggle */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="text-xs font-bold text-maroon-900 flex items-center gap-1">
+                    <span className="text-xs font-bold text-[#183a24] flex items-center gap-1">
                       {slot.title}
                       {slot.required && <span className="text-red-500 font-bold">*</span>}
                     </span>
@@ -519,7 +519,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                       onClick={() => setSlotMode(idx, 'upload')}
                       className={`cursor-pointer rounded-md px-2 py-0.5 font-medium transition ${
                         currentMode === 'upload'
-                          ? 'bg-maroon-900 text-white shadow-xs'
+                          ? 'bg-[#285338] text-white shadow-xs'
                           : 'text-neutral-600 hover:text-neutral-900'
                       }`}
                     >
@@ -530,7 +530,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                       onClick={() => setSlotMode(idx, 'url')}
                       className={`cursor-pointer rounded-md px-2 py-0.5 font-medium transition ${
                         currentMode === 'url'
-                          ? 'bg-maroon-900 text-white shadow-xs'
+                          ? 'bg-[#285338] text-white shadow-xs'
                           : 'text-neutral-600 hover:text-neutral-900'
                       }`}
                     >
@@ -541,9 +541,9 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
 
                 {/* Slot Body: Image Preview OR Input Area */}
                 {hasImage ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#fdfbf7] p-2.5">
+                  <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-[#FAF7EE] p-2.5">
                     {/* Square Thumbnail */}
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-gold-300 bg-neutral-100">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-[#8db597] bg-neutral-100">
                       <img
                         src={imageUrls[idx]}
                         alt={`${slot.title} preview`}
@@ -557,14 +557,14 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                     {/* Metadata & Status */}
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="rounded-full bg-gold-100/80 border border-gold-300 px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider text-maroon-950">
+                        <span className="rounded-full bg-[#e2f0e6] border border-[#8db597] px-2 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider text-[#183a24]">
                           ✓ Photo Added
                         </span>
                       </div>
                       <p className="truncate text-[10.5px] text-neutral-600 font-mono" title={imageUrls[idx]}>
                         {imageUrls[idx]}
                       </p>
-                      {note && <p className="text-[10px] font-medium text-gold-700">{note}</p>}
+                      {note && <p className="text-[10px] font-medium text-[#285338]">{note}</p>}
                     </div>
 
                     {/* Clear Button */}
@@ -579,22 +579,22 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                     </button>
                   </div>
                 ) : isUploading ? (
-                  <div className="flex min-h-[84px] flex-col items-center justify-center rounded-xl border border-dashed border-gold-400 bg-gold-50/50 p-4 text-center">
-                    <svg className="h-5 w-5 animate-spin text-maroon-900" viewBox="0 0 24 24" fill="none">
+                  <div className="flex min-h-[84px] flex-col items-center justify-center rounded-xl border border-dashed border-[#8db597] bg-[#f2f8f3] p-4 text-center">
+                    <svg className="h-5 w-5 animate-spin text-[#285338]" viewBox="0 0 24 24" fill="none">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                     </svg>
-                    <p className="mt-1.5 text-xs font-semibold text-maroon-900">Compressing &amp; Uploading…</p>
+                    <p className="mt-1.5 text-xs font-semibold text-[#183a24]">Compressing &amp; Uploading…</p>
                     <p className="text-[9.5px] text-neutral-500">Auto-optimizing for high-speed mobile loading</p>
                   </div>
                 ) : currentMode === 'upload' ? (
                   <div>
-                    <label className="flex min-h-[84px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#d9d0c1] bg-white p-3 text-center transition hover:border-maroon-900 hover:bg-[#faf6ee]">
-                      <svg className="h-6 w-6 text-maroon-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <label className="flex min-h-[84px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#c4dcce] bg-white p-3 text-center transition hover:border-[#285338] hover:bg-[#f2f8f3]">
+                      <svg className="h-6 w-6 text-[#285338]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      <span className="mt-1 text-xs font-semibold text-maroon-900">
+                      <span className="mt-1 text-xs font-semibold text-[#183a24]">
                         Choose photo from phone / computer
                       </span>
                       <span className="text-[9.5px] text-neutral-500">
@@ -615,7 +615,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
                       placeholder={`https://... (${slot.title.toLowerCase()} URL)`}
                       value={imageUrls[idx]}
                       onChange={(e) => setImageUrl(idx, e.target.value)}
-                      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-normal focus:border-maroon-900 focus:outline-none placeholder:text-neutral-400"
+                      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-normal focus:border-[#285338] focus:outline-none placeholder:text-neutral-400"
                     />
                     <p className="text-[9.5px] text-neutral-400">Paste any direct image URL (Unsplash, CDN, etc.)</p>
                   </div>
@@ -630,29 +630,29 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
         <input type="hidden" name="compressedImage" value={imageUrls.find(Boolean) || ''} />
       </div>
 
-      <label className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2 xl:col-span-3 py-1 bg-gold-50/50 p-3.5 rounded-xl border border-gold-300">
+      <label className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-wider text-neutral-700 md:col-span-2 xl:col-span-3 py-1 bg-[#f0f7f2] p-3.5 rounded-xl border border-[#b2d5bd]">
         <input
           name="available"
           type="checkbox"
           defaultChecked={product ? product.available !== false : true}
-          className="h-4 w-4 rounded accent-maroon-900 cursor-pointer"
+          className="h-4 w-4 rounded accent-[#285338] cursor-pointer"
         />
         <span>In Stock &amp; Available for Purchase (Storefront Visibility)</span>
       </label>
 
       {/* ── Submit / Action Bar ──────────────────────────────────── */}
-      <div className="md:col-span-2 xl:col-span-3 pt-4 border-t border-gold-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="md:col-span-2 xl:col-span-3 pt-4 border-t border-[#c4dcce] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="text-xs text-neutral-600">
           {isUploadingAny ? (
-            <span className="flex items-center gap-1.5 font-semibold text-gold-800">
-              <svg className="h-4 w-4 animate-spin text-maroon-900" viewBox="0 0 24 24" fill="none">
+            <span className="flex items-center gap-1.5 font-semibold text-[#285338]">
+              <svg className="h-4 w-4 animate-spin text-[#285338]" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
               Photo uploading in progress… Please wait before saving.
             </span>
           ) : !hasImages ? (
-            <span className="text-maroon-900 font-medium flex items-center gap-1">
+            <span className="text-[#183a24] font-medium flex items-center gap-1">
               ⚠️ Add at least 1 image (Upload photo or paste URL) to enable publish
             </span>
           ) : !name.trim() ? (
@@ -664,7 +664,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
               Enter Selling Price to enable publish
             </span>
           ) : (
-            <span className="text-gold-700 font-semibold flex items-center gap-1">
+            <span className="text-[#285338] font-semibold flex items-center gap-1">
               ✓ Ready: {cleanImages.length} {cleanImages.length === 1 ? 'image' : 'images'} attached
             </span>
           )}
@@ -685,7 +685,7 @@ function ProductForm({ product, onSave, onCancel, submitLabel, availableCategori
             disabled={saving || isUploadingAny || !isFormReady}
             className={`w-full sm:w-auto rounded-xl px-8 py-3.5 text-xs font-bold uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 ${
               isFormReady && !saving && !isUploadingAny
-                ? 'bg-maroon-900 hover:bg-maroon-800 text-white cursor-pointer active:scale-[0.98]'
+                ? 'bg-[#285338] hover:bg-[#1e402b] text-[#FAF7EE] cursor-pointer active:scale-[0.98]'
                 : 'bg-neutral-200 text-neutral-400 border border-neutral-300 cursor-not-allowed opacity-80'
             }`}
           >
@@ -860,16 +860,16 @@ function DispatchedOrdersManager() {
   return (
     <div className="space-y-6">
       {/* Top Section Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold-300 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#c4dcce] pb-4">
         <div>
-          <h2 className="font-brand text-2xl font-bold text-maroon-950">Dispatched Orders Management</h2>
+          <h2 className="font-brand text-2xl font-bold text-[#142e1d]">Dispatched Orders Management</h2>
           <p className="text-xs text-neutral-500">Provide official courier tracking details links to customers and notify them on WhatsApp.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setIsAddingOrder((v) => !v)}
-            className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-gold-600 hover:bg-gold-700 text-maroon-950 font-bold px-4 py-2 text-xs uppercase tracking-wider shadow-xs transition"
+            className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-[#285338] hover:bg-[#1e402b] text-[#FAF7EE] font-bold px-4 py-2 text-xs uppercase tracking-wider shadow-xs transition"
           >
             <span>+</span>
             <span>{isAddingOrder ? 'Close' : 'Record Order'}</span>
@@ -879,24 +879,24 @@ function DispatchedOrdersManager() {
 
       {/* Orders Summary Metric Cards (Shows Order Total without Limit) */}
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
-        <div className="rounded-2xl border border-gold-300/80 bg-[#FAF7F2] p-4 shadow-2xs">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gold-700">Total Orders</p>
-          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-maroon-950">{totalOrdersCount}</p>
+        <div className="rounded-2xl border border-[#c4dcce] bg-white p-4 shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#285338]">Total Orders</p>
+          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-[#142e1d]">{totalOrdersCount}</p>
           <p className="mt-0.5 text-[10px] text-neutral-500">All recorded orders</p>
         </div>
-        <div className="rounded-2xl border border-gold-300/80 bg-[#FAF7F2] p-4 shadow-2xs">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Total Orders Value</p>
-          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-maroon-950">{formatCurrency(totalOrdersAmount)}</p>
-          <p className="mt-0.5 text-[10px] text-emerald-700 font-medium">No order total limit</p>
+        <div className="rounded-2xl border border-[#c4dcce] bg-white p-4 shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#285338]">Total Orders Value</p>
+          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-[#142e1d]">{formatCurrency(totalOrdersAmount)}</p>
+          <p className="mt-0.5 text-[10px] text-[#285338] font-medium">No order total limit</p>
         </div>
-        <div className="rounded-2xl border border-gold-300/80 bg-[#FAF7F2] p-4 shadow-2xs">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">With Courier Link</p>
-          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-emerald-900">{withTrackingCount}</p>
+        <div className="rounded-2xl border border-[#c4dcce] bg-white p-4 shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#285338]">With Courier Link</p>
+          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-[#1e442c]">{withTrackingCount}</p>
           <p className="mt-0.5 text-[10px] text-neutral-500">Live courier tracking link</p>
         </div>
-        <div className="rounded-2xl border border-gold-300/80 bg-[#FAF7F2] p-4 shadow-2xs">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800">Awaiting Courier Link</p>
-          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-amber-900">{awaitingTrackingCount}</p>
+        <div className="rounded-2xl border border-[#c4dcce] bg-white p-4 shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#705623]">Awaiting Courier Link</p>
+          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-[#705623]">{awaitingTrackingCount}</p>
           <p className="mt-0.5 text-[10px] text-neutral-500">Needs tracking link</p>
         </div>
       </div>
@@ -914,8 +914,8 @@ function DispatchedOrdersManager() {
             onClick={() => setFilter(tab.key)}
             className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
               filter === tab.key
-                ? 'bg-maroon-900 text-gold-100 shadow-xs'
-                : 'border border-gold-300 bg-white text-maroon-950 hover:bg-gold-50'
+                ? 'bg-[#285338] text-[#FAF7EE] shadow-xs'
+                : 'border border-[#b2d5bd] bg-white text-[#183a24] hover:bg-[#eef7f0]'
             }`}
           >
             {tab.label}
@@ -924,13 +924,13 @@ function DispatchedOrdersManager() {
       </div>
 
       {isAddingOrder && (
-        <form onSubmit={handleCreateOrder} className="rounded-2xl border-2 border-gold-400 bg-gold-50/40 p-5 sm:p-6 space-y-4">
+        <form onSubmit={handleCreateOrder} className="rounded-2xl border-2 border-[#8db597] bg-[#f4f9f5] p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-brand text-lg font-bold text-maroon-950">Record New Customer Order</h3>
+              <h3 className="font-brand text-lg font-bold text-[#142e1d]">Record New Customer Order</h3>
               <p className="text-xs text-neutral-600">Enter customer details, order amount, and the tracking link provided by your courier.</p>
             </div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-gold-700 bg-gold-100/80 px-2 py-0.5 rounded-full border border-gold-300">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#183a24] bg-[#e2f0e6] px-2 py-0.5 rounded-full border border-[#8db597]">
               New Entry
             </span>
           </div>
@@ -943,7 +943,7 @@ function DispatchedOrdersManager() {
                 placeholder="e.g. Sravani Rao"
                 value={newOrder.customerName}
                 onChange={(e) => setNewOrder({ ...newOrder, customerName: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-[#285338] focus:outline-none"
               />
             </label>
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
@@ -954,7 +954,7 @@ function DispatchedOrdersManager() {
                 placeholder="+91 98490 12345"
                 value={newOrder.phone}
                 onChange={(e) => setNewOrder({ ...newOrder, phone: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-[#285338] focus:outline-none"
               />
             </label>
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
@@ -966,7 +966,7 @@ function DispatchedOrdersManager() {
                 placeholder="e.g. 1,49,999 (No limit)"
                 value={newOrder.total}
                 onChange={(e) => setNewOrder({ ...newOrder, total: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none font-semibold text-maroon-950"
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-[#285338] focus:outline-none font-semibold text-[#142e1d]"
               />
               <span className="text-[10px] text-neutral-500 font-normal">Supports any amount with or without commas</span>
             </label>
@@ -978,7 +978,7 @@ function DispatchedOrdersManager() {
                 placeholder="e.g. Royal Kanjivaram Silk (SHR-001) × 1"
                 value={newOrder.items}
                 onChange={(e) => setNewOrder({ ...newOrder, items: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-[#285338] focus:outline-none"
               />
             </label>
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
@@ -988,7 +988,7 @@ function DispatchedOrdersManager() {
                 placeholder="e.g. DTDC, Blue Dart, Delhivery, Speed Post"
                 value={newOrder.courier}
                 onChange={(e) => setNewOrder({ ...newOrder, courier: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-[#285338] focus:outline-none"
               />
             </label>
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700 sm:col-span-2">
@@ -998,7 +998,7 @@ function DispatchedOrdersManager() {
                 placeholder="https://track.dtdc.com/... (Link given by courier)"
                 value={newOrder.trackingUrl}
                 onChange={(e) => setNewOrder({ ...newOrder, trackingUrl: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-[#285338] focus:outline-none"
               />
               <span className="text-[10px] text-neutral-500 font-normal">Paste the live tracking details link provided by the courier</span>
             </label>
@@ -1009,7 +1009,7 @@ function DispatchedOrdersManager() {
                 placeholder="e.g. DTDC8829104"
                 value={newOrder.trackingNumber}
                 onChange={(e) => setNewOrder({ ...newOrder, trackingNumber: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-[#285338] focus:outline-none"
               />
             </label>
           </div>
@@ -1023,7 +1023,7 @@ function DispatchedOrdersManager() {
             </button>
             <button
               type="submit"
-              className="cursor-pointer rounded-xl bg-maroon-900 px-5 py-2 text-xs font-bold uppercase tracking-wider text-gold-100 hover:bg-maroon-800 shadow-xs"
+              className="cursor-pointer rounded-xl bg-[#285338] px-5 py-2 text-xs font-bold uppercase tracking-wider text-[#FAF7EE] hover:bg-[#1e402b] shadow-xs"
             >
               Save Order Record
             </button>
@@ -1031,10 +1031,10 @@ function DispatchedOrdersManager() {
         </form>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-gold-300/80 bg-white shadow-2xs">
+      <div className="overflow-x-auto rounded-2xl border border-[#c4dcce] bg-white shadow-2xs">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-gold-200 bg-[#FAF7F2] text-[11px] font-semibold uppercase tracking-wider text-maroon-950">
+            <tr className="border-b border-[#c4dcce] bg-[#edf5ef] text-[11px] font-semibold uppercase tracking-wider text-[#142e1d]">
               <th className="py-3 px-4">Order ID &amp; Date</th>
               <th className="py-3 px-4">Customer</th>
               <th className="py-3 px-4">Item Details</th>
@@ -1044,15 +1044,15 @@ function DispatchedOrdersManager() {
               <th className="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gold-100">
+          <tbody className="divide-y divide-[#e2efe5]">
             {filtered.map((order) => {
               const trackingUrl = getDirectTrackingUrl(order);
               const isEditingThis = editingId === order.id;
               const hasTrackingLink = Boolean(trackingUrl || order.trackingNumber);
 
               return (
-                <tr key={order.id} className="hover:bg-gold-50/40 transition">
-                  <td className="py-3.5 px-4 font-semibold text-maroon-900 whitespace-nowrap">
+                <tr key={order.id} className="hover:bg-[#f2f8f3] transition">
+                  <td className="py-3.5 px-4 font-semibold text-[#285338] whitespace-nowrap">
                     {order.id}
                     <div className="text-[10px] font-normal text-neutral-400">{order.orderDate}</div>
                   </td>
@@ -1064,14 +1064,14 @@ function DispatchedOrdersManager() {
                           value={editForm.customerName}
                           onChange={(e) => setEditForm({ ...editForm, customerName: e.target.value })}
                           placeholder="Customer Name"
-                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-[#285338] focus:outline-none"
                         />
                         <input
                           type="text"
                           value={editForm.phone}
                           onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                           placeholder="Phone"
-                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-[#285338] focus:outline-none"
                         />
                       </div>
                     ) : (
@@ -1087,7 +1087,7 @@ function DispatchedOrdersManager() {
                         type="text"
                         value={editForm.items}
                         onChange={(e) => setEditForm({ ...editForm, items: e.target.value })}
-                        className="w-full rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                        className="w-full rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-[#285338] focus:outline-none"
                       />
                     ) : (
                       order.items
@@ -1101,7 +1101,7 @@ function DispatchedOrdersManager() {
                           inputMode="numeric"
                           value={editForm.total}
                           onChange={(e) => setEditForm({ ...editForm, total: e.target.value })}
-                          className="w-28 rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none font-bold text-maroon-950"
+                          className="w-28 rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-[#285338] focus:outline-none font-bold text-[#142e1d]"
                           title="Enter order total in INR (No limit)"
                         />
                         <span className="text-[9px] text-neutral-400">No limit</span>
@@ -1112,11 +1112,11 @@ function DispatchedOrdersManager() {
                   </td>
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     {hasTrackingLink ? (
-                      <span className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold border bg-emerald-50 text-emerald-800 border-emerald-300">
+                      <span className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold border bg-[#e2f0e6] text-[#183a24] border-[#8db597]">
                         ● Live Tracking Link
                       </span>
                     ) : (
-                      <span className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold border bg-amber-50 text-amber-900 border-amber-300">
+                      <span className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold border bg-[#fbf7ed] text-[#705623] border-[#e8d8b5]">
                         ○ Awaiting Courier Link
                       </span>
                     )}
@@ -1132,27 +1132,27 @@ function DispatchedOrdersManager() {
                           placeholder="Courier Partner (e.g. DTDC, Blue Dart)"
                           value={editForm.courier}
                           onChange={(e) => setEditForm({ ...editForm, courier: e.target.value })}
-                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-[#285338] focus:outline-none"
                         />
                         <input
                           type="url"
                           placeholder="Courier Tracking Link (https://...)"
                           value={editForm.trackingUrl}
                           onChange={(e) => setEditForm({ ...editForm, trackingUrl: e.target.value })}
-                          className="rounded-lg border border-gold-400 bg-gold-50/30 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                          className="rounded-lg border border-[#8db597] bg-[#f4f9f5] px-2 py-1 text-xs focus:border-[#285338] focus:outline-none"
                         />
                         <input
                           type="text"
                           placeholder="AWB / Tracking #"
                           value={editForm.trackingNumber}
                           onChange={(e) => setEditForm({ ...editForm, trackingNumber: e.target.value })}
-                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-[#285338] focus:outline-none"
                         />
                         <div className="flex gap-1.5 mt-1">
                           <button
                             type="button"
                             onClick={() => saveOrderDetails(order.id)}
-                            className="cursor-pointer rounded-lg bg-maroon-900 px-3 py-1 text-[11px] font-bold text-gold-100 hover:bg-maroon-800 transition"
+                            className="cursor-pointer rounded-lg bg-[#285338] px-3 py-1 text-[11px] font-bold text-[#FAF7EE] hover:bg-[#1e402b] transition"
                           >
                             Save Tracking Link
                           </button>
@@ -1179,7 +1179,7 @@ function DispatchedOrdersManager() {
                             href={trackingUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg border border-gold-400 bg-gold-50/90 hover:bg-gold-100 px-2.5 py-1 text-[11px] font-bold text-maroon-950 transition shadow-2xs"
+                            className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg border border-[#8db597] bg-[#eef7f0] hover:bg-[#e2f0e6] px-2.5 py-1 text-[11px] font-bold text-[#183a24] transition shadow-2xs"
                             title="Open tracking details provided by courier"
                           >
                             <span>🔗 View Courier Tracking Details</span>
@@ -1217,7 +1217,7 @@ function DispatchedOrdersManager() {
                         className={`cursor-pointer rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition shadow-2xs ${
                           isEditingThis
                             ? 'bg-neutral-100 border-neutral-300 text-neutral-700'
-                            : 'border-gold-400 bg-white hover:bg-gold-50 text-maroon-950'
+                            : 'border-[#8db597] bg-white hover:bg-[#eef7f0] text-[#183a24]'
                         }`}
                         title="Add or update courier tracking link"
                       >
@@ -1541,43 +1541,6 @@ export default function AdminPage() {
     }
   }
 
-  function handleSaveSupabaseCredentials(e) {
-    e.preventDefault();
-    try {
-      const cleanedUrl = cleanSupabaseUrl(supabaseUrlInput);
-      if (cleanedUrl) {
-        localStorage.setItem('shreivara_supabase_url', cleanedUrl);
-      } else {
-        localStorage.removeItem('shreivara_supabase_url');
-      }
-      const cleanedKey = supabaseKeyInput.trim();
-      if (cleanedKey) {
-        localStorage.setItem('shreivara_supabase_anon_key', cleanedKey);
-      } else {
-        localStorage.removeItem('shreivara_supabase_anon_key');
-      }
-      setDbModalNotice('Credentials saved! Reloading to connect with Supabase…');
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
-    } catch (err) {
-      setDbModalNotice('Error saving credentials to browser storage.');
-    }
-  }
-
-  function handleResetSupabaseCredentials() {
-    try {
-      localStorage.removeItem('shreivara_supabase_url');
-      localStorage.removeItem('shreivara_supabase_anon_key');
-      setDbModalNotice('Cleared custom browser override. Reverting to default environment credentials…');
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
-    } catch (err) {
-      setDbModalNotice('Error resetting credentials.');
-    }
-  }
-
   // Authenticated Full Admin Dashboard View
   const totalStock = products.reduce((acc, p) => acc + (p.stock ?? 5), 0);
   const activeProducts = products.filter((p) => p.available !== false).length;
@@ -1587,13 +1550,13 @@ export default function AdminPage() {
     : '/';
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex flex-col text-neutral-900">
-      {/* Dedicated Admin Portal Header */}
-      <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-gold-300/80 shadow-xs">
+    <div className="min-h-screen bg-[#FAF7EE] flex flex-col text-[#183a24]">
+      {/* Dedicated Admin Portal Header - Pista & Cream Luxury Theme */}
+      <header className="sticky top-0 z-40 bg-[#FAF7EE]/95 backdrop-blur-md border-b border-[#c8decb] shadow-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <a href={storefrontUrl} className="cursor-pointer group flex items-center gap-2.5">
-              <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden border-2 border-gold-400 bg-[#0A1612] shadow-xs shrink-0">
+              <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden border-2 border-[#8db597] bg-[#142e1d] shadow-xs shrink-0">
                 <img
                   src={shreivaraLogo}
                   alt="Shreivara Official Logo"
@@ -1601,11 +1564,11 @@ export default function AdminPage() {
                   onError={(e) => { e.currentTarget.src = '/shreivara-logo.jpg'; }}
                 />
               </div>
-              <span className="font-brand text-2xl font-semibold tracking-tight text-maroon-950 group-hover:text-maroon-800 transition">
+              <span className="font-brand text-2xl font-semibold tracking-tight text-[#142e1d] group-hover:text-[#285338] transition">
                 Shreivara
               </span>
             </a>
-            <span className="rounded-full border border-gold-400 bg-gold-500/20 text-gold-950 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] shadow-2xs">
+            <span className="rounded-full border border-[#8db597] bg-[#e2f0e6] text-[#183a24] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] shadow-2xs">
               Admin Panel
             </span>
           </div>
@@ -1615,7 +1578,7 @@ export default function AdminPage() {
               href={storefrontUrl}
               target={storefrontUrl.startsWith('http') ? '_blank' : undefined}
               rel="noreferrer"
-              className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-gold-400 bg-white hover:bg-gold-50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-maroon-950 shadow-2xs transition"
+              className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-[#8db597] bg-white hover:bg-[#eef7f0] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#183a24] shadow-2xs transition"
               title="Open Customer Storefront"
             >
               <span>Storefront</span>
@@ -1629,29 +1592,29 @@ export default function AdminPage() {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8 space-y-8">
         {/* Top Metric Cards */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-2xl border border-gold-300/80 bg-white p-5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gold-700">Total Designs</p>
-            <p className="mt-1 font-brand text-3xl font-bold text-maroon-950">{products.length}</p>
+          <div className="rounded-2xl border border-[#c4dcce] bg-white p-5 shadow-2xs">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#285338]">Total Designs</p>
+            <p className="mt-1 font-brand text-3xl font-bold text-[#142e1d]">{products.length}</p>
           </div>
-          <div className="rounded-2xl border border-gold-300/80 bg-white p-5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Active (In Stock)</p>
-            <p className="mt-1 font-brand text-3xl font-bold text-maroon-950">{activeProducts}</p>
+          <div className="rounded-2xl border border-[#c4dcce] bg-white p-5 shadow-2xs">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#285338]">Active (In Stock)</p>
+            <p className="mt-1 font-brand text-3xl font-bold text-[#142e1d]">{activeProducts}</p>
           </div>
-          <div className="rounded-2xl border border-gold-300/80 bg-white p-5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Sold Out</p>
-            <p className="mt-1 font-brand text-3xl font-bold text-neutral-600">{soldOutProducts}</p>
+          <div className="rounded-2xl border border-[#c4dcce] bg-white p-5 shadow-2xs">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#7a8c80]">Sold Out</p>
+            <p className="mt-1 font-brand text-3xl font-bold text-[#4a5e51]">{soldOutProducts}</p>
           </div>
-          <div className="rounded-2xl border border-gold-300/80 bg-white p-5 shadow-2xs">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gold-700">Total Inventory Units</p>
-            <p className="mt-1 font-brand text-3xl font-bold text-maroon-950">{totalStock}</p>
+          <div className="rounded-2xl border border-[#c4dcce] bg-white p-5 shadow-2xs">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#285338]">Total Inventory Units</p>
+            <p className="mt-1 font-brand text-3xl font-bold text-[#142e1d]">{totalStock}</p>
           </div>
         </div>
 
         {/* Admin Navigation Tabs */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gold-300 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#c8decb] pb-4">
           <div>
-            <h1 className="font-brand text-3xl font-bold text-maroon-950">Store Management Console</h1>
-            <p className="text-xs text-neutral-500 mt-0.5">Control live storefront inventory, pricing, availability toggles, and courier shipments.</p>
+            <h1 className="font-brand text-3xl font-bold text-[#142e1d]">Store Management Console</h1>
+            <p className="text-xs text-[#5c6e64] mt-0.5">Control live storefront inventory, pricing, availability toggles, and courier shipments.</p>
           </div>
 
           <div className="flex gap-2">
@@ -1660,8 +1623,8 @@ export default function AdminPage() {
               onClick={() => setActiveTab('catalogue')}
               className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
                 activeTab === 'catalogue'
-                  ? 'bg-maroon-900 text-gold-100 shadow-xs'
-                  : 'border border-gold-300 bg-white text-maroon-950 hover:bg-gold-50'
+                  ? 'bg-[#285338] text-[#FAF7EE] shadow-xs'
+                  : 'border border-[#8db597] bg-white text-[#183a24] hover:bg-[#eef7f0]'
               }`}
             >
               Inventory Manager
@@ -1671,8 +1634,8 @@ export default function AdminPage() {
               onClick={() => setActiveTab('orders')}
               className={`cursor-pointer rounded-xl px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
                 activeTab === 'orders'
-                  ? 'bg-maroon-900 text-gold-100 shadow-xs'
-                  : 'border border-gold-300 bg-white text-maroon-950 hover:bg-gold-50'
+                  ? 'bg-[#285338] text-[#FAF7EE] shadow-xs'
+                  : 'border border-[#8db597] bg-white text-[#183a24] hover:bg-[#eef7f0]'
               }`}
             >
               Dispatched Orders
@@ -1682,17 +1645,17 @@ export default function AdminPage() {
 
         {/* Tab 1: Orders Dashboard */}
         {activeTab === 'orders' ? (
-          <section className="rounded-2xl border border-gold-300/80 bg-white p-6 sm:p-8 shadow-sm">
+          <section className="rounded-2xl border border-[#c4dcce] bg-white p-6 sm:p-8 shadow-sm">
             <DispatchedOrdersManager />
           </section>
         ) : (
           /* Tab 2: Inventory & Catalogue Manager */
           <div className="space-y-8">
             {/* Add New Product Section */}
-            <section className="rounded-2xl border border-gold-300/80 bg-white p-6 sm:p-8 shadow-sm">
-              <div className="mb-6 border-b border-neutral-100 pb-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Product Entry</p>
-                <h2 className="mt-1 font-brand text-2xl font-bold text-maroon-950">Add New Saree or Jewelry Piece</h2>
+            <section className="rounded-2xl border border-[#c4dcce] bg-white p-6 sm:p-8 shadow-sm">
+              <div className="mb-6 border-b border-[#e2f0e6] pb-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#285338]">Product Entry</p>
+                <h2 className="mt-1 font-brand text-2xl font-bold text-[#142e1d]">Add New Saree or Jewelry Piece</h2>
               </div>
               <ProductForm
                 submitLabel="Add Product to Storefront"
@@ -1702,11 +1665,11 @@ export default function AdminPage() {
             </section>
 
             {/* Manage Catalogue & Stock Section */}
-            <section className="rounded-2xl border border-gold-300/80 bg-white p-6 sm:p-8 shadow-sm">
-              <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-neutral-100 pb-4">
+            <section className="rounded-2xl border border-[#c4dcce] bg-white p-6 sm:p-8 shadow-sm">
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-[#e2f0e6] pb-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">Inventory Control</p>
-                  <h2 className="mt-1 font-brand text-2xl font-bold text-maroon-950">Live Storefront Catalogue ({products.length})</h2>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#285338]">Inventory Control</p>
+                  <h2 className="mt-1 font-brand text-2xl font-bold text-[#142e1d]">Live Storefront Catalogue ({products.length})</h2>
                 </div>
               </div>
 
@@ -1719,8 +1682,8 @@ export default function AdminPage() {
               <div className="grid gap-4">
                 {products.map((product) =>
                   editingSku === product.sku ? (
-                    <div key={product.sku} className="rounded-2xl border-2 border-gold-400 p-6 bg-gold-50/30">
-                      <h3 className="font-brand text-xl font-bold text-maroon-950 mb-4">Editing {product.name} ({product.sku})</h3>
+                    <div key={product.sku} className="rounded-2xl border-2 border-[#8db597] p-6 bg-[#f4f9f5]">
+                      <h3 className="font-brand text-xl font-bold text-[#142e1d] mb-4">Editing {product.name} ({product.sku})</h3>
                       <ProductForm
                         product={product}
                         submitLabel="Save Changes"
@@ -1736,13 +1699,13 @@ export default function AdminPage() {
                   ) : (
                     <article
                       key={product.sku}
-                      className="grid gap-4 rounded-2xl border border-neutral-200 p-4 sm:grid-cols-[100px_1fr_auto] sm:items-center bg-white shadow-2xs hover:shadow-xs transition"
+                      className="grid gap-4 rounded-2xl border border-[#d0e2d5] p-4 sm:grid-cols-[100px_1fr_auto] sm:items-center bg-white shadow-2xs hover:shadow-xs transition"
                     >
                       <div className="relative h-24 w-24">
                         <img
                           src={product.image}
                           alt={product.name}
-                          className="h-full w-full rounded-xl object-cover border border-neutral-200"
+                          className="h-full w-full rounded-xl object-cover border border-[#d0e2d5]"
                         />
                         {product.available === false && (
                           <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/60 text-[9px] font-bold text-white uppercase tracking-wider">
@@ -1753,27 +1716,27 @@ export default function AdminPage() {
 
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-maroon-950 font-brand text-xl">{product.name}</p>
+                          <p className="font-semibold text-[#142e1d] font-brand text-xl">{product.name}</p>
                           <span
                             className={`inline-block rounded-full px-2.5 py-0.5 text-[9.5px] font-bold border ${product.available !== false
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                : 'bg-neutral-100 text-neutral-600 border-neutral-300'
+                                ? 'bg-[#e2f0e6] text-[#183a24] border-[#8db597]'
+                                : 'bg-[#f0f4f1] text-[#7a8c80] border-[#c4dcce]'
                               }`}
                           >
                             {product.available !== false ? '● In Stock' : '○ Sold Out'}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-neutral-500 font-mono">
-                          {product.sku} · <span className="font-sans font-medium text-gold-700">{product.category}</span> · Stock: {product.stock ?? 5} units
+                        <p className="mt-1 text-xs text-[#5c6e64] font-mono">
+                          {product.sku} · <span className="font-sans font-medium text-[#285338]">{product.category}</span> · Stock: {product.stock ?? 5} units
                         </p>
-                        <p className="mt-1.5 text-sm font-semibold text-neutral-800 font-brand">
+                        <p className="mt-1.5 text-sm font-semibold text-[#142e1d] font-brand">
                           {formatCurrency(product.sellingPrice)}{' '}
                           <span className="text-neutral-400 font-normal line-through text-xs font-sans">
                             / {formatCurrency(product.originalPrice)}
                           </span>
                         </p>
                         {product.offerDetails && (
-                          <p className="mt-1 text-xs text-gold-800 font-medium">✦ {product.offerDetails}</p>
+                          <p className="mt-1 text-xs text-[#285338] font-medium">✦ {product.offerDetails}</p>
                         )}
                       </div>
 
@@ -1781,7 +1744,7 @@ export default function AdminPage() {
                         <button
                           type="button"
                           onClick={() => toggleAvailability(product.sku)}
-                          className="cursor-pointer rounded-xl border border-gold-400 bg-white hover:bg-gold-50 px-3 py-1.5 text-xs font-semibold text-maroon-950 transition text-center shadow-2xs"
+                          className="cursor-pointer rounded-xl border border-[#8db597] bg-white hover:bg-[#eef7f0] px-3 py-1.5 text-xs font-semibold text-[#183a24] transition text-center shadow-2xs"
                         >
                           {product.available !== false ? 'Mark Sold Out' : 'Mark In Stock'}
                         </button>
@@ -1791,7 +1754,7 @@ export default function AdminPage() {
                             setDeleteError('');
                             setEditingSku(product.sku);
                           }}
-                          className="cursor-pointer rounded-xl bg-maroon-900 hover:bg-maroon-800 px-3 py-1.5 text-xs font-semibold text-gold-100 transition text-center shadow-2xs"
+                          className="cursor-pointer rounded-xl bg-[#285338] hover:bg-[#1e402b] px-3 py-1.5 text-xs font-semibold text-[#FAF7EE] transition text-center shadow-2xs"
                         >
                           Edit
                         </button>
