@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
+import shreivaraLogo from '../assets/shreivara-logo.jpg';
 
 export const DEFAULT_PRODUCTS = [
   {
@@ -331,9 +332,17 @@ function SiteHeader({ query, setQuery, cartCount, onOpenPanel }) {
           <button
             type="button"
             onClick={navigateToTop}
-            className="cursor-pointer flex shrink-0 items-center gap-2 bg-transparent border-0 p-0 text-left"
+            className="cursor-pointer group flex shrink-0 items-center gap-2.5 bg-transparent border-0 p-0 text-left"
             aria-label="Shreivara home"
           >
+            <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden border-2 border-gold-400 bg-[#0A1612] shadow-xs shrink-0">
+              <img
+                src={shreivaraLogo}
+                alt="Shreivara Official Logo"
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => { e.currentTarget.src = '/shreivara-logo.jpg'; }}
+              />
+            </div>
             <span className="font-brand text-2xl font-semibold tracking-tight text-maroon-900 sm:text-3xl">Shreivara</span>
           </button>
 
@@ -408,7 +417,17 @@ function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-[#ded5c6] bg-[#2d1b11] py-8 text-[#f8f5ed]">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-center text-xs sm:flex-row sm:px-6 sm:text-left lg:px-8">
-        <p className="font-brand text-lg tracking-wider text-gold-500">Shreivara</p>
+        <div className="flex items-center gap-2.5">
+          <div className="relative h-7 w-7 rounded-full overflow-hidden border border-gold-400 bg-[#0A1612] shadow-2xs shrink-0">
+            <img
+              src={shreivaraLogo}
+              alt="Shreivara Official Logo"
+              className="h-full w-full object-cover"
+              onError={(e) => { e.currentTarget.src = '/shreivara-logo.jpg'; }}
+            />
+          </div>
+          <p className="font-brand text-lg tracking-wider text-gold-500">Shreivara</p>
+        </div>
         <p className="text-white/60">Direct WhatsApp orders · Secure delivery · Trusted quality</p>
         <div className="flex items-center gap-6 text-[#ded5c6]">
           {WHATSAPP_NUMBER && (

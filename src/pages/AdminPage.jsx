@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 import { DEFAULT_PRODUCTS } from '../components/SiteLayout.jsx';
+import shreivaraLogo from '../assets/shreivara-logo.jpg';
 import {
   insertProductToSupabase,
   updateProductInSupabase,
@@ -13,7 +14,16 @@ import {
 } from '../lib/supabase.js';
 
 function formatCurrency(value) {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
+  const num = typeof value === 'number' ? value : parseOrderTotal(value);
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(num);
+}
+
+function parseOrderTotal(val) {
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  if (!val) return 0;
+  const cleaned = String(val).replace(/[^0-9.]/g, '');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
 }
 
 const DEFAULT_ORDERS = [
@@ -27,6 +37,7 @@ const DEFAULT_ORDERS = [
     status: 'Dispatched',
     courier: 'DTDC Express',
     trackingNumber: 'DTDC8829104',
+    trackingUrl: 'https://track.dtdc.com/ctbs-tracking/customerInterface.tr?submitName=showTrackingDetail&strCnno=DTDC8829104',
     dispatchDate: '2026-10-19'
   },
   {
@@ -39,6 +50,7 @@ const DEFAULT_ORDERS = [
     status: 'Dispatched',
     courier: 'Blue Dart',
     trackingNumber: 'BLUED7739102',
+    trackingUrl: 'https://www.bluedart.com/tracking',
     dispatchDate: '2026-10-21'
   },
   {
@@ -51,6 +63,7 @@ const DEFAULT_ORDERS = [
     status: 'Pending',
     courier: '',
     trackingNumber: '',
+    trackingUrl: '',
     dispatchDate: ''
   }
 ];
@@ -712,7 +725,9 @@ function DispatchedOrdersManager() {
     trackingNumber: '',
     trackingUrl: '',
     total: '',
-    status: 'Pending'
+    items: '',
+    customerName: '',
+    phone: ''
   });
   const [isAddingOrder, setIsAddingOrder] = useState(false);
   const [newOrder, setNewOrder] = useState({
@@ -720,7 +735,6 @@ function DispatchedOrdersManager() {
     phone: '',
     items: '',
     total: '',
-    status: 'Pending',
     courier: '',
     trackingNumber: '',
     trackingUrl: ''
@@ -733,30 +747,16 @@ function DispatchedOrdersManager() {
     } catch (_) { }
   }
 
-  function markDispatched(id) {
-    const today = new Date().toISOString().split('T')[0];
-    const updated = orders.map((o) => {
-      if (o.id === id) {
-        return {
-          ...o,
-          status: 'Dispatched',
-          dispatchDate: o.dispatchDate || today,
-          courier: o.courier || 'DTDC Express'
-        };
-      }
-      return o;
-    });
-    persist(updated);
-  }
-
   function startEditing(order) {
     setEditingId(order.id);
     setEditForm({
       courier: order.courier || '',
       trackingNumber: order.trackingNumber || '',
       trackingUrl: order.trackingUrl || '',
-      total: order.total ?? '',
-      status: order.status || 'Pending'
+      total: order.total !== undefined ? String(order.total) : '',
+      items: order.items || '',
+      customerName: order.customerName || '',
+      phone: order.phone || ''
     });
   }
 
@@ -764,17 +764,18 @@ function DispatchedOrdersManager() {
     const today = new Date().toISOString().split('T')[0];
     const updated = orders.map((o) => {
       if (o.id === id) {
-        const nextStatus = editForm.status || o.status;
-        const isDispatched = nextStatus === 'Dispatched';
+        const hasTracking = Boolean(editForm.trackingUrl.trim() || editForm.trackingNumber.trim());
         return {
           ...o,
+          customerName: editForm.customerName.trim() || o.customerName,
+          phone: editForm.phone.trim() || o.phone,
+          items: editForm.items.trim() || o.items,
           courier: editForm.courier.trim(),
           trackingNumber: editForm.trackingNumber.trim(),
           trackingUrl: editForm.trackingUrl.trim(),
-          total: editForm.total !== '' ? Number(editForm.total) : o.total,
-          status: nextStatus,
-          // Do not force mark as Dispatched if admin only updated tracking details or kept status
-          dispatchDate: isDispatched ? (o.dispatchDate || today) : o.dispatchDate
+          total: editForm.total !== '' ? parseOrderTotal(editForm.total) : o.total,
+          status: hasTracking ? 'Dispatched' : 'Pending',
+          dispatchDate: hasTracking ? (o.dispatchDate || today) : o.dispatchDate
         };
       }
       return o;
@@ -787,18 +788,19 @@ function DispatchedOrdersManager() {
     e.preventDefault();
     const orderId = `SHR-ORD-${Date.now().toString().slice(-4)}`;
     const today = new Date().toISOString().split('T')[0];
+    const hasTracking = Boolean(newOrder.trackingUrl.trim() || newOrder.trackingNumber.trim());
     const created = {
       id: orderId,
       customerName: newOrder.customerName.trim(),
       phone: newOrder.phone.trim(),
       items: newOrder.items.trim(),
-      total: Number(newOrder.total) || 0,
+      total: parseOrderTotal(newOrder.total),
       orderDate: today,
-      status: newOrder.status,
+      status: hasTracking ? 'Dispatched' : 'Pending',
       courier: newOrder.courier.trim(),
       trackingNumber: newOrder.trackingNumber.trim(),
       trackingUrl: newOrder.trackingUrl.trim(),
-      dispatchDate: newOrder.status === 'Dispatched' ? today : ''
+      dispatchDate: hasTracking ? today : ''
     };
     persist([created, ...orders]);
     setIsAddingOrder(false);
@@ -807,7 +809,6 @@ function DispatchedOrdersManager() {
       phone: '',
       items: '',
       total: '',
-      status: 'Pending',
       courier: '',
       trackingNumber: '',
       trackingUrl: ''
@@ -836,41 +837,39 @@ function DispatchedOrdersManager() {
   function generateWhatsAppTrackingUrl(order) {
     const cleanPhone = (order.phone || '').replace(/[^0-9]/g, '');
     const trackingLink = getDirectTrackingUrl(order);
-    const trackingInfo = trackingLink
-      ? `${order.trackingNumber || 'Tracking Link'}: ${trackingLink}`
-      : (order.trackingNumber || 'Tracking assigned');
-    const message = `Namaste ${order.customerName}! 🌸\n\nYour order *${order.id}* from *Shreivara Handlooms & Fine Jewelry* has been dispatched! 📦✨\n\n📋 *Items:* ${order.items}\n🚚 *Courier:* ${order.courier || 'Express Courier'}\n🔖 *Tracking/AWB:* ${trackingInfo}\n\nThank you for choosing Shreivara! Feel free to reach out if you have any questions.`;
+    const trackingSection = trackingLink
+      ? `🔗 *Courier Tracking Link (Live Updates):*\n${trackingLink}`
+      : `🔖 *Tracking / AWB:* ${order.trackingNumber || 'Courier tracking link will be shared shortly'}`;
+    const message = `Namaste ${order.customerName}! 🌸\n\nYour order *${order.id}* from *Shreivara Handlooms & Fine Jewelry* has been shipped! 📦✨\n\n📋 *Items:* ${order.items}\n🚚 *Courier Partner:* ${order.courier || 'Express Courier'}\n${trackingSection}\n\nYou can click the link above anytime to check live delivery updates directly from the courier.\n\nThank you for choosing Shreivara! Feel free to reach out if you have any questions.`;
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   }
 
-  const filtered = orders.filter((o) => (filter === 'All' ? true : o.status === filter));
+  // Summary Metrics (No limit on order totals)
+  const totalOrdersCount = orders.length;
+  const totalOrdersAmount = orders.reduce((sum, o) => sum + (parseOrderTotal(o.total) || 0), 0);
+  const withTrackingCount = orders.filter((o) => Boolean(getDirectTrackingUrl(o) || o.trackingNumber)).length;
+  const awaitingTrackingCount = orders.filter((o) => !getDirectTrackingUrl(o) && !o.trackingNumber).length;
+
+  const filtered = orders.filter((o) => {
+    if (filter === 'All') return true;
+    if (filter === 'With Tracking Link') return Boolean(getDirectTrackingUrl(o) || o.trackingNumber);
+    if (filter === 'Awaiting Courier Link') return !getDirectTrackingUrl(o) && !o.trackingNumber;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
+      {/* Top Section Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gold-300 pb-4">
         <div>
           <h2 className="font-brand text-2xl font-bold text-maroon-950">Dispatched Orders Management</h2>
-          <p className="text-xs text-neutral-500">Track shipments, update courier partners, and notify customers on WhatsApp.</p>
+          <p className="text-xs text-neutral-500">Provide official courier tracking details links to customers and notify them on WhatsApp.</p>
         </div>
         <div className="flex items-center gap-2">
-          {['All', 'Pending', 'Dispatched'].map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setFilter(tab)}
-              className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
-                filter === tab
-                  ? 'bg-maroon-900 text-gold-100 shadow-xs'
-                  : 'border border-gold-300 bg-white text-maroon-950 hover:bg-gold-50'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
           <button
             type="button"
             onClick={() => setIsAddingOrder((v) => !v)}
-            className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-gold-600 hover:bg-gold-700 text-maroon-950 font-bold px-4 py-1.5 text-xs uppercase tracking-wider shadow-xs transition"
+            className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-gold-600 hover:bg-gold-700 text-maroon-950 font-bold px-4 py-2 text-xs uppercase tracking-wider shadow-xs transition"
           >
             <span>+</span>
             <span>{isAddingOrder ? 'Close' : 'Record Order'}</span>
@@ -878,13 +877,64 @@ function DispatchedOrdersManager() {
         </div>
       </div>
 
+      {/* Orders Summary Metric Cards (Shows Order Total without Limit) */}
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+        <div className="rounded-2xl border border-gold-300/80 bg-[#FAF7F2] p-4 shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gold-700">Total Orders</p>
+          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-maroon-950">{totalOrdersCount}</p>
+          <p className="mt-0.5 text-[10px] text-neutral-500">All recorded orders</p>
+        </div>
+        <div className="rounded-2xl border border-gold-300/80 bg-[#FAF7F2] p-4 shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Total Orders Value</p>
+          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-maroon-950">{formatCurrency(totalOrdersAmount)}</p>
+          <p className="mt-0.5 text-[10px] text-emerald-700 font-medium">No order total limit</p>
+        </div>
+        <div className="rounded-2xl border border-gold-300/80 bg-[#FAF7F2] p-4 shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">With Courier Link</p>
+          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-emerald-900">{withTrackingCount}</p>
+          <p className="mt-0.5 text-[10px] text-neutral-500">Live courier tracking link</p>
+        </div>
+        <div className="rounded-2xl border border-gold-300/80 bg-[#FAF7F2] p-4 shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800">Awaiting Courier Link</p>
+          <p className="mt-1 font-brand text-2xl sm:text-3xl font-bold text-amber-900">{awaitingTrackingCount}</p>
+          <p className="mt-0.5 text-[10px] text-neutral-500">Needs tracking link</p>
+        </div>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { key: 'All', label: `All Orders (${totalOrdersCount})` },
+          { key: 'With Tracking Link', label: `With Courier Link (${withTrackingCount})` },
+          { key: 'Awaiting Courier Link', label: `Awaiting Courier Link (${awaitingTrackingCount})` }
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setFilter(tab.key)}
+            className={`cursor-pointer rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
+              filter === tab.key
+                ? 'bg-maroon-900 text-gold-100 shadow-xs'
+                : 'border border-gold-300 bg-white text-maroon-950 hover:bg-gold-50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {isAddingOrder && (
         <form onSubmit={handleCreateOrder} className="rounded-2xl border-2 border-gold-400 bg-gold-50/40 p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-brand text-lg font-bold text-maroon-950">Record New WhatsApp / Store Order</h3>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Manual Entry</span>
+            <div>
+              <h3 className="font-brand text-lg font-bold text-maroon-950">Record New Customer Order</h3>
+              <p className="text-xs text-neutral-600">Enter customer details, order amount, and the tracking link provided by your courier.</p>
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-gold-700 bg-gold-100/80 px-2 py-0.5 rounded-full border border-gold-300">
+              New Entry
+            </span>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+          <div className="grid gap-3.5 sm:grid-cols-2 md:grid-cols-3">
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
               Customer Name *
               <input
@@ -908,17 +958,17 @@ function DispatchedOrdersManager() {
               />
             </label>
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
-              Order Total (INR) *
+              Order Total (INR, No Limit) *
               <input
                 required
-                type="number"
-                min="0"
-                step="any"
-                placeholder="e.g. 14999 (No upper limit)"
+                type="text"
+                inputMode="numeric"
+                placeholder="e.g. 1,49,999 (No limit)"
                 value={newOrder.total}
                 onChange={(e) => setNewOrder({ ...newOrder, total: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none font-semibold text-maroon-950"
               />
+              <span className="text-[10px] text-neutral-500 font-normal">Supports any amount with or without commas</span>
             </label>
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700 sm:col-span-2 md:col-span-3">
               Item Details (Name, SKU, Qty) *
@@ -932,43 +982,33 @@ function DispatchedOrdersManager() {
               />
             </label>
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
-              Initial Status
-              <select
-                value={newOrder.status}
-                onChange={(e) => setNewOrder({ ...newOrder, status: e.target.value })}
-                className="cursor-pointer rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
-              >
-                <option value="Pending">Pending Dispatch</option>
-                <option value="Dispatched">Already Dispatched</option>
-              </select>
-            </label>
-            <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
-              Courier Partner
+              Courier Partner Name
               <input
                 type="text"
-                placeholder="DTDC, Blue Dart, Delhivery, etc."
+                placeholder="e.g. DTDC, Blue Dart, Delhivery, Speed Post"
                 value={newOrder.courier}
                 onChange={(e) => setNewOrder({ ...newOrder, courier: e.target.value })}
                 className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
               />
             </label>
+            <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700 sm:col-span-2">
+              Courier Tracking Details Link (URL from Courier)
+              <input
+                type="url"
+                placeholder="https://track.dtdc.com/... (Link given by courier)"
+                value={newOrder.trackingUrl}
+                onChange={(e) => setNewOrder({ ...newOrder, trackingUrl: e.target.value })}
+                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
+              />
+              <span className="text-[10px] text-neutral-500 font-normal">Paste the live tracking details link provided by the courier</span>
+            </label>
             <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
-              Tracking / AWB Number
+              AWB / Consignment Number (Optional)
               <input
                 type="text"
                 placeholder="e.g. DTDC8829104"
                 value={newOrder.trackingNumber}
                 onChange={(e) => setNewOrder({ ...newOrder, trackingNumber: e.target.value })}
-                className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
-              />
-            </label>
-            <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-700 sm:col-span-2 md:col-span-3">
-              Direct Tracking Link (Optional URL)
-              <input
-                type="url"
-                placeholder="https://www.dtdc.in/tracking/... (Clickable tracking page)"
-                value={newOrder.trackingUrl}
-                onChange={(e) => setNewOrder({ ...newOrder, trackingUrl: e.target.value })}
                 className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-maroon-900 focus:outline-none"
               />
             </label>
@@ -983,7 +1023,7 @@ function DispatchedOrdersManager() {
             </button>
             <button
               type="submit"
-              className="cursor-pointer rounded-xl bg-maroon-900 px-5 py-2 text-xs font-bold uppercase tracking-wider text-gold-100 hover:bg-maroon-800"
+              className="cursor-pointer rounded-xl bg-maroon-900 px-5 py-2 text-xs font-bold uppercase tracking-wider text-gold-100 hover:bg-maroon-800 shadow-xs"
             >
               Save Order Record
             </button>
@@ -998,9 +1038,9 @@ function DispatchedOrdersManager() {
               <th className="py-3 px-4">Order ID &amp; Date</th>
               <th className="py-3 px-4">Customer</th>
               <th className="py-3 px-4">Item Details</th>
-              <th className="py-3 px-4">Total</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4">Courier &amp; Tracking</th>
+              <th className="py-3 px-4">Total Amount</th>
+              <th className="py-3 px-4">Tracking Status</th>
+              <th className="py-3 px-4">Courier Partner &amp; Tracking Details Link</th>
               <th className="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -1008,82 +1048,104 @@ function DispatchedOrdersManager() {
             {filtered.map((order) => {
               const trackingUrl = getDirectTrackingUrl(order);
               const isEditingThis = editingId === order.id;
+              const hasTrackingLink = Boolean(trackingUrl || order.trackingNumber);
 
               return (
                 <tr key={order.id} className="hover:bg-gold-50/40 transition">
-                  <td className="py-3.5 px-4 font-semibold text-maroon-900">
+                  <td className="py-3.5 px-4 font-semibold text-maroon-900 whitespace-nowrap">
                     {order.id}
                     <div className="text-[10px] font-normal text-neutral-400">{order.orderDate}</div>
                   </td>
                   <td className="py-3.5 px-4">
-                    <p className="font-semibold text-neutral-900">{order.customerName}</p>
-                    <p className="text-[10px] text-neutral-500 font-mono">{order.phone}</p>
+                    {isEditingThis ? (
+                      <div className="flex flex-col gap-1 min-w-[130px]">
+                        <input
+                          type="text"
+                          value={editForm.customerName}
+                          onChange={(e) => setEditForm({ ...editForm, customerName: e.target.value })}
+                          placeholder="Customer Name"
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                        />
+                        <input
+                          type="text"
+                          value={editForm.phone}
+                          onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                          placeholder="Phone"
+                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="font-semibold text-neutral-900">{order.customerName}</p>
+                        <p className="text-[10px] text-neutral-500 font-mono">{order.phone}</p>
+                      </div>
+                    )}
                   </td>
-                  <td className="py-3.5 px-4 max-w-xs truncate text-neutral-700">{order.items}</td>
-                  <td className="py-3.5 px-4 font-semibold text-neutral-900">
+                  <td className="py-3.5 px-4 max-w-xs truncate text-neutral-700">
                     {isEditingThis ? (
                       <input
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={editForm.total}
-                        onChange={(e) => setEditForm({ ...editForm, total: e.target.value })}
-                        className="w-24 rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
-                        title="Edit Order Total (No Limit)"
+                        type="text"
+                        value={editForm.items}
+                        onChange={(e) => setEditForm({ ...editForm, items: e.target.value })}
+                        className="w-full rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
                       />
+                    ) : (
+                      order.items
+                    )}
+                  </td>
+                  <td className="py-3.5 px-4 font-semibold text-neutral-900 whitespace-nowrap">
+                    {isEditingThis ? (
+                      <div className="flex flex-col gap-0.5">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={editForm.total}
+                          onChange={(e) => setEditForm({ ...editForm, total: e.target.value })}
+                          className="w-28 rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none font-bold text-maroon-950"
+                          title="Enter order total in INR (No limit)"
+                        />
+                        <span className="text-[9px] text-neutral-400">No limit</span>
+                      </div>
                     ) : (
                       formatCurrency(order.total)
                     )}
                   </td>
-                  <td className="py-3.5 px-4">
-                    {isEditingThis ? (
-                      <select
-                        value={editForm.status}
-                        onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                        className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Dispatched">Dispatched</option>
-                      </select>
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    {hasTrackingLink ? (
+                      <span className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold border bg-emerald-50 text-emerald-800 border-emerald-300">
+                        ● Live Tracking Link
+                      </span>
                     ) : (
-                      <div>
-                        <span
-                          className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
-                            order.status === 'Dispatched'
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                              : 'bg-amber-50 text-amber-900 border-amber-300'
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                        {order.dispatchDate && (
-                          <div className="text-[9px] text-neutral-500 mt-0.5">Disp: {order.dispatchDate}</div>
-                        )}
-                      </div>
+                      <span className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold border bg-amber-50 text-amber-900 border-amber-300">
+                        ○ Awaiting Courier Link
+                      </span>
+                    )}
+                    {order.dispatchDate && (
+                      <div className="text-[9px] text-neutral-500 mt-0.5 font-mono">Date: {order.dispatchDate}</div>
                     )}
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 min-w-[200px]">
                     {isEditingThis ? (
-                      <div className="flex flex-col gap-1.5 min-w-[180px]">
+                      <div className="flex flex-col gap-1.5 min-w-[220px]">
                         <input
                           type="text"
-                          placeholder="Courier (e.g. DTDC, Blue Dart)"
+                          placeholder="Courier Partner (e.g. DTDC, Blue Dart)"
                           value={editForm.courier}
                           onChange={(e) => setEditForm({ ...editForm, courier: e.target.value })}
                           className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
                         />
                         <input
-                          type="text"
-                          placeholder="Tracking / AWB #"
-                          value={editForm.trackingNumber}
-                          onChange={(e) => setEditForm({ ...editForm, trackingNumber: e.target.value })}
-                          className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
-                        />
-                        <input
                           type="url"
-                          placeholder="Direct tracking URL (optional)"
+                          placeholder="Courier Tracking Link (https://...)"
                           value={editForm.trackingUrl}
                           onChange={(e) => setEditForm({ ...editForm, trackingUrl: e.target.value })}
+                          className="rounded-lg border border-gold-400 bg-gold-50/30 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
+                        />
+                        <input
+                          type="text"
+                          placeholder="AWB / Tracking #"
+                          value={editForm.trackingNumber}
+                          onChange={(e) => setEditForm({ ...editForm, trackingNumber: e.target.value })}
                           className="rounded-lg border border-neutral-300 px-2 py-1 text-xs focus:border-maroon-900 focus:outline-none"
                         />
                         <div className="flex gap-1.5 mt-1">
@@ -1092,7 +1154,7 @@ function DispatchedOrdersManager() {
                             onClick={() => saveOrderDetails(order.id)}
                             className="cursor-pointer rounded-lg bg-maroon-900 px-3 py-1 text-[11px] font-bold text-gold-100 hover:bg-maroon-800 transition"
                           >
-                            Save
+                            Save Tracking Link
                           </button>
                           <button
                             type="button"
@@ -1103,50 +1165,45 @@ function DispatchedOrdersManager() {
                           </button>
                         </div>
                       </div>
-                    ) : order.courier || order.trackingNumber || order.trackingUrl ? (
+                    ) : (
                       <div className="space-y-1">
-                        <p className="font-semibold text-neutral-800">{order.courier || 'Courier'}</p>
-                        <p className="font-mono text-[10px] text-neutral-600">{order.trackingNumber || 'Tracking assigned'}</p>
-                        {trackingUrl && (
+                        <p className="font-semibold text-neutral-800 flex items-center gap-1.5">
+                          <span>🚚</span>
+                          <span>{order.courier || 'Express Courier'}</span>
+                        </p>
+                        {order.trackingNumber && (
+                          <p className="font-mono text-[10px] text-neutral-500">AWB: {order.trackingNumber}</p>
+                        )}
+                        {trackingUrl ? (
                           <a
                             href={trackingUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="cursor-pointer inline-flex items-center gap-1 text-[10.5px] font-semibold text-maroon-900 underline hover:text-gold-700"
-                            title="Open courier tracking portal"
+                            className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg border border-gold-400 bg-gold-50/90 hover:bg-gold-100 px-2.5 py-1 text-[11px] font-bold text-maroon-950 transition shadow-2xs"
+                            title="Open tracking details provided by courier"
                           >
-                            <span>🔗 Track Shipment</span>
-                            <span>↗</span>
+                            <span>🔗 View Courier Tracking Details</span>
+                            <span className="text-[10px]">↗</span>
                           </a>
+                        ) : (
+                          <span className="text-[11px] text-neutral-400 italic">No courier link added yet</span>
                         )}
                       </div>
-                    ) : (
-                      <span className="text-[11px] text-neutral-400 italic">No tracking info</span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5 flex-wrap">
                       {order.phone && (
                         <a
                           href={generateWhatsAppTrackingUrl(order)}
                           target="_blank"
                           rel="noreferrer"
-                          className="cursor-pointer inline-flex items-center gap-1 rounded-lg bg-[#25D366] hover:bg-[#20ba5a] px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs transition"
-                          title="Notify customer with dispatch details on WhatsApp"
+                          className="cursor-pointer inline-flex items-center gap-1 rounded-lg bg-[#25D366] hover:bg-[#20ba5a] px-2.5 py-1.5 text-[11px] font-bold text-white shadow-2xs transition"
+                          title="Send courier tracking details link to customer on WhatsApp"
                         >
                           <span>WhatsApp</span>
                           <span>↗</span>
                         </a>
-                      )}
-                      {order.status !== 'Dispatched' && (
-                        <button
-                          type="button"
-                          onClick={() => markDispatched(order.id)}
-                          className="cursor-pointer rounded-lg border border-maroon-900 bg-maroon-900 hover:bg-maroon-800 px-2.5 py-1 text-[11px] font-semibold text-gold-100 shadow-2xs transition"
-                          title="Mark order as dispatched"
-                        >
-                          Mark Dispatched
-                        </button>
                       )}
                       <button
                         type="button"
@@ -1157,14 +1214,19 @@ function DispatchedOrdersManager() {
                             startEditing(order);
                           }
                         }}
-                        className="cursor-pointer rounded-lg border border-gold-400 bg-white hover:bg-gold-50 px-2.5 py-1 text-[11px] font-semibold text-maroon-950 shadow-2xs transition"
+                        className={`cursor-pointer rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition shadow-2xs ${
+                          isEditingThis
+                            ? 'bg-neutral-100 border-neutral-300 text-neutral-700'
+                            : 'border-gold-400 bg-white hover:bg-gold-50 text-maroon-950'
+                        }`}
+                        title="Add or update courier tracking link"
                       >
-                        {isEditingThis ? 'Close' : 'Edit'}
+                        {isEditingThis ? 'Close' : '🔗 Courier Link'}
                       </button>
                       <button
                         type="button"
                         onClick={() => deleteOrder(order.id)}
-                        className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 hover:border-red-300 px-2.5 py-1 text-[11px] font-bold text-red-700 shadow-2xs transition"
+                        className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 hover:border-red-300 px-2.5 py-1.5 text-[11px] font-bold text-red-700 shadow-2xs transition"
                         title="Delete order record permanently"
                       >
                         <span aria-hidden="true">🗑️</span>
@@ -1531,19 +1593,20 @@ export default function AdminPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <a href={storefrontUrl} className="cursor-pointer group flex items-center gap-2.5">
-              <div className="relative h-8 w-8 rounded-full overflow-hidden border border-gold-400/90 bg-[#0A1612] shadow-2xs">
+              <div className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full overflow-hidden border-2 border-gold-400 bg-[#0A1612] shadow-xs shrink-0">
                 <img
-                  src="/shreivara-logo.jpg"
-                  alt="Shreivara Official Profile Logo"
-                  className="h-full w-full object-cover"
+                  src={shreivaraLogo}
+                  alt="Shreivara Official Logo"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => { e.currentTarget.src = '/shreivara-logo.jpg'; }}
                 />
               </div>
-              <span className="font-brand text-2xl font-medium tracking-[0.2em] uppercase text-maroon-950 group-hover:text-maroon-800 transition">
+              <span className="font-brand text-2xl font-semibold tracking-tight text-maroon-950 group-hover:text-maroon-800 transition">
                 Shreivara
               </span>
             </a>
-            <span className="rounded-md bg-maroon-900 text-gold-200 px-2.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider">
-              Admin Portal
+            <span className="rounded-full border border-gold-400 bg-gold-500/20 text-gold-950 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] shadow-2xs">
+              Admin Panel
             </span>
           </div>
 
