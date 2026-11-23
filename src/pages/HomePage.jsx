@@ -222,7 +222,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
           </span>
         ) : cartQuantity > 0 ? (
           <span className="absolute right-3 top-3 rounded-full bg-maroon-900 text-white px-2.5 py-1 text-[10px] font-bold shadow-md flex items-center gap-1 border border-gold-300/70">
-            <span>🛍️</span> {cartQuantity} in Bag
+            <span>🛍️</span> {cartQuantity} in Cart
           </span>
         ) : null}
 
@@ -291,11 +291,15 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
           {originalPrice > sellingPrice && (
             <span className="text-sm text-gray-400 line-through">{formatCurrency(originalPrice)}</span>
           )}
-          <span className="ml-auto text-[10px] uppercase tracking-widest text-gray-500">{sku}</span>
         </div>
         {offerDetails && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-maroon-900">{offerDetails}</p>}
         {description && !offerDetails && <p className="mt-2 text-xs text-gray-600 line-clamp-2">{description}</p>}
-        {sizes.length > 0 && <p className="mt-2 text-sm text-gray-600">Available sizes: {sizes.join(', ')}</p>}
+        {sizes.length > 0 && (
+          <p className="mt-2 text-xs sm:text-sm text-neutral-600">
+            <span className="font-semibold text-neutral-700">Available sizes: </span>
+            <span className="text-neutral-800">{sizes.join(', ')}</span>
+          </p>
+        )}
         <div className="mt-5 grid grid-cols-2 gap-2 mt-auto">
           <a
             href={`https://wa.me/919000510329?text=${waMessage}`}
@@ -319,7 +323,7 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
                 ? 'border-maroon-900 bg-maroon-900 text-[#f8f5ed] hover:bg-maroon-800 shadow-xs'
                 : 'border-maroon-900 text-maroon-900 hover:bg-maroon-900 hover:text-[#f8f5ed]'
             }`}
-            title={cartQuantity > 0 ? `${cartQuantity} currently in shopping bag. Click to add another.` : 'Add to Cart'}
+            title={cartQuantity > 0 ? `${cartQuantity} currently in shopping cart. Click to add another.` : 'Add to Cart'}
           >
             <span className="h-4 w-4 shrink-0"><BagIcon /></span>
             {isSoldOut
@@ -499,10 +503,10 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
               )}
 
               {sizes.length > 0 && (
-                <div className="mt-3 text-xs">
-                  <span className="font-semibold text-neutral-600">Available Sizes: </span>
+                <p className="mt-3 text-xs sm:text-sm text-neutral-600">
+                  <span className="font-semibold text-neutral-700">Available sizes: </span>
                   <span className="text-neutral-800">{sizes.join(', ')}</span>
-                </div>
+                </p>
               )}
             </div>
 
@@ -533,10 +537,10 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
                 {isSoldOut
                   ? 'Sold Out'
                   : isMaxReached
-                  ? `In Bag (${cartQuantity}) • Max Stock Reached`
+                  ? `In Cart (${cartQuantity}) • Max Stock Reached`
                   : cartQuantity > 0
-                  ? `✓ In Bag (${cartQuantity}) • Add Another`
-                  : 'Add to Bag'}
+                  ? `✓ In Cart (${cartQuantity}) • Add Another`
+                  : 'Add to Cart'}
               </button>
             </div>
           </div>

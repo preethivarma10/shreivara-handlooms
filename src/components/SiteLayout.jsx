@@ -193,7 +193,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
         <div className="flex items-center justify-between border-b border-[#e4dccd] px-6 py-5">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gold-600">Your selection</p>
-            <h2 id="store-panel-title" className="mt-1 font-brand text-2xl font-medium text-maroon-900">Shopping bag</h2>
+            <h2 id="store-panel-title" className="mt-1 font-brand text-2xl font-medium text-maroon-900">Shopping Cart</h2>
           </div>
           <div className="flex items-center gap-2">
             {visibleCart.length > 0 && (
@@ -201,9 +201,9 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
                 type="button"
                 onClick={() => setCartItems([])}
                 className="cursor-pointer text-[11px] font-medium text-red-700 hover:text-red-900 underline underline-offset-2 px-2 py-1"
-                title="Remove all items from shopping bag"
+                title="Remove all items from shopping cart"
               >
-                Clear Bag
+                Clear Cart
               </button>
             )}
             <button type="button" onClick={onClose} aria-label="Close" className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-600 transition hover:bg-[#e9e1d3]">×</button>
@@ -254,7 +254,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
           }) : (
             <div className="py-16 text-center space-y-3">
               <span className="text-4xl block">🛍️</span>
-              <p className="font-brand text-xl text-gray-600">Your bag is empty.</p>
+              <p className="font-brand text-xl text-gray-600">Your cart is empty.</p>
               <p className="text-xs text-neutral-500">Explore our handcrafted sarees & jewelry and add your favorites!</p>
             </div>
           )}
@@ -382,7 +382,7 @@ function SiteHeader({ query, setQuery, cartCount, onOpenPanel }) {
           <button
             type="button"
             onClick={() => onOpenPanel('cart')}
-            aria-label={`Shopping bag, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
+            aria-label={`Shopping cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
             className="cursor-pointer relative inline-flex h-10 w-10 items-center justify-center rounded-full text-maroon-900 transition hover:bg-[#e9e1d3]"
           >
             <span className="h-5 w-5"><BagIcon /></span>
@@ -486,7 +486,7 @@ export default function SiteLayout() {
     try {
       window.localStorage.setItem('shreivara-cart', JSON.stringify(cartItems));
     } catch (error) {
-      console.error('Could not save the shopping bag in browser storage.', error);
+      console.error('Could not save the shopping cart in browser storage.', error);
     }
   }, [cartItems]);
 
@@ -498,7 +498,7 @@ export default function SiteLayout() {
     }, 2000);
   }
 
-  function addToBag(sku) {
+  function addToCart(sku) {
     const prod = products.find((p) => p.sku === sku);
     const maxStock = prod?.stock ?? 5;
     const existing = cartItems.find((item) => item.sku === sku);
@@ -508,7 +508,7 @@ export default function SiteLayout() {
     }
     const nextQty = (existing?.quantity || 0) + 1;
     setCartItems((current) => addCartItem(current, sku, maxStock));
-    showToast(`✓ Added to Cart (${nextQty} in bag)`);
+    showToast(`✓ Added to Cart (${nextQty} in cart)`);
   }
 
   // Calculate cartCount only for valid catalog products
@@ -526,7 +526,8 @@ export default function SiteLayout() {
     setProducts,
     cartItems: validCartItems,
     setCartItems,
-    addToBag,
+    addToCart,
+    addToBag: addToCart,
     productsLoading,
     productsError
   };
