@@ -152,17 +152,29 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
   const visibleCart = cartItems
     .map((item) => ({ ...item, product: products.find((product) => product.sku === item.sku) }))
     .filter((item) => item.product);
-  const total = visibleCart.reduce((sum, item) => {
+
+  const subtotal = visibleCart.reduce((sum, item) => {
     const price = Number(item.product.sellingPrice ?? item.product.selling_price ?? item.product.price ?? 0);
     return sum + price * item.quantity;
   }, 0);
-  const isFreeDelivery = total >= 3000;
+
+  // 1. GST Calculation: 5% standard rate for Indian handlooms, sarees & textiles
+  const GST_RATE = 0.05;
+  const gst = Math.round(subtotal * GST_RATE);
+
+  // 2. Shipping Calculation: Free delivery on orders ₹3,000 & above, otherwise ₹100 express courier across India
+  const FREE_SHIPPING_THRESHOLD = 3000;
+  const isFreeDelivery = subtotal >= FREE_SHIPPING_THRESHOLD;
+  const shipping = subtotal > 0 ? (isFreeDelivery ? 0 : 100) : 0;
+
+  // 3. Total Amount Payable
+  const grandTotal = subtotal + gst + shipping;
 
   function startWhatsAppOrder() {
     const itemLines = visibleCart.map(({ product, quantity }) => {
       const price = Number(product.sellingPrice ?? product.selling_price ?? product.price ?? 0);
       const lineTotal = price * quantity;
-      return `• ${product.name} [${product.sku}] × ${quantity} = ${formatCurrency(lineTotal)}`;
+      return `• ${product.name} [Code: ${product.sku}] × ${quantity} = ${formatCurrency(lineTotal)}`;
     });
     const message = [
       '🛍️ *New Order from https://shreivara-handlooms.vercel.app:*',
@@ -170,14 +182,17 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
       '*Items ordered:*',
       ...itemLines,
       '',
-      `*Order Total: ${formatCurrency(total)}*`,
+      '💰 *Payment & Cost Breakdown:*',
+      `• Items Subtotal: ${formatCurrency(subtotal)}`,
+      `• GST (5% Handloom): ${formatCurrency(gst)}`,
+      `• Shipping & Delivery: ${shipping === 0 ? 'FREE (Order above ₹3,000)' : formatCurrency(shipping)}`,
+      `• *Total Payable: ${formatCurrency(grandTotal)}*`,
+      '',
       isFreeDelivery ? '🎉 *Eligible for Free Delivery!*' : '',
       '',
-      '📌 *Notice:* Prices exclusive of delivery charges & GST. Location-based shipping confirmed on chat.',
+      'Please reply with payment details (UPI/GPay/PhonePe/Bank Transfer) to complete order.',
       '',
-      'Please reply with availability confirmation.',
-      '',
-      '📦 *Shipping details:*',
+      '📦 *Delivery details:*',
       'Name:',
       'Address:',
       'City & Pincode:',
@@ -261,32 +276,73 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
         </div>
 
         {visibleCart.length > 0 && (
-          <div className="border-t border-[#e4dccd] px-6 py-4 space-y-3.5 bg-[#f5f0e4]">
-            {/* Payment & Shipping Notices */}
-            <div className="rounded-lg border border-amber-300/80 bg-white/80 p-3.5 text-xs text-[#524434] space-y-1.5 shadow-xs">
-              <p className="font-semibold text-emerald-800 flex items-center gap-1.5">
-                <span>🎉</span> Free Delivery on orders above ₹3,000!
-              </p>
-              <p className="text-[11px] leading-relaxed text-gray-700">
-                • Prices are exclusive of delivery charges and GST.
-              </p>
-              <p className="text-[11px] leading-relaxed text-gray-700">
-                • Delivery charges vary based on location. Please connect with us on WhatsApp for exact shipping details.
-              </p>
+          <div className="border-t border-[#e4dccd] px-6 py-4 space-y-3 bg-[#f5f0e4]">
+            {/* Bill Summary with Calculated GST and Shipping */}
+            <div className="rounded-xl border border-[#ded5c6] bg-white p-4 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-gold-700">Payment Breakdown</p>
+                <span className="text-[10px] text-neutral-400 font-mono">
+                  {visibleCart.length} {visibleCart.length === 1 ? 'item' : 'items'}
+                </span>
+              </div>
+
+              {/* Free Delivery Qualified / Progress Notice */}
+              {isFreeDelivery ? (
+                <div className="rounded-lg bg-emerald-50 border border-emerald-200/80 px-3 py-2 text-xs text-emerald-800 font-medium flex items-center gap-1.5">
+                  <span>🎉</span>
+                  <span>You qualify for <strong>FREE Delivery</strong> across India!</span>
+                </div>
+              ) : (
+                <div className="rounded-lg bg-amber-50 border border-amber-200/80 px-3 py-2 text-xs text-amber-900 flex items-center justify-between">
+                  <span>Add <strong>{formatCurrency(FREE_SHIPPING_THRESHOLD - subtotal)}</strong> more for <strong>FREE Delivery</strong>!</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded">₹100 Shipping</span>
+                </div>
+              )}
+
+              {/* Itemized Calculation Rows */}
+              <div className="space-y-2 text-xs text-neutral-700 pt-0.5">
+                <div className="flex justify-between items-center">
+                  <span>Items Subtotal</span>
+                  <span className="font-semibold text-neutral-900">{formatCurrency(subtotal)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-1">
+                    <span>GST (5% Handloom)</span>
+                    <span className="text-[10px] text-neutral-400">(CGST 2.5% + SGST 2.5%)</span>
+                  </div>
+                  <span className="font-semibold text-neutral-900">+{formatCurrency(gst)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Shipping &amp; Delivery</span>
+                  {shipping === 0 ? (
+                    <span className="font-bold text-emerald-700 uppercase text-[10.5px] bg-emerald-100/80 px-2 py-0.5 rounded">FREE</span>
+                  ) : (
+                    <span className="font-semibold text-neutral-900">+{formatCurrency(shipping)}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Total Payable Row */}
+              <div className="border-t border-[#e8dfd0] pt-2.5 flex justify-between items-baseline font-bold text-maroon-950">
+                <div>
+                  <span className="text-base font-brand">Total Payable</span>
+                  <span className="text-[10px] font-normal text-neutral-500 block">Inclusive of 5% GST &amp; Shipping</span>
+                </div>
+                <span className="text-xl font-brand font-bold text-maroon-900">{formatCurrency(grandTotal)}</span>
+              </div>
             </div>
 
-            <div className="flex justify-between font-semibold text-maroon-900 text-base">
-              <span>Subtotal</span>
-              <span>{formatCurrency(total)}</span>
-            </div>
             <button
               type="button"
               onClick={startWhatsAppOrder}
-              className="cursor-pointer w-full rounded-lg bg-maroon-900 px-5 py-3 text-sm font-semibold tracking-wide text-[#f8f5ed] transition hover:bg-maroon-800"
+              className="cursor-pointer w-full rounded-xl bg-[#25d366] hover:bg-[#1ebe5d] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition shadow-sm flex items-center justify-center gap-2"
             >
-              Order on WhatsApp
+              <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
+              <span>Proceed to Pay on WhatsApp • {formatCurrency(grandTotal)}</span>
             </button>
-            <p className="text-center text-xs text-gray-500">We’ll confirm availability and delivery with you.</p>
+            <p className="text-center text-[11px] text-gray-500">
+              🔒 Instant UPI (GPay, PhonePe, Paytm) &amp; Bank Transfer confirmation via WhatsApp.
+            </p>
           </div>
         )}
       </section>
@@ -447,6 +503,7 @@ function SiteFooter() {
 }
 
 export default function SiteLayout() {
+  const location = useLocation();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All Collections');
   const [products, setProducts] = useState(() => {
@@ -468,6 +525,21 @@ export default function SiteLayout() {
   const [activePanel, setActivePanel] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const toastTimeoutRef = useRef(null);
+
+  // Automatically open the cart panel when visiting /cart, /payment, /checkout, or #cart
+  useEffect(() => {
+    const path = location.pathname.toLowerCase();
+    const hash = location.hash.toLowerCase();
+    if (
+      path === '/cart' ||
+      path === '/payment' ||
+      path === '/checkout' ||
+      hash === '#cart' ||
+      hash === '#payment'
+    ) {
+      setActivePanel('cart');
+    }
+  }, [location.pathname, location.hash]);
 
   // Auto-prune orphaned cart items that no longer exist in the store catalog
   useEffect(() => {

@@ -45,6 +45,9 @@ export default function App() {
         />
         <Route element={<SiteLayout />}>
           <Route index element={<HomePage />} />
+          <Route path="cart" element={<HomePage />} />
+          <Route path="payment" element={<HomePage />} />
+          <Route path="checkout" element={<HomePage />} />
           <Route path="about" element={<Navigate to="/#about-us" replace />} />
           <Route path="about.html" element={<Navigate to="/#about-us" replace />} />
           <Route path="login" element={<LoginPage />} />
