@@ -844,6 +844,25 @@ function DispatchedOrdersManager() {
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   }
 
+  const [showAutoReplyGuide, setShowAutoReplyGuide] = useState(false);
+  const [copiedTemplate, setCopiedTemplate] = useState(false);
+
+  const autoReplyTemplate = `Namaste! 🌸 Thank you for choosing Shreivara Handlooms & Fine Jewelry. We have received your order details! Our team is checking live inventory and will confirm the availability of your selected piece(s) and deliver to you shortly. ✨`;
+
+  function copyAutoReplyTemplate() {
+    try {
+      navigator.clipboard.writeText(autoReplyTemplate);
+      setCopiedTemplate(true);
+      setTimeout(() => setCopiedTemplate(false), 2500);
+    } catch (_) {}
+  }
+
+  function generateWhatsAppAvailabilityUrl(order) {
+    const cleanPhone = (order.phone || '').replace(/[^0-9]/g, '');
+    const message = `Namaste ${order.customerName || 'valued customer'}! 🌸\n\nThank you for choosing *Shreivara Handlooms & Fine Jewelry*! ✨\n\nWe are pleased to confirm that your selected item(s) are *available in stock*:\n📋 *Items:* ${order.items || 'Selected Handloom Piece'}\n💰 *Order Total:* ${order.total || ''}\n\n📦 *Delivery Confirmation:*\nWe will safely pack and deliver your order to your address via Express Courier. We will share your live courier tracking link with you right here on WhatsApp as soon as it is dispatched.\n\nPlease confirm if you would like us to proceed with dispatch!\n\nWarm regards,\n*Shreivara Handlooms*`;
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+  }
+
   // Summary Metrics (No limit on order totals)
   const totalOrdersCount = orders.length;
   const totalOrdersAmount = orders.reduce((sum, o) => sum + (parseOrderTotal(o.total) || 0), 0);
@@ -868,6 +887,15 @@ function DispatchedOrdersManager() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={() => setShowAutoReplyGuide((v) => !v)}
+            className="cursor-pointer inline-flex items-center gap-1.5 rounded-full border border-[#8db597] bg-white hover:bg-[#eef7f0] text-[#183a24] font-bold px-3.5 py-2 text-xs uppercase tracking-wider shadow-2xs transition"
+            title="Setup automated WhatsApp order reply"
+          >
+            <span>📱</span>
+            <span>{showAutoReplyGuide ? 'Hide Auto-Reply Guide' : 'WhatsApp Auto-Reply'}</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setIsAddingOrder((v) => !v)}
             className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-[#285338] hover:bg-[#1e402b] text-[#FAF7EE] font-bold px-4 py-2 text-xs uppercase tracking-wider shadow-xs transition"
           >
@@ -876,6 +904,58 @@ function DispatchedOrdersManager() {
           </button>
         </div>
       </div>
+
+      {/* WhatsApp Auto-Reply Setup Guide Banner */}
+      {showAutoReplyGuide && (
+        <div className="rounded-2xl border-2 border-[#8db597] bg-[#f4f9f5] p-5 space-y-3.5 shadow-xs animate-in fade-in">
+          <div className="flex items-center justify-between border-b border-[#c4dcce] pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">📲</span>
+              <h3 className="font-brand text-lg font-bold text-[#142e1d]">Automatic WhatsApp Order Confirmation Setup</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAutoReplyGuide(false)}
+              className="cursor-pointer text-xs font-bold text-[#285338] hover:text-[#1e402b]"
+            >
+              ✕ Close Guide
+            </button>
+          </div>
+
+          <p className="text-xs text-[#285338] leading-relaxed">
+            When customers send you an order from your storefront to WhatsApp (<strong>+91 90005 10329</strong>), WhatsApp Business can automatically send them an instant reply confirming you will check availability and deliver to them.
+          </p>
+
+          <div className="rounded-xl border border-[#c4dcce] bg-white p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#285338]">Recommended Auto-Reply Message:</p>
+              <button
+                type="button"
+                onClick={copyAutoReplyTemplate}
+                className="cursor-pointer rounded-lg bg-[#285338] hover:bg-[#1e402b] text-[#FAF7EE] px-3 py-1 text-[11px] font-bold shadow-2xs transition"
+              >
+                {copiedTemplate ? '✓ Copied to Clipboard!' : '📋 Copy Message Template'}
+              </button>
+            </div>
+            <p className="text-xs text-neutral-800 bg-[#FAF7EE] p-3 rounded-lg font-sans border border-[#dceade] italic leading-relaxed">
+              "{autoReplyTemplate}"
+            </p>
+          </div>
+
+          <div className="space-y-1.5 text-xs text-neutral-700 bg-white/70 p-3.5 rounded-xl border border-[#c4dcce]">
+            <p className="font-bold text-[#142e1d]">How to enable on your phone in 1 minute (Free in WhatsApp Business):</p>
+            <ol className="list-decimal pl-5 space-y-1 text-[11.5px] text-neutral-800">
+              <li>Open <strong>WhatsApp Business</strong> on your phone (the number linked to +91 90005 10329).</li>
+              <li>Go to <strong>Settings</strong> &rarr; <strong>Business Tools</strong> &rarr; <strong>Greeting message</strong> (or <em>Away message</em>).</li>
+              <li>Turn <strong>ON</strong> <em>"Send greeting message"</em>.</li>
+              <li>Tap on <em>Greeting message</em>, paste the template text copied above, and tap <strong>Save</strong>.</li>
+            </ol>
+            <p className="text-[11px] text-[#285338] font-medium pt-1">
+              ✨ Once enabled, every time a customer messages your WhatsApp line, WhatsApp will reply with this confirmation automatically within seconds!
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Orders Summary Metric Cards (Shows Order Total without Limit) */}
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
@@ -1194,16 +1274,28 @@ function DispatchedOrdersManager() {
                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5 flex-wrap">
                       {order.phone && (
-                        <a
-                          href={generateWhatsAppTrackingUrl(order)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="cursor-pointer inline-flex items-center gap-1 rounded-lg bg-[#25D366] hover:bg-[#20ba5a] px-2.5 py-1.5 text-[11px] font-bold text-white shadow-2xs transition"
-                          title="Send courier tracking details link to customer on WhatsApp"
-                        >
-                          <span>WhatsApp</span>
-                          <span>↗</span>
-                        </a>
+                        <>
+                          <a
+                            href={generateWhatsAppAvailabilityUrl(order)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cursor-pointer inline-flex items-center gap-1 rounded-lg border border-[#8db597] bg-white hover:bg-[#eef7f0] px-2.5 py-1.5 text-[11px] font-semibold text-[#183a24] shadow-2xs transition"
+                            title="Confirm availability & delivery schedule with customer on WhatsApp"
+                          >
+                            <span>✓ Availability</span>
+                            <span className="text-[10px]">↗</span>
+                          </a>
+                          <a
+                            href={generateWhatsAppTrackingUrl(order)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cursor-pointer inline-flex items-center gap-1 rounded-lg bg-[#25D366] hover:bg-[#20ba5a] px-2.5 py-1.5 text-[11px] font-bold text-white shadow-2xs transition"
+                            title="Send courier tracking details link to customer on WhatsApp"
+                          >
+                            <span>🚚 Tracking</span>
+                            <span className="text-[10px]">↗</span>
+                          </a>
+                        </>
                       )}
                       <button
                         type="button"

@@ -157,6 +157,8 @@ function readStoredList(key, validateItem) {
 function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
   if (!panel || panel !== 'cart') return null;
 
+  const [orderSubmitted, setOrderSubmitted] = useState(false);
+
   const visibleCart = cartItems
     .map((item) => ({ ...item, product: products.find((product) => product.sku === item.sku) }))
     .filter((item) => item.product);
@@ -198,7 +200,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
       '',
       isFreeDelivery ? '🎉 *Eligible for Free Delivery!*' : '',
       '',
-      'Please reply with payment details (UPI/GPay/PhonePe/Bank Transfer) to complete order.',
+      'Please confirm availability and delivery schedule with payment details (UPI/GPay/PhonePe).',
       '',
       '📦 *Delivery details:*',
       'Name:',
@@ -206,6 +208,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
       'City & Pincode:',
       'Phone:'
     ].filter(Boolean).join('\n');
+    setOrderSubmitted(true);
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   }
 
@@ -348,6 +351,19 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
               <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
               <span>Proceed to Pay on WhatsApp • {formatCurrency(grandTotal)}</span>
             </button>
+
+            {orderSubmitted && (
+              <div className="rounded-xl border border-emerald-300 bg-emerald-50/95 p-3 text-center space-y-1 shadow-2xs animate-in fade-in">
+                <p className="font-semibold text-emerald-950 text-xs flex items-center justify-center gap-1.5">
+                  <span>🌸</span>
+                  <span>WhatsApp Chat Opened!</span>
+                </p>
+                <p className="text-[11px] text-emerald-800 leading-relaxed">
+                  Hit <strong>Send</strong> in WhatsApp. We will confirm the piece availability and delivery schedule with you right away.
+                </p>
+              </div>
+            )}
+
             <p className="text-center text-[11px] text-gray-500">
               🔒 Instant UPI (GPay, PhonePe, Paytm) &amp; Bank Transfer confirmation via WhatsApp.
             </p>
