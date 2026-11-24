@@ -818,7 +818,7 @@ export default function HomePage() {
               <div className="mt-6 rounded-xl border border-gold-500/50 bg-[#faf6ee] p-5">
                 <p className="text-xs font-bold uppercase tracking-wider text-maroon-900">Customized Bridal &amp; Festive Orders</p>
                 <p className="mt-1 text-xs sm:text-sm text-[#5c4a35] leading-relaxed">
-                  Reach us on WhatsApp for inquiries and customized orders. We provide real-time drape previews, blouse fabric suggestions, and worldwide delivery support.
+                  Reach us on WhatsApp for inquiries and customized orders. We provide real-time drape previews, blouse fabric suggestions, and express delivery across India.
                 </p>
                 <a
                   href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to enquire about your custom saree & jewelry orders on https://shreivara-handlooms.vercel.app.')}`}
@@ -857,8 +857,8 @@ export default function HomePage() {
                   <a href="mailto:shreivara@gmail.com" className="text-gray-600 hover:underline">shreivara@gmail.com</a>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-gold-600 font-bold shrink-0">✈️ Shipping:</span>
-                  <p className="text-gray-600">Express doorstep delivery across India and worldwide shipping via trusted international couriers.</p>
+                  <span className="text-gold-600 font-bold shrink-0">🚚 Shipping:</span>
+                  <p className="text-gray-600">Express doorstep delivery across India via trusted express couriers. Free delivery on orders above Rs. 3,000.</p>
                 </div>
               </div>
             </div>

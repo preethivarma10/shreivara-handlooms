@@ -4,6 +4,7 @@ import AuthCallbackHandler from './components/AuthCallbackHandler.jsx';
 import SiteLayout from './components/SiteLayout.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import TermsPage from './pages/TermsPage.jsx';
 
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 
@@ -50,6 +51,10 @@ export default function App() {
           <Route path="checkout" element={<HomePage />} />
           <Route path="about" element={<Navigate to="/#about-us" replace />} />
           <Route path="about.html" element={<Navigate to="/#about-us" replace />} />
+          <Route path="terms" element={<TermsPage />} />
+          <Route path="terms-and-conditions" element={<TermsPage />} />
+          <Route path="terms.html" element={<TermsPage />} />
+          <Route path="terms-and-conditions.html" element={<TermsPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="login.html" element={<LoginPage />} />
           {/* Any attempt to access unknown routes redirects directly to homepage */}

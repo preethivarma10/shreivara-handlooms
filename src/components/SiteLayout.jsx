@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { categories, WHATSAPP_NUMBER } from '../data/products.js';
 import shreivaraLogo from '../assets/shreivara-logo.jpg';
 
@@ -481,6 +481,12 @@ function SiteHeader({ query, setQuery, cartCount, onOpenPanel }) {
             >
               About Us
             </button>
+            <Link
+              to="/terms"
+              className="cursor-pointer transition hover:text-maroon-900 whitespace-nowrap"
+            >
+              Terms
+            </Link>
           </nav>
 
           {/* Search Bar placed directly next to About Us */}
@@ -548,8 +554,14 @@ function SiteFooter() {
           </div>
           <p className="font-brand text-lg tracking-wider text-gold-500">Shreivara</p>
         </div>
-        <p className="text-white/60">Direct WhatsApp orders · Secure delivery · Trusted quality</p>
-        <div className="flex items-center gap-6 text-[#ded5c6]">
+        <p className="text-white/60">Direct WhatsApp orders · Express India delivery · Handloom authenticity</p>
+        <div className="flex flex-wrap items-center justify-center gap-5 text-[#ded5c6]">
+          <Link
+            to="/terms"
+            className="cursor-pointer underline decoration-white/40 underline-offset-4 transition hover:text-gold-500"
+          >
+            Terms &amp; Conditions
+          </Link>
           {WHATSAPP_NUMBER && (
             <a
               href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Shreivara, I would like to get in touch regarding https://shreivara-handlooms.vercel.app.')}`}
