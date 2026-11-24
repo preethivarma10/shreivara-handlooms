@@ -184,25 +184,25 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
     const itemLines = visibleCart.map(({ product, quantity }) => {
       const price = Number(product.sellingPrice ?? product.selling_price ?? product.price ?? 0);
       const lineTotal = price * quantity;
-      return `• ${product.name} [Code: ${product.sku}] × ${quantity} = ${formatCurrency(lineTotal)}`;
+      return `- ${product.name} [Code: ${product.sku}] x ${quantity} = ${formatCurrency(lineTotal)}`;
     });
     const message = [
-      '🛍️ *New Order from https://shreivara-handlooms.vercel.app:*',
+      '*New Order from https://shreivara-handlooms.vercel.app:*',
       '',
       '*Items ordered:*',
       ...itemLines,
       '',
-      '💰 *Payment & Cost Breakdown:*',
-      `• Items Subtotal: ${formatCurrency(subtotal)}`,
-      `• GST (5% Handloom): ${formatCurrency(gst)}`,
-      `• Shipping & Delivery: ${shipping === 0 ? 'FREE (Order above ₹3,000)' : formatCurrency(shipping)}`,
-      `• *Total Payable: ${formatCurrency(grandTotal)}*`,
+      '*Payment Breakdown:*',
+      `- Items Subtotal: ${formatCurrency(subtotal)}`,
+      `- GST (5% Handloom): ${formatCurrency(gst)}`,
+      `- Shipping & Delivery: ${shipping === 0 ? 'FREE (Order above Rs. 3,000)' : formatCurrency(shipping)}`,
+      `- *Total Payable: ${formatCurrency(grandTotal)}*`,
       '',
-      isFreeDelivery ? '🎉 *Eligible for Free Delivery!*' : '',
+      isFreeDelivery ? '*Eligible for FREE Delivery!*' : '',
       '',
-      'Please confirm availability and delivery schedule with payment details (UPI/GPay/PhonePe).',
+      'Please confirm availability and delivery schedule with payment details (UPI / GPay / PhonePe).',
       '',
-      '📦 *Delivery details:*',
+      '*Delivery details:*',
       'Name:',
       'Address:',
       'City & Pincode:',

@@ -31,7 +31,7 @@ const DEFAULT_ORDERS = [
     id: 'SHR-ORD-101',
     customerName: 'Sravani Rao',
     phone: '+91 98490 12345',
-    items: 'Royal Kanjivaram Silk (SHR-001) × 1',
+    items: 'Royal Kanjivaram Silk (SHR-001) x 1',
     total: 14999,
     orderDate: '2026-10-18',
     status: 'Dispatched',
@@ -44,7 +44,7 @@ const DEFAULT_ORDERS = [
     id: 'SHR-ORD-102',
     customerName: 'Ananya Verma',
     phone: '+91 99887 65432',
-    items: 'Mangalagiri Cotton Elegance (SHR-002) × 2',
+    items: 'Mangalagiri Cotton Elegance (SHR-002) x 2',
     total: 8998,
     orderDate: '2026-10-20',
     status: 'Dispatched',
@@ -57,7 +57,7 @@ const DEFAULT_ORDERS = [
     id: 'SHR-ORD-103',
     customerName: 'Pooja Reddy',
     phone: '+91 97001 54321',
-    items: 'Antique Goddess Temple Choker (JWL-001) × 1',
+    items: 'Antique Goddess Temple Choker (JWL-001) x 1',
     total: 7999,
     orderDate: '2026-10-21',
     status: 'Pending',
@@ -838,16 +838,16 @@ function DispatchedOrdersManager() {
     const cleanPhone = (order.phone || '').replace(/[^0-9]/g, '');
     const trackingLink = getDirectTrackingUrl(order);
     const trackingSection = trackingLink
-      ? `🔗 *Courier Tracking Link (Live Updates):*\n${trackingLink}`
-      : `🔖 *Tracking / AWB:* ${order.trackingNumber || 'Courier tracking link will be shared shortly'}`;
-    const message = `Namaste ${order.customerName}! 🌸\n\nYour order *${order.id}* from *Shreivara Handlooms & Fine Jewelry* has been shipped! 📦✨\n\n📋 *Items:* ${order.items}\n🚚 *Courier Partner:* ${order.courier || 'Express Courier'}\n${trackingSection}\n\nYou can click the link above anytime to check live delivery updates directly from the courier.\n\nThank you for choosing Shreivara! Feel free to reach out if you have any questions.`;
+      ? `*Courier Tracking Link (Live Updates):*\n${trackingLink}`
+      : `*Tracking / AWB:* ${order.trackingNumber || 'Courier tracking link will be shared shortly'}`;
+    const message = `Namaste ${order.customerName}!\n\nYour order *${order.id}* from *Shreivara Handlooms & Fine Jewelry* has been shipped!\n\n- Items: ${order.items}\n- Courier Partner: ${order.courier || 'Express Courier'}\n${trackingSection}\n\nYou can click the link above anytime to check live delivery updates directly from the courier.\n\nThank you for choosing Shreivara! Feel free to reach out if you have any questions.`;
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   }
 
   const [showAutoReplyGuide, setShowAutoReplyGuide] = useState(false);
   const [copiedTemplate, setCopiedTemplate] = useState(false);
 
-  const autoReplyTemplate = `Namaste! 🌸 Thank you for choosing Shreivara Handlooms & Fine Jewelry. We have received your order details! Our team is checking live inventory and will confirm the availability of your selected piece(s) and deliver to you shortly. ✨`;
+  const autoReplyTemplate = `Namaste! Thank you for choosing Shreivara Handlooms & Fine Jewelry. We have received your order details! Our team is checking live inventory and will confirm the availability of your selected piece(s) and deliver to you shortly.`;
 
   function copyAutoReplyTemplate() {
     try {
@@ -859,7 +859,7 @@ function DispatchedOrdersManager() {
 
   function generateWhatsAppAvailabilityUrl(order) {
     const cleanPhone = (order.phone || '').replace(/[^0-9]/g, '');
-    const message = `Namaste ${order.customerName || 'valued customer'}! 🌸\n\nThank you for choosing *Shreivara Handlooms & Fine Jewelry*! ✨\n\nWe are pleased to confirm that your selected item(s) are *available in stock*:\n📋 *Items:* ${order.items || 'Selected Handloom Piece'}\n💰 *Order Total:* ${order.total || ''}\n\n📦 *Delivery Confirmation:*\nWe will safely pack and deliver your order to your address via Express Courier. We will share your live courier tracking link with you right here on WhatsApp as soon as it is dispatched.\n\nPlease confirm if you would like us to proceed with dispatch!\n\nWarm regards,\n*Shreivara Handlooms*`;
+    const message = `Namaste ${order.customerName || 'valued customer'}!\n\nThank you for choosing *Shreivara Handlooms & Fine Jewelry*!\n\nWe are pleased to confirm that your selected item(s) are *available in stock*:\n- Items: ${order.items || 'Selected Handloom Piece'}\n- Order Total: ${order.total || ''}\n\n*Delivery Confirmation:*\nWe will safely pack and deliver your order to your address via Express Courier. We will share your live courier tracking link with you right here on WhatsApp as soon as it is dispatched.\n\nPlease confirm if you would like us to proceed with dispatch!\n\nWarm regards,\n*Shreivara Handlooms*`;
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   }
 
@@ -1055,7 +1055,7 @@ function DispatchedOrdersManager() {
               <input
                 required
                 type="text"
-                placeholder="e.g. Royal Kanjivaram Silk (SHR-001) × 1"
+                placeholder="e.g. Royal Kanjivaram Silk (SHR-001) x 1"
                 value={newOrder.items}
                 onChange={(e) => setNewOrder({ ...newOrder, items: e.target.value })}
                 className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs focus:border-[#285338] focus:outline-none"

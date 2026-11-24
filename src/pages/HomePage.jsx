@@ -181,15 +181,15 @@ function ProductCard({ product, cartQuantity = 0, onAddToBag, onOpenDetail }) {
     isSoldOut
       ? 'Hello Shreivara, I noticed this piece is currently sold out and would like to inquire about a custom weave / restock:'
       : 'Hello Shreivara, I would like to inquire about / order this piece:',
-    `• Product: ${name}`,
-    `• Code: ${sku}`,
-    `• Category: ${category}`,
-    `• Price: ${formatCurrency(sellingPrice)}`,
-    originalPrice > sellingPrice ? `• Original Price: ${formatCurrency(originalPrice)}` : '',
-    offerDetails ? `• Offer: ${offerDetails}` : '',
-    description ? `• Details: ${description}` : '',
-    `• View: ${activeImage}`,
-    '• Storefront: https://shreivara-handlooms.vercel.app',
+    `- Product: ${name}`,
+    `- Code: ${sku}`,
+    `- Category: ${category}`,
+    `- Price: ${formatCurrency(sellingPrice)}`,
+    originalPrice > sellingPrice ? `- Original Price: ${formatCurrency(originalPrice)}` : '',
+    offerDetails ? `- Offer: ${offerDetails}` : '',
+    description ? `- Details: ${description}` : '',
+    `- View: ${activeImage}`,
+    '- Storefront: https://shreivara-handlooms.vercel.app',
     '',
     'Please confirm availability and delivery details.'
   ].filter(Boolean).join('\n'));
@@ -382,15 +382,15 @@ function ProductDetailModal({ product, initialIdx = 0, onClose, cartQuantity = 0
     isSoldOut
       ? 'Hello Shreivara, I noticed this piece is currently sold out and would like to inquire about a custom weave / restock:'
       : 'Hello Shreivara, I would like to inquire about / order this piece:',
-    `• Product: ${name}`,
-    `• Code: ${sku}`,
-    `• Category: ${category}`,
-    `• Price: ${formatCurrency(sellingPrice)}`,
-    originalPrice > sellingPrice ? `• Original Price: ${formatCurrency(originalPrice)}` : '',
-    offerDetails ? `• Offer: ${offerDetails}` : '',
-    description ? `• Details: ${description}` : '',
-    `• View: ${activeImage}`,
-    '• Storefront: https://shreivara-handlooms.vercel.app',
+    `- Product: ${name}`,
+    `- Code: ${sku}`,
+    `- Category: ${category}`,
+    `- Price: ${formatCurrency(sellingPrice)}`,
+    originalPrice > sellingPrice ? `- Original Price: ${formatCurrency(originalPrice)}` : '',
+    offerDetails ? `- Offer: ${offerDetails}` : '',
+    description ? `- Details: ${description}` : '',
+    `- View: ${activeImage}`,
+    '- Storefront: https://shreivara-handlooms.vercel.app',
     '',
     'Please confirm availability and delivery details.'
   ].filter(Boolean).join('\n'));
