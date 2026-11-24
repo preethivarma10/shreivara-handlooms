@@ -209,7 +209,14 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
       'Phone:'
     ].filter(Boolean).join('\n');
     setOrderSubmitted(true);
+    // 1. Open WhatsApp in a new tab with pre-filled order details
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+
+    // 2. Empty the shopping cart immediately (catalog inventory quantity remains intact)
+    setCartItems([]);
+    try {
+      window.localStorage.removeItem('shreivara-cart');
+    } catch (_) {}
   }
 
   return (
@@ -277,7 +284,40 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
                 </div>
               </article>
             );
-          }) : (
+          }) : orderSubmitted ? (
+            <div className="py-10 text-center space-y-4 px-2 animate-in fade-in">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 shadow-inner">
+                <span className="text-3xl">🌸</span>
+              </div>
+              <div className="space-y-2">
+                <span className="inline-block rounded-full bg-emerald-100 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                  Order Forwarded to WhatsApp
+                </span>
+                <h3 className="font-brand text-2xl font-bold text-emerald-950">Thank you for ordering!</h3>
+                <p className="text-xs text-neutral-600 leading-relaxed max-w-xs mx-auto">
+                  Your order has been forwarded to WhatsApp and your cart has been cleared.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/90 p-3.5 text-left space-y-1.5 shadow-2xs">
+                <p className="text-xs font-semibold text-emerald-950 flex items-center gap-1.5">
+                  <span>✨</span>
+                  <span>Next Steps:</span>
+                </p>
+                <p className="text-[11.5px] text-emerald-900 leading-relaxed">
+                  Hit <strong>Send</strong> in WhatsApp. We will confirm item availability, share payment instructions (UPI / GPay / PhonePe), and dispatch your order.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="cursor-pointer mt-3 inline-flex items-center rounded-xl bg-maroon-900 hover:bg-maroon-800 text-[#f8f5ed] px-6 py-3 text-xs font-semibold uppercase tracking-wider shadow-sm transition"
+              >
+                Continue Shopping
+              </button>
+            </div>
+          ) : (
             <div className="py-16 text-center space-y-3">
               <span className="text-4xl block">🛍️</span>
               <p className="font-brand text-xl text-gray-600">Your cart is empty.</p>
@@ -349,7 +389,7 @@ function StorePanel({ panel, products, cartItems, setCartItems, onClose }) {
               className="cursor-pointer w-full rounded-xl bg-[#25d366] hover:bg-[#1ebe5d] px-5 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition shadow-sm flex items-center justify-center gap-2"
             >
               <span className="h-4 w-4 shrink-0"><WhatsAppIcon /></span>
-              <span>Proceed to Pay on WhatsApp • {formatCurrency(grandTotal)}</span>
+              <span>Proceed to Pay on WhatsApp - {formatCurrency(grandTotal)}</span>
             </button>
 
             {orderSubmitted && (
